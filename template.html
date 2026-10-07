@@ -546,7 +546,7 @@ const I18N = {
     v_rev: 'Excel 版次',
     f_type: '技術類別 Type', f_ptype: '產品型態 Product Type', f_atype: '天線類型 Antenna Type',
     f_form: '外型', f_mount: '安裝方式', f_conn: '連接器', f_ip: '防護等級', f_qty: '天線埠數', f_brochure: '銷售區域',
-    jpOnly: '僅顯示日本市場相容', hideNonPro: '隱藏 Non-PRO (客製/配件)', hideEol: '隱藏 NRND / EOL 料號',
+    f_jp: '日本市場 Japan Market',
     [NA]: '未標示', [NONE]: '無', [OTHER]: '其他',
     badgeJp: 'JP 相容', removeTag: '移除條件 {x}',
     s_form: '型態', s_mount: '安裝', s_conn: '連接器', s_gain: '增益', s_cable: '線長',
@@ -603,7 +603,7 @@ const I18N = {
     v_rev: 'Excel revision',
     f_type: 'Type', f_ptype: 'Product Type', f_atype: 'Antenna Type',
     f_form: 'Form factor', f_mount: 'Mounting', f_conn: 'Connector', f_ip: 'IP rating', f_qty: 'Antenna ports', f_brochure: 'Sales region',
-    jpOnly: 'Japan-compatible only', hideNonPro: 'Hide Non-PRO (custom / accessories)', hideEol: 'Hide NRND / EOL parts',
+    f_jp: 'Japan Market',
     [NA]: 'Unspecified', [NONE]: 'None', [OTHER]: 'Other',
     badgeJp: 'JP OK', removeTag: 'Remove filter {x}',
     s_form: 'Form', s_mount: 'Mount', s_conn: 'Connector', s_gain: 'Gain', s_cable: 'Cable',
@@ -659,7 +659,7 @@ const I18N = {
     v_rev: 'Excel 版数',
     f_type: '技術タイプ Type', f_ptype: '製品タイプ Product Type', f_atype: 'アンテナタイプ Antenna Type',
     f_form: '形状', f_mount: '取付方法', f_conn: 'コネクタ', f_ip: '防塵防水等級', f_qty: 'アンテナポート数', f_brochure: '販売地域',
-    jpOnly: '日本市場対応のみ表示',
+    f_jp: '日本市場 Japan Market',
     [NA]: '未記載', [NONE]: 'なし', [OTHER]: 'その他',
     badgeJp: 'JP 対応', removeTag: '条件を解除：{x}',
     s_form: '形状', s_mount: '取付', s_conn: 'コネクタ', s_gain: 'ゲイン', s_dim: '寸法 (mm)',
@@ -714,7 +714,7 @@ const I18N = {
     v_rev: 'Excel 개정판',
     f_type: '기술 유형 Type', f_ptype: '제품 유형 Product Type', f_atype: '안테나 유형 Antenna Type',
     f_form: '형태', f_mount: '장착 방식', f_conn: '커넥터', f_ip: '방진·방수 등급', f_qty: '안테나 포트 수', f_brochure: '판매 지역',
-    jpOnly: '일본 시장 호환 제품만 표시',
+    f_jp: '일본 시장 Japan Market',
     [NA]: '미기재', [NONE]: '없음', [OTHER]: '기타',
     badgeJp: 'JP 호환', removeTag: '조건 해제: {x}',
     s_form: '형태', s_mount: '장착', s_conn: '커넥터', s_gain: '이득', s_dim: '크기 (mm)',
@@ -855,6 +855,8 @@ const PAGES = {
       { key: 'type', ui: 'select', get: (p) => typeLabel(p.type) },
       { key: 'ptype', ui: 'select', get: (p) => p.ptype || OTHER },
       { key: 'atype', ui: 'select', get: (p) => p.atype || NA },
+      // Japan Market：取自 Excel「Compatible with Japan Market」欄 (YES → Yes，其餘 → No)
+      { key: 'jp', ui: 'select', get: (p) => (p.jp ? 'Yes' : 'No'), sort: (a, b) => (b === 'Yes') - (a === 'Yes') },
       { key: 'form', ui: 'checks', get: (p) => p.form || NA },
       { key: 'mount', ui: 'checks', get: (p) => p.mount || NA },
       { key: 'conn', ui: 'checks', get: (p) => (p.conn && p.conn.length ? p.conn.map(connFamily) : [NONE]) },
@@ -864,12 +866,11 @@ const PAGES = {
     ],
     toggles: [
       { key: 'certOnly', test: (p) => (p.certs || []).length > 0 },
-      { key: 'jpOnly', test: (p) => p.jp },
     ],
   },
 };
 const facetTitle = (f) => t('f_' + f.key);
-const toggleLabel = { certOnly: 'certOnly', jpOnly: 'jpOnly' };
+const toggleLabel = { certOnly: 'certOnly' };
 
 /* ==========================================================================
    狀態 (每頁獨立，存在 localStorage)
@@ -1553,6 +1554,8 @@ function route() {
   if (location.hash) history.replaceState(null, '', location.pathname + location.search);
   state = Object.assign(freshState(page), store.load(page) || {});
   if (state.module && !DATA.modules.some((m) => m.name === state.module)) state.module = '';
+  if (state.toggles?.jpOnly) { state.sel.jp = ['Yes']; }
+  if (state.toggles) delete state.toggles.jpOnly;
   $('sortSel').value = state.sort;
   renderPageText();
   setFilters(false);
