@@ -312,6 +312,15 @@ footer { max-width: 1360px; margin: 0 auto; padding: 0 20px 32px; font-size: 12p
 .tool-btn:hover { border-color: var(--muted); }
 .tool-btn svg { flex: none; }
 .tool-btn.ver { color: var(--muted); }
+.tool-btn.lang { padding: 0 0 0 10px; position: relative; }
+.tool-btn.lang select {
+  appearance: none; -webkit-appearance: none; border: 0; background: transparent; color: inherit;
+  font: inherit; font-weight: 500; padding: 6px 24px 6px 0; cursor: pointer;
+}
+.tool-btn.lang::after { content: "▾"; position: absolute; right: 9px; pointer-events: none; font-size: 11px; color: var(--muted); }
+/* 日文 / 韓文：使用對應語系字型，避免漢字字形混用 */
+:root:lang(ja) { --font: "IBM Plex Sans", "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic UI", "Meiryo", "Noto Sans CJK JP", "Noto Sans JP", system-ui, sans-serif; }
+:root:lang(ko) { --font: "IBM Plex Sans", "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans CJK KR", "Noto Sans KR", system-ui, sans-serif; }
 .tool-btn .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--danger); display: none; }
 .tool-btn.has-update .dot { display: inline-block; }
 .tool-btn.spin svg { animation: spin .8s linear infinite; }
@@ -333,9 +342,6 @@ footer { max-width: 1360px; margin: 0 auto; padding: 0 20px 32px; font-size: 12p
 .ver-grid dt { color: var(--muted); }
 .ver-grid dd { margin: 0; font-weight: 500; overflow-wrap: anywhere; }
 .ok { color: var(--accent); }
-.changelog { margin: 0; padding: 0; list-style: none; display: grid; gap: 12px; }
-.changelog h4 { margin: 0 0 4px; font-size: 14px; }
-.changelog ul { margin: 0; padding-left: 18px; font-size: 13px; color: var(--muted); }
 dialog.detail.small { width: min(560px, calc(100vw - 24px)); }
 .d-simple-head { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; border-bottom: 1px solid var(--rule); }
 .d-simple-head h2 { margin: 0; font-size: 18px; }
@@ -360,7 +366,7 @@ html.offline .net { display: inline-flex; }
   .top-inner { gap: 10px; padding: 10px 14px; }
   .brand { width: 100%; }
   .tool-btn .lbl { display: none; }
-  .tool-btn.ver .lbl, .tool-btn.lang .lbl, .tool-btn.install .lbl { display: inline; }
+  .tool-btn.ver .lbl, .tool-btn.install .lbl { display: inline; }
   .quick { grid-template-columns: 1fr 1fr; padding: 10px; }
   .quick .module { grid-column: 1 / -1; }
 }
@@ -383,10 +389,15 @@ html.offline .net { display: inline-flex; }
         <span class="lbl" data-i18n="install"></span>
       </button>
       <!-- 中英文切換 -->
-      <button class="tool-btn lang" id="langBtn" type="button">
+      <label class="tool-btn lang">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg>
-        <span class="lbl" id="langLbl"></span>
-      </button>
+        <select id="langSel">
+          <option value="zh" lang="zh-Hant-TW">中文</option>
+          <option value="en" lang="en">English</option>
+          <option value="ja" lang="ja">日本語</option>
+          <option value="ko" lang="ko">한국어</option>
+        </select>
+      </label>
       <!-- 深色/淺色切換 -->
       <button class="tool-btn" id="themeBtn" type="button">
         <svg id="themeIcon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"></svg>
@@ -480,20 +491,6 @@ const APP_VERSION = DATA.version || '0.0.0';
  */
 const DATASHEET_URL = '';
 
-/** 更新紀錄 (新版本請加在最上方) */
-const CHANGELOG = [
-  { v: '3.0.0', zh: ['改用「Antenna Product and TELEC Certification」單一 Excel 為資料來源', '移除 Global / 日本市場分頁，整合為單一頁面', '新增 TELEC 認證模組選單 (依類別分組、顯示認證日期與天線數)', '清單顯示每款天線已認證的模組數，詳細資料列出所有認證模組', '新增「僅顯示有 TELEC 認證」篩選'],
-    en: ['Single data source: "Antenna Product and TELEC Certification" Excel', 'Global / Japan tabs merged into one page', 'TELEC-certified module menu (grouped by category, with cert date and antenna count)', 'Each row shows its certified-module count; detail view lists every certified module', '"TELEC-certified only" filter'] },
-  { v: '2.3.0', zh: ['清單每一列顯示尺寸 Dimensions (mm)', '新增「依尺寸排序 (小→大)」', '新增尺寸上限篩選 (最長邊 ≤ X mm)', '尺寸格式統一 (×、Φ、去除 mm)'],
-    en: ['Dimensions (mm) shown on every row', 'Sort by size (small→large)', 'Max-size filter (longest side ≤ X mm)', 'Normalized dimension format (×, Φ, no "mm")'] },
-  { v: '2.2.0', zh: ['新增 Datasheet 按鈕 (清單與詳細規格皆可開啟，不顯示網址)', '連結來源：Selector「PRO」與 JP 天線表，互相補齊缺漏'],
-    en: ['Datasheet button in the list and detail view (URL hidden)', 'Links come from the Selector "PRO" sheet and the JP list, each filling gaps in the other'] },
-  { v: '2.1.0', zh: ['完全離線：移除所有外部資源，字型內嵌，首次開啟即快取全部檔案', '新增「安裝 App」按鈕與 iOS / Android / Windows 安裝說明', '新增離線狀態標示', '強制更新會先確認伺服器可連線，離線時不會清除快取', '申請永久儲存，降低離線資料被系統清除的機會'],
-    en: ['Fully offline: no external resources, embedded fonts, all files cached on first launch', 'Install button with iOS / Android / Windows instructions', 'Offline status indicator', 'Force update checks the server first and never clears the cache while offline', 'Requests persistent storage so offline data is less likely to be evicted'] },
-  { v: '2.0.0', zh: ['新增強制更新按鈕，並自動偵測伺服器新版本', '新增深色 / 淺色模式切換按鈕', '新增中文 / English 介面切換', '新增版本資訊視窗', '新增 Type、Product Type、Antenna Type 下拉選單（日本頁另含模組選單）'],
-    en: ['Force-update button with automatic new-version detection', 'Dark / light theme toggle', 'Chinese / English UI switch', 'Version info dialog', 'Type, Product Type and Antenna Type dropdowns (plus module menu on the Japan page)'] },
-  { v: '1.0.0', zh: ['初版：Global 與日本市場兩頁、頻譜尺篩選、離線 PWA'], en: ['Initial release: Global and Japan pages, spectrum ruler filter, offline PWA'] },
-];
 
 const PAGE_SIZE = 60;
 const F_MIN = 400, F_MAX = 8000;           // 頻譜尺範圍 (MHz)，對數刻度
@@ -508,7 +505,7 @@ const NA = '__na__', NONE = '__none__', OTHER = '__other__';
 const I18N = {
   zh: {
     brand: 'Quectel 天線選型 · TELEC',
-    langLbl: 'EN', langAria: 'Switch to English',
+    langAria: '語言',
     themeDark: '深色', themeLight: '淺色', themeAriaDark: '切換為深色模式', themeAriaLight: '切換為淺色模式',
     update: '強制更新', updateAria: '清除快取並重新載入最新版本', updating: '正在清除快取並重新載入…',
     newVersion: '伺服器有新版本 v{v}，按「強制更新」套用',
@@ -547,7 +544,7 @@ const I18N = {
     verTitle: '版本資訊', v_app: 'App 版本', v_built: '資料建置時間', v_latest: '伺服器版本', v_sw: '離線快取',
     v_src: '資料來源', v_count: '資料數量', v_countVal: '天線 {a} 款；模組 {m} 款；認證組合 {c} 筆',
     checking: '檢查中…', upToDate: 'v{v}（已是最新）', newer: 'v{v}（可更新）', cantCheck: '無法檢查（離線或預覽環境）',
-    swOn: '已啟用，可離線使用', swOff: '未啟用（需部署於 HTTPS）', changelog: '更新紀錄',
+    swOn: '已啟用，可離線使用', swOff: '未啟用（需部署於 HTTPS）',
     offline: '離線模式', backOnline: '已恢復連線', offlineReady: '已可離線使用',
     install: '安裝 App', installTitle: '安裝為 App', installed: '已安裝，可從主畫面或開始選單開啟',
     offlineNoUpdate: '目前離線，無法更新。恢復連線後再試一次。',
@@ -563,7 +560,7 @@ const I18N = {
   },
   en: {
     brand: 'Quectel Antenna Selector · TELEC',
-    langLbl: '中文', langAria: '切換為中文',
+    langAria: 'Language',
     themeDark: 'Dark', themeLight: 'Light', themeAriaDark: 'Switch to dark mode', themeAriaLight: 'Switch to light mode',
     update: 'Force update', updateAria: 'Clear cache and reload the latest version', updating: 'Clearing cache and reloading…',
     newVersion: 'Version v{v} is available. Press "Force update" to apply.',
@@ -602,7 +599,7 @@ const I18N = {
     verTitle: 'Version info', v_app: 'App version', v_built: 'Data built', v_latest: 'Server version', v_sw: 'Offline cache',
     v_src: 'Data source', v_count: 'Records', v_countVal: '{a} antennas; {m} modules; {c} certifications',
     checking: 'Checking…', upToDate: 'v{v} (up to date)', newer: 'v{v} (update available)', cantCheck: 'Unavailable (offline or preview)',
-    swOn: 'Active, works offline', swOff: 'Inactive (requires HTTPS deployment)', changelog: 'Changelog',
+    swOn: 'Active, works offline', swOff: 'Inactive (requires HTTPS deployment)',
     offline: 'Offline', backOnline: 'Back online', offlineReady: 'Ready to work offline',
     install: 'Install app', installTitle: 'Install as an app', installed: 'Installed. Open it from your home screen or Start menu.',
     offlineNoUpdate: 'You are offline, so the app cannot update. Try again when connected.',
@@ -616,26 +613,142 @@ const I18N = {
     sizeHint: 'Compared using the largest value in the dimensions (Φ = diameter)', sizeTag: 'Longest side ≤ {n} mm',
     datasheet: 'Datasheet', dsAria: 'Open datasheet for {oc}', dsOffline: 'Datasheets need a network connection (and company sign-in)',
   },
+  ja: {
+    brand: 'Quectel アンテナ選定 · TELEC', langAria: '言語',
+    themeDark: 'ダーク', themeLight: 'ライト', themeAriaDark: 'ダークモードに切り替え', themeAriaLight: 'ライトモードに切り替え',
+    update: '強制更新', updateAria: 'キャッシュを削除して最新版を再読み込み', updating: 'キャッシュを削除して再読み込みしています…',
+    newVersion: '新しいバージョン v{v} があります。「強制更新」を押して適用してください。',
+    verAria: 'バージョン情報',
+    mTitle: 'アンテナ選定と TELEC 認証', mSub: 'モジュールを選ぶと TELEC 認証済みのアンテナを表示します。周波数帯をタップすると、その帯域をカバーするアンテナに絞り込めます。',
+    scrollHint: '左右にスワイプしてほかの周波数帯を表示', customBand: 'カスタム帯域', lo: '下限 MHz', hi: '上限 MHz', addNeed: '追加',
+    needN: '<b>{n}</b> 帯域をカバー', noNeed: '周波数帯の条件はまだありません', bandTitle: '{l}：{lo}–{hi} MHz', bandRemove: '（もう一度押すと解除）',
+    filters: '絞り込み条件', done: '完了', resetAll: 'すべての条件をクリア', search: '品番・名称・周波数で検索…', searchAria: '検索',
+    countOf: '/ {n} 件のアンテナ', filterBtn: '絞り込み', sort: '並べ替え',
+    sortOc: '品番順', sortGain: 'ピークゲイン順（高→低）', sortSpan: '帯域幅順（広→狭）',
+    copyList: '品番リストをコピー', more: 'さらに表示（残り {n} 件）',
+    emptyT: 'すべての条件に一致するアンテナはありません', emptyD: '周波数帯や絞り込み条件を一部解除して、もう一度お試しください。',
+    all: 'すべて', module: 'TELEC 認証モジュール', allModules: 'すべてのモジュール',
+    moduleHint: 'このモジュールと組み合わせて TELEC 認証を取得したアンテナのみ表示', modInfo: 'カテゴリ <b>{c}</b>　認証日 <b>{d}</b>　認証済みアンテナ <b>{n}</b> 件',
+    modNone: 'このモジュールで認証済みのアンテナはまだありません', noDate: '—',
+    certOnly: 'TELEC 認証済みのアンテナのみ表示', badgeCert: 'TELEC ×{n}', certTitle: 'TELEC 認証モジュール（{n}）', certNone: 'TELEC 認証モジュールはまだありません',
+    v_rev: 'Excel 版数',
+    f_type: '技術タイプ Type', f_ptype: '製品タイプ Product Type', f_atype: 'アンテナタイプ Antenna Type',
+    f_form: '形状', f_mount: '取付方法', f_conn: 'コネクタ', f_ip: '防塵防水等級', f_qty: 'アンテナポート数', f_brochure: '販売地域',
+    jpOnly: '日本市場対応のみ表示',
+    [NA]: '未記載', [NONE]: 'なし', [OTHER]: 'その他',
+    badgeJp: 'JP 対応', removeTag: '条件を解除：{x}',
+    s_form: '形状', s_mount: '取付', s_conn: 'コネクタ', s_gain: 'ゲイン', s_dim: '寸法 (mm)',
+    copyOc: '品番をコピー', close: '閉じる',
+    freqCov: '周波数カバー範囲', rfPerf: 'RF 性能', specs: '仕様',
+    th_tech: '技術', th_freq: '周波数', th_qty: '数量', th_eff: '効率', th_gain: 'ピークゲイン', th_pat: '放射パターン', th_pol: '偏波',
+    replaces: 'この品番の置き換え対象：',
+    k_type: '技術タイプ', k_ptype: '製品タイプ', k_form: '形状', k_atype: 'アンテナタイプ', k_qty: 'アンテナポート数', k_mount: '取付方法',
+    k_dim: '寸法 (mm)', k_conn: 'コネクタ', k_cables: 'ケーブル', k_lna: 'LNA ゲイン (dB)', k_ip: 'IP 等級', k_ik: 'IK 等級',
+    k_flame: '難燃性', k_uv: '耐 UV', k_env: '環境規制', k_temp: '動作温度', k_evb: 'EVB 品番', k_evbDim: 'EVB 寸法 (mm)',
+    k_brochure: '販売地域', k_jp: '日本市場', jpYes: '対応',
+    copied: '{oc} をコピーしました', copiedN: '{n} 件の品番をコピーしました', noResults: 'コピーする結果がありません', clipFail: 'クリップボードにアクセスできません',
+    invalidFreq: '有効な周波数（MHz）を入力してください', notOnPage: 'この一覧にない品番のため、検索に切り替えました',
+    footer: 'データ出典：{s}（{r}）。周波数帯の境界は一般的な公開割り当てに基づきます。最終的な選定はデータシートと実測結果で確認してください。',
+    verTitle: 'バージョン情報', v_app: 'アプリのバージョン', v_built: 'データ作成日時', v_latest: 'サーバーのバージョン', v_sw: 'オフラインキャッシュ',
+    v_src: 'データ出典', v_count: 'データ件数', v_countVal: 'アンテナ {a} 件、モジュール {m} 件、認証の組み合わせ {c} 件',
+    checking: '確認中…', upToDate: 'v{v}（最新）', newer: 'v{v}（更新あり）', cantCheck: '確認できません（オフラインまたはプレビュー環境）',
+    swOn: '有効（オフラインで使用可能）', swOff: '無効（HTTPS での配信が必要）',
+    offline: 'オフライン', backOnline: 'オンラインに復帰しました', offlineReady: 'オフラインで使用できるようになりました',
+    install: 'アプリをインストール', installTitle: 'アプリとしてインストール', installed: 'インストールしました。ホーム画面またはスタートメニューから開けます。',
+    offlineNoUpdate: 'オフラインのため更新できません。接続後にもう一度お試しください。',
+    serverUnreachable: 'サーバーに接続できないため、現在のバージョンを維持しました。',
+    v_mode: '実行モード', modeApp: 'アプリ（インストール済み）', modeBrowser: 'ブラウザ', v_storage: 'オフラインデータの保存', persistOn: '固定（自動では削除されません）', persistOff: '通常（長期間使わないと削除される場合があります）',
+    iosSteps: ['<b>Safari</b> でこのページを開きます（iOS では Safari からのみインストールできます）', 'ツールバーの <b>共有</b> ボタン <span class="kbd">⬆︎</span> をタップします', '下にスクロールして <b>ホーム画面に追加</b> をタップします', '<b>追加</b> をタップし、ホーム画面のアイコンから開きます'],
+    androidSteps: ['<b>Chrome</b> でこのページを開きます', '<b>⋮</b> メニューをタップします', '<b>アプリをインストール</b>（または「ホーム画面に追加」）をタップします', 'ホーム画面またはアプリ一覧から開きます'],
+    desktopSteps: ['<b>Edge</b> または <b>Chrome</b> でこのページを開きます', 'アドレスバー右側の <b>インストール</b> アイコン <span class="kbd">⊕</span>、またはメニュー → <b>アプリ</b> → <b>このサイトをアプリとしてインストール</b> をクリックします', '<b>スタートメニュー</b> から開けます。タスクバーにピン留めもできます'],
+    installNote: 'インストール後に一度開くと、ネットワークがない環境でも使用できます。',
+    sortSize: 'サイズ順（小→大）', f_size: 'サイズ上限', sizeLbl: '最長辺 ≤', sizeUnit: 'mm',
+    sizeHint: '寸法の最大値で比較します（Φ は直径）', sizeTag: '最長辺 ≤ {n} mm',
+    datasheet: 'Datasheet', dsAria: '{oc} のデータシートを開く', dsOffline: 'データシートの表示にはネットワーク接続（と社内アカウントでのサインイン）が必要です',
+  },
+  ko: {
+    brand: 'Quectel 안테나 선정 · TELEC', langAria: '언어',
+    themeDark: '다크', themeLight: '라이트', themeAriaDark: '다크 모드로 전환', themeAriaLight: '라이트 모드로 전환',
+    update: '강제 업데이트', updateAria: '캐시를 지우고 최신 버전을 다시 불러오기', updating: '캐시를 지우고 다시 불러오는 중…',
+    newVersion: '새 버전 v{v}을(를) 사용할 수 있습니다. "강제 업데이트"를 눌러 적용하세요.',
+    verAria: '버전 정보',
+    mTitle: '안테나 선정 및 TELEC 인증', mSub: '모듈을 선택하면 TELEC 인증을 받은 안테나를 보여 줍니다. 주파수 대역을 누르면 해당 대역을 지원하는 안테나만 표시합니다.',
+    scrollHint: '좌우로 밀어 다른 대역 보기', customBand: '사용자 지정 대역', lo: '하한 MHz', hi: '상한 MHz', addNeed: '추가',
+    needN: '<b>{n}</b>개 대역 지원 필요', noNeed: '아직 지정한 주파수 대역이 없습니다', bandTitle: '{l}: {lo}–{hi} MHz', bandRemove: ' (다시 누르면 해제)',
+    filters: '필터', done: '완료', resetAll: '모든 조건 지우기', search: '품번, 이름, 주파수로 검색…', searchAria: '검색',
+    countOf: '/ {n}개 안테나', filterBtn: '필터', sort: '정렬',
+    sortOc: '품번순', sortGain: '피크 이득순 (높음→낮음)', sortSpan: '대역폭순 (넓음→좁음)',
+    copyList: '품번 목록 복사', more: '더 보기 ({n}개 남음)',
+    emptyT: '모든 조건에 맞는 안테나가 없습니다', emptyD: '일부 주파수 대역이나 필터 조건을 해제한 뒤 다시 시도하세요.',
+    all: '전체', module: 'TELEC 인증 모듈', allModules: '모든 모듈',
+    moduleHint: '이 모듈과 함께 TELEC 인증을 받은 안테나만 표시', modInfo: '분류 <b>{c}</b>   인증일 <b>{d}</b>   인증 안테나 <b>{n}</b>개',
+    modNone: '이 모듈로 인증된 안테나가 아직 없습니다', noDate: '—',
+    certOnly: 'TELEC 인증 안테나만 표시', badgeCert: 'TELEC ×{n}', certTitle: 'TELEC 인증 모듈 ({n})', certNone: '아직 TELEC 인증 모듈이 없습니다',
+    v_rev: 'Excel 개정판',
+    f_type: '기술 유형 Type', f_ptype: '제품 유형 Product Type', f_atype: '안테나 유형 Antenna Type',
+    f_form: '형태', f_mount: '장착 방식', f_conn: '커넥터', f_ip: '방진·방수 등급', f_qty: '안테나 포트 수', f_brochure: '판매 지역',
+    jpOnly: '일본 시장 호환 제품만 표시',
+    [NA]: '미기재', [NONE]: '없음', [OTHER]: '기타',
+    badgeJp: 'JP 호환', removeTag: '조건 해제: {x}',
+    s_form: '형태', s_mount: '장착', s_conn: '커넥터', s_gain: '이득', s_dim: '크기 (mm)',
+    copyOc: '품번 복사', close: '닫기',
+    freqCov: '주파수 지원 범위', rfPerf: 'RF 성능', specs: '사양',
+    th_tech: '기술', th_freq: '주파수', th_qty: '수량', th_eff: '효율', th_gain: '피크 이득', th_pat: '방사 패턴', th_pol: '편파',
+    replaces: '이 품번이 대체하는 제품: ',
+    k_type: '기술 유형', k_ptype: '제품 유형', k_form: '형태', k_atype: '안테나 유형', k_qty: '안테나 포트 수', k_mount: '장착 방식',
+    k_dim: '크기 (mm)', k_conn: '커넥터', k_cables: '케이블', k_lna: 'LNA 이득 (dB)', k_ip: 'IP 등급', k_ik: 'IK 등급',
+    k_flame: '난연 등급', k_uv: '내 UV', k_env: '환경 규제', k_temp: '동작 온도', k_evb: 'EVB 품번', k_evbDim: 'EVB 크기 (mm)',
+    k_brochure: '판매 지역', k_jp: '일본 시장', jpYes: '호환',
+    copied: '{oc} 복사됨', copiedN: '품번 {n}개 복사됨', noResults: '복사할 결과가 없습니다', clipFail: '클립보드에 접근할 수 없습니다',
+    invalidFreq: '올바른 주파수(MHz)를 입력하세요', notOnPage: '이 목록에 없는 품번이라 검색으로 전환했습니다',
+    footer: '데이터 출처: {s} ({r}). 주파수 대역 경계는 일반적으로 공개된 할당 기준입니다. 최종 선정은 데이터시트와 실측 결과로 확인하세요.',
+    verTitle: '버전 정보', v_app: '앱 버전', v_built: '데이터 생성 시각', v_latest: '서버 버전', v_sw: '오프라인 캐시',
+    v_src: '데이터 출처', v_count: '데이터 수', v_countVal: '안테나 {a}개, 모듈 {m}개, 인증 조합 {c}건',
+    checking: '확인 중…', upToDate: 'v{v} (최신)', newer: 'v{v} (업데이트 가능)', cantCheck: '확인할 수 없음 (오프라인 또는 미리보기 환경)',
+    swOn: '사용 중 (오프라인 사용 가능)', swOff: '사용 안 함 (HTTPS 배포 필요)',
+    offline: '오프라인', backOnline: '다시 연결되었습니다', offlineReady: '이제 오프라인에서 사용할 수 있습니다',
+    install: '앱 설치', installTitle: '앱으로 설치', installed: '설치되었습니다. 홈 화면이나 시작 메뉴에서 열 수 있습니다.',
+    offlineNoUpdate: '오프라인 상태라 업데이트할 수 없습니다. 연결된 후 다시 시도하세요.',
+    serverUnreachable: '서버에 연결할 수 없어 현재 버전을 유지했습니다.',
+    v_mode: '실행 방식', modeApp: '앱 (설치됨)', modeBrowser: '브라우저', v_storage: '오프라인 데이터 보관', persistOn: '고정 (자동으로 삭제되지 않음)', persistOff: '일반 (오래 사용하지 않으면 삭제될 수 있음)',
+    iosSteps: ['<b>Safari</b>에서 이 페이지를 엽니다 (iOS에서는 Safari로만 설치할 수 있습니다)', '도구 막대의 <b>공유</b> 버튼 <span class="kbd">⬆︎</span>을 누릅니다', '아래로 스크롤해 <b>홈 화면에 추가</b>를 누릅니다', '<b>추가</b>를 누른 뒤 홈 화면 아이콘으로 엽니다'],
+    androidSteps: ['<b>Chrome</b>에서 이 페이지를 엽니다', '<b>⋮</b> 메뉴를 누릅니다', '<b>앱 설치</b>(또는 "홈 화면에 추가")를 누릅니다', '홈 화면이나 앱 목록에서 엽니다'],
+    desktopSteps: ['<b>Edge</b> 또는 <b>Chrome</b>에서 이 페이지를 엽니다', '주소창 오른쪽의 <b>설치</b> 아이콘 <span class="kbd">⊕</span>을 누르거나, 메뉴 → <b>앱</b> → <b>이 사이트를 앱으로 설치</b>를 선택합니다', '<b>시작 메뉴</b>에서 열 수 있고, 작업 표시줄에 고정할 수도 있습니다'],
+    installNote: '설치 후 한 번 열어 두면 네트워크가 없는 환경에서도 사용할 수 있습니다.',
+    sortSize: '크기순 (작음→큼)', f_size: '최대 크기', sizeLbl: '가장 긴 변 ≤', sizeUnit: 'mm',
+    sizeHint: '크기 값 중 가장 큰 값으로 비교합니다 (Φ는 지름)', sizeTag: '가장 긴 변 ≤ {n} mm',
+    datasheet: 'Datasheet', dsAria: '{oc} 데이터시트 열기', dsOffline: '데이터시트를 보려면 네트워크 연결(및 회사 계정 로그인)이 필요합니다',
+  },
 };
 let lang = 'zh';
+const LANGS = ['zh', 'en', 'ja', 'ko'];
+const LANG_TAG = { zh: 'zh-Hant-TW', en: 'en', ja: 'ja', ko: 'ko' };
+/** 首次開啟時依裝置語言選擇；不支援的語言預設中文 */
+function detectLang() {
+  for (const l of navigator.languages || [navigator.language || '']) {
+    const c = String(l).toLowerCase().slice(0, 2);
+    if (LANGS.includes(c)) return c;
+  }
+  return 'zh';
+}
 /** 取翻譯字串並代入 {var} */
 function t(key, vars) {
-  let s = I18N[lang][key] ?? I18N.zh[key] ?? key;
+  let s = I18N[lang]?.[key] ?? I18N.en[key] ?? I18N.zh[key] ?? key;
   if (vars) for (const [k, v] of Object.entries(vars)) s = s.split('{' + k + '}').join(v);
   return s;
 }
 /** 篩選值顯示文字 (特殊代號才翻譯，資料原值維持英文) */
 /** 標籤分隔符號：中文全形冒號、英文半形 */
-const sep = () => (lang === 'zh' ? '：' : ': ');
+const sep = () => (lang === 'zh' || lang === 'ja' ? '：' : ': ');
 const valLabel = (v) => (v === NA || v === NONE || v === OTHER ? t(v) : v);
 /** 套用靜態元素文字 */
 function applyStaticI18n() {
-  document.documentElement.lang = lang === 'zh' ? 'zh-Hant-TW' : 'en';
+  document.documentElement.lang = LANG_TAG[lang];
   document.querySelectorAll('[data-i18n]').forEach((el) => { el.textContent = t(el.dataset.i18n); });
   document.querySelectorAll('[data-i18n-ph]').forEach((el) => { el.placeholder = t(el.dataset.i18nPh); el.setAttribute('aria-label', t(el.dataset.i18nPh)); });
   document.querySelectorAll('[data-i18n-aria]').forEach((el) => { el.setAttribute('aria-label', t(el.dataset.i18nAria)); });
-  $('langLbl').textContent = t('langLbl');
-  $('langBtn').setAttribute('aria-label', t('langAria'));
+  $('langSel').value = lang;
+  $('langSel').setAttribute('aria-label', t('langAria'));
   $('updateBtn').setAttribute('aria-label', t('updateAria'));
   $('updateBtn').title = t('updateAria');
   $('verLbl').textContent = 'v' + APP_VERSION;
@@ -665,7 +778,7 @@ const BANDS = {
     { id: 'wifi6', label: 'Wi-Fi 6E', lo: 5925, hi: 7125 },
   ],
 };
-const bandLabel = (b) => (typeof b.label === 'string' ? b.label : b.label[lang]);
+const bandLabel = (b) => (typeof b.label === 'string' ? b.label : b.label[lang] ?? b.label.en);
 
 /* ---------- 正規化工具 ---------- */
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -1124,8 +1237,6 @@ async function openVersion() {
           <dt>${esc(t('v_rev'))}</dt><dd>${esc([DATA.revision?.rev, DATA.revision?.date].filter(Boolean).join(' · ') || '—')}</dd>
           <dt>${esc(t('v_count'))}</dt><dd>${esc(t('v_countVal', { a: DATA.items.length, m: DATA.modules.length, c: DATA.items.reduce((n, p) => n + (p.certs || []).length, 0) }))}</dd>
         </dl>
-        <section><h3>${esc(t('changelog'))}</h3><ul class="changelog">${CHANGELOG.map((c) =>
-          `<li><h4>v${esc(c.v)}</h4><ul>${c[lang].map((x) => `<li>${esc(x)}</li>`).join('')}</ul></li>`).join('')}</ul></section>
         <button type="button" class="icon-btn" data-force>${esc(t('update'))}</button>
       </div>`;
   };
@@ -1214,7 +1325,7 @@ function openInstallHelp() {
     <div class="d-simple-head"><h2 id="installTitle">${esc(t('installTitle'))}</h2>
       <button type="button" class="icon-btn" data-close>${esc(t('close'))}</button></div>
     <div class="d-body">
-      <ol class="steps">${I18N[lang][key].map((x) => `<li>${x}</li>`).join('')}</ol>
+      <ol class="steps">${(I18N[lang]?.[key] ?? I18N.en[key]).map((x) => `<li>${x}</li>`).join('')}</ol>
       <p class="notice">${esc(t('installNote'))}</p>
     </div>`;
   if (!$('installDialog').open) $('installDialog').showModal();
@@ -1372,8 +1483,8 @@ $('verDialog').addEventListener('click', (e) => {
 });
 
 /* 頂部工具列 */
-$('langBtn').addEventListener('click', () => {
-  lang = lang === 'zh' ? 'en' : 'zh';
+$('langSel').addEventListener('change', (e) => {
+  lang = LANGS.includes(e.target.value) ? e.target.value : 'zh';
   store.set('lang', lang);
   applyStaticI18n(); renderPageText(); renderAll();
   if ($('verDialog').open) openVersion();
@@ -1412,7 +1523,8 @@ function route() {
   update();
 }
 
-lang = store.get('lang') === 'en' ? 'en' : 'zh';
+const savedLang = store.get('lang');
+lang = LANGS.includes(savedLang) ? savedLang : detectLang();
 const savedTheme = store.get('theme');
 applyTheme(savedTheme === 'dark' || savedTheme === 'light' ? savedTheme : null);
 applyStaticI18n();
