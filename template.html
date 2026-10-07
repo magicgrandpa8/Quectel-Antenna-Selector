@@ -1,0 +1,937 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Quectel 天線選型工具</title>
+<meta name="theme-color" content="#0F766E">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+/* ======================================================================
+   Design tokens
+   ====================================================================== */
+:root {
+  --paper: #F2F4F3;
+  --surface: #FFFFFF;
+  --ink: #17242E;
+  --muted: #5B6B76;
+  --rule: #D5DCDF;
+  --band: #E6EBEC;
+  --accent: #0F766E;          /* Global：青綠 */
+  --accent-soft: #D3ECE9;
+  --accent-ink: #FFFFFF;
+  --warn: #9A5B00;
+  --warn-soft: #FBEBD0;
+  --danger: #A8233A;
+  --danger-soft: #F7DCE1;
+  --font: "IBM Plex Sans", "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", system-ui, sans-serif;
+  --r-sm: 4px;
+  --r-md: 8px;
+  box-sizing: border-box;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  color-scheme: light;
+}
+:root[data-market="japan"] { --accent: #B4233C; --accent-soft: #F6DADF; }
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #12191E; --surface: #1A2329; --ink: #E4EAED; --muted: #94A3AC;
+    --rule: #2E3B43; --band: #24313A; --accent: #2DB3A7; --accent-soft: #163C3A; --accent-ink: #08201E;
+    --warn: #E8B15A; --warn-soft: #3A2C14; --danger: #F07A8E; --danger-soft: #3D1A21;
+    color-scheme: dark;
+  }
+  :root:not([data-theme="light"])[data-market="japan"] { --accent: #F06A80; --accent-soft: #42202A; }
+}
+:root[data-theme="dark"] {
+  --paper: #12191E; --surface: #1A2329; --ink: #E4EAED; --muted: #94A3AC;
+  --rule: #2E3B43; --band: #24313A; --accent: #2DB3A7; --accent-soft: #163C3A; --accent-ink: #08201E;
+  --warn: #E8B15A; --warn-soft: #3A2C14; --danger: #F07A8E; --danger-soft: #3D1A21;
+  color-scheme: dark;
+}
+:root[data-theme="dark"][data-market="japan"] { --accent: #F06A80; --accent-soft: #42202A; }
+
+*, *::before, *::after { box-sizing: inherit; }
+html { scroll-padding-top: env(safe-area-inset-top, 0px); -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0; background: var(--paper); color: var(--ink);
+  font: 15px/1.5 var(--font); font-variant-numeric: tabular-nums;
+}
+button, input, select { font: inherit; color: inherit; }
+img { max-width: 100%; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* ======================================================================
+   Header
+   ====================================================================== */
+.top {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20;
+  background: var(--paper); border-bottom: 1px solid var(--rule);
+}
+.top-inner {
+  max-width: 1360px; margin: 0 auto; padding: 12px 20px;
+  display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+}
+.brand { font-weight: 700; font-size: 17px; letter-spacing: -0.01em; margin-right: auto; display: flex; gap: 10px; align-items: center; }
+.brand svg { color: var(--accent); flex: none; }
+.market-switch { display: inline-flex; border: 1px solid var(--rule); border-radius: 999px; padding: 3px; background: var(--surface); }
+.market-switch a {
+  text-decoration: none; color: var(--muted); padding: 6px 16px; border-radius: 999px; font-weight: 500; font-size: 14px;
+}
+.market-switch a[aria-current="page"] { background: var(--accent); color: var(--accent-ink); }
+.icon-btn {
+  border: 1px solid var(--rule); background: var(--surface); border-radius: var(--r-md);
+  padding: 6px 10px; cursor: pointer; font-size: 14px;
+}
+.icon-btn:hover { border-color: var(--muted); }
+
+/* ======================================================================
+   Spectrum ruler (hero)
+   ====================================================================== */
+.spectrum { max-width: 1360px; margin: 0 auto; padding: 20px 20px 8px; }
+.spectrum-head { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; margin-bottom: 10px; }
+.spectrum-head h1 { font-size: 22px; line-height: 1.25; margin: 0; font-weight: 600; letter-spacing: -0.01em; }
+.spectrum-head p { margin: 0; color: var(--muted); font-size: 13px; }
+.ruler-scroll { overflow-x: auto; padding-bottom: 4px; }
+.ruler { position: relative; min-width: 720px; margin: 0 18px; }
+.scroll-hint { display: none; font-size: 12px; color: var(--muted); margin: 2px 0 0; }
+.lanes { position: relative; }
+.band-btn {
+  position: absolute; height: 26px; border: 1px solid var(--rule); background: var(--surface);
+  border-radius: var(--r-sm); font-size: 12px; padding: 0 6px; cursor: pointer;
+  white-space: nowrap; overflow: hidden; text-overflow: clip; text-align: left; color: var(--ink);
+}
+.band-btn:hover { border-color: var(--accent); }
+.band-btn[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 600; }
+.band-btn.custom { border-style: dashed; }
+.axis { position: relative; height: 22px; border-top: 1px solid var(--ink); margin-top: 6px; }
+.axis span { position: absolute; top: 4px; transform: translateX(-50%); font-size: 11px; color: var(--muted); }
+.axis span::before { content: ""; position: absolute; left: 50%; top: -5px; height: 5px; border-left: 1px solid var(--ink); }
+.custom-range { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 8px; font-size: 13px; color: var(--muted); }
+.custom-range input { width: 88px; padding: 4px 8px; border: 1px solid var(--rule); border-radius: var(--r-sm); background: var(--surface); }
+.need-summary { font-size: 13px; color: var(--ink); }
+.need-summary b { color: var(--accent); }
+
+/* ======================================================================
+   Layout
+   ====================================================================== */
+.layout {
+  max-width: 1360px; margin: 0 auto; padding: 12px 20px 40px;
+  display: grid; grid-template-columns: 264px minmax(0, 1fr); gap: 24px; align-items: start;
+}
+.filters { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 70px); max-height: calc(100vh - 90px); overflow: auto; padding-right: 4px; }
+.filters-head { display: none; }
+.fgroup { padding: 12px 0; border-bottom: 1px solid var(--rule); }
+.fgroup:first-child { padding-top: 0; }
+.fgroup > .ftitle { font-size: 13px; font-weight: 600; margin: 0 0 8px; display: flex; justify-content: space-between; }
+.fgroup details summary { cursor: pointer; font-size: 13px; font-weight: 600; list-style: none; display: flex; justify-content: space-between; }
+.fgroup details summary::-webkit-details-marker { display: none; }
+.fgroup details summary::after { content: "+"; color: var(--muted); }
+.fgroup details[open] summary::after { content: "−"; }
+.fgroup details[open] summary { margin-bottom: 8px; }
+.sel-count { color: var(--accent); font-weight: 600; margin-left: 6px; }
+.search { width: 100%; padding: 9px 12px; border: 1px solid var(--rule); border-radius: var(--r-md); background: var(--surface); }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip {
+  border: 1px solid var(--rule); background: var(--surface); border-radius: 999px;
+  padding: 4px 10px; font-size: 13px; cursor: pointer; display: inline-flex; gap: 6px; align-items: baseline;
+}
+.chip small { color: var(--muted); font-size: 11px; }
+.chip[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); font-weight: 600; }
+.chip[aria-pressed="true"] small { color: var(--ink); }
+.chip:disabled { opacity: .45; cursor: default; }
+.checks { display: grid; gap: 2px; }
+.checks label { display: flex; gap: 8px; align-items: center; font-size: 13px; padding: 3px 0; cursor: pointer; }
+.checks label small { margin-left: auto; color: var(--muted); }
+.checks input { accent-color: var(--accent); }
+.checks label.zero { color: var(--muted); }
+.toggle { display: flex; gap: 8px; align-items: center; font-size: 13px; padding: 4px 0; cursor: pointer; }
+.toggle input { accent-color: var(--accent); }
+select.module {
+  width: 100%; padding: 9px 10px; border: 1px solid var(--accent); border-radius: var(--r-md);
+  background: var(--surface); font-weight: 600;
+}
+.module-hint { font-size: 12px; color: var(--muted); margin: 6px 0 0; }
+.reset { margin-top: 14px; width: 100%; }
+
+/* ======================================================================
+   Results
+   ====================================================================== */
+.results-bar { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 10px; }
+.count { font-size: 15px; }
+.count b { font-size: 20px; font-weight: 700; }
+.results-bar .spacer { flex: 1; }
+.results-bar select { padding: 6px 8px; border: 1px solid var(--rule); border-radius: var(--r-md); background: var(--surface); font-size: 13px; }
+.mobile-filter-btn { display: none; }
+.active-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+.active-tags button {
+  border: none; background: var(--accent-soft); color: var(--ink); border-radius: var(--r-sm);
+  padding: 3px 8px; font-size: 12px; cursor: pointer;
+}
+.active-tags button::after { content: " ×"; color: var(--muted); }
+
+.list { background: var(--surface); border: 1px solid var(--rule); border-radius: var(--r-md); overflow: hidden; }
+.row {
+  display: grid; grid-template-columns: 64px minmax(0, 1.25fr) minmax(200px, 1fr) minmax(0, .9fr);
+  gap: 16px; align-items: center; padding: 12px 16px; border-bottom: 1px solid var(--rule);
+  cursor: pointer; width: 100%; text-align: left; background: none; border-left: 0; border-right: 0; border-top: 0;
+}
+.row:last-child { border-bottom: 0; }
+.row:hover { background: color-mix(in srgb, var(--accent-soft) 45%, transparent); }
+.thumb {
+  width: 64px; height: 64px; border-radius: var(--r-sm); background: #fff; display: grid; place-items: center; overflow: hidden;
+  border: 1px solid var(--rule);
+}
+.thumb img { width: 100%; height: 100%; object-fit: contain; }
+.thumb svg { color: #9AA8B0; }
+.oc { font-weight: 700; font-size: 15px; letter-spacing: .01em; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.pname { color: var(--muted); font-size: 13px; margin-top: 2px; line-height: 1.4; }
+.badge { font-size: 11px; font-weight: 600; padding: 1px 6px; border-radius: var(--r-sm); background: var(--band); color: var(--ink); }
+.badge.jp { background: var(--danger-soft); color: var(--danger); }
+.badge.np { background: var(--band); color: var(--muted); }
+.badge.nrnd { background: var(--warn-soft); color: var(--warn); }
+.badge.eol { background: var(--danger-soft); color: var(--danger); }
+.strip { position: relative; height: 14px; background: var(--band); border-radius: 2px; }
+.strip i { position: absolute; top: 0; bottom: 0; background: var(--accent); border-radius: 1px; min-width: 2px; }
+.strip b { position: absolute; top: -3px; bottom: -3px; border: 1px solid var(--ink); border-radius: 2px; opacity: .55; }
+.freq-text { font-size: 12px; color: var(--muted); margin-top: 5px; line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.specs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2px 12px; font-size: 12px; }
+.specs dt { color: var(--muted); }
+.specs dd { margin: 0; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.specs div { min-width: 0; }
+
+.empty { padding: 48px 24px; text-align: center; color: var(--muted); }
+.empty strong { display: block; color: var(--ink); font-size: 16px; margin-bottom: 6px; }
+.more { display: block; margin: 12px auto 0; }
+
+/* ======================================================================
+   Detail dialog
+   ====================================================================== */
+dialog.detail {
+  width: min(880px, calc(100vw - 24px)); max-height: calc(100% - 48px); padding: 0;
+  border: 1px solid var(--rule); border-radius: 12px; background: var(--surface); color: var(--ink);
+}
+dialog.detail::backdrop { background: rgba(10, 18, 24, .5); }
+.d-head { display: grid; grid-template-columns: 140px 1fr auto; gap: 20px; padding: 20px; border-bottom: 1px solid var(--rule); align-items: start; }
+.d-head .thumb { width: 140px; height: 140px; }
+.d-head h2 { margin: 0; font-size: 24px; letter-spacing: -.01em; }
+.d-head p { margin: 4px 0 0; color: var(--muted); }
+.d-actions { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+.d-body { padding: 16px 20px 24px; display: grid; gap: 20px; }
+.d-body h3 { font-size: 14px; margin: 0 0 8px; }
+.kv { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px 20px; margin: 0; }
+.kv dt { font-size: 12px; color: var(--muted); }
+.kv dd { margin: 0; font-weight: 500; white-space: pre-line; overflow-wrap: anywhere; }
+.tbl-wrap { overflow-x: auto; border: 1px solid var(--rule); border-radius: var(--r-md); }
+table { border-collapse: collapse; width: 100%; font-size: 13px; }
+th, td { padding: 8px 10px; text-align: left; border-bottom: 1px solid var(--rule); vertical-align: top; white-space: pre-line; }
+th { color: var(--muted); font-weight: 500; background: var(--paper); }
+tr:last-child td { border-bottom: 0; }
+.mod-list { display: flex; flex-wrap: wrap; gap: 6px; }
+.mod-list span { font-size: 12px; padding: 3px 8px; border-radius: var(--r-sm); background: var(--band); }
+.mod-list span.hit { background: var(--accent); color: var(--accent-ink); font-weight: 600; }
+.link-btn { background: none; border: none; color: var(--accent); text-decoration: underline; cursor: pointer; padding: 0; font-weight: 600; }
+.notice { font-size: 13px; padding: 10px 12px; border-radius: var(--r-md); background: var(--warn-soft); color: var(--ink); }
+
+.toast {
+  position: fixed; left: 50%; bottom: calc(env(safe-area-inset-bottom, 0px) + 20px); transform: translateX(-50%);
+  background: var(--ink); color: var(--paper); padding: 8px 14px; border-radius: var(--r-md); font-size: 13px;
+  opacity: 0; pointer-events: none; transition: opacity .2s; z-index: 50;
+}
+.toast.show { opacity: 1; }
+footer { max-width: 1360px; margin: 0 auto; padding: 0 20px 32px; font-size: 12px; color: var(--muted); }
+
+/* ======================================================================
+   Responsive
+   ====================================================================== */
+@media (max-width: 1080px) {
+  .row { grid-template-columns: 56px minmax(0, 1fr) minmax(160px, 1fr); }
+  .row .specs { grid-column: 2 / -1; }
+  .thumb { width: 56px; height: 56px; }
+}
+@media (max-width: 820px) {
+  .layout { grid-template-columns: minmax(0, 1fr); }
+  .filters {
+    position: fixed; inset: 0 0 0 auto; width: min(360px, 92vw); max-height: none; z-index: 40;
+    background: var(--paper); padding: calc(env(safe-area-inset-top, 0px) + 16px) 16px calc(env(safe-area-inset-bottom, 0px) + 16px);
+    transform: translateX(105%); transition: transform .2s ease; border-left: 1px solid var(--rule);
+  }
+  .filters.open { transform: none; box-shadow: -12px 0 32px rgba(0, 0, 0, .18); }
+  .filters-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; font-weight: 700; }
+  .mobile-filter-btn { display: inline-block; }
+  .scrim { position: fixed; inset: 0; background: rgba(10, 18, 24, .4); z-index: 39; }
+  .row { grid-template-columns: 56px minmax(0, 1fr); gap: 10px 12px; }
+  .row .strip-cell, .row .specs { grid-column: 1 / -1; }
+  .d-head { grid-template-columns: 96px 1fr; }
+  .d-head .thumb { width: 96px; height: 96px; }
+  .d-head .close-wrap { grid-column: 1 / -1; grid-row: 1; justify-self: end; }
+  .spectrum-head h1 { font-size: 19px; }
+  .scroll-hint { display: block; }
+}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="top-inner">
+    <div class="brand">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+        <path d="M6.3 7.5a8 8 0 0 1 11.4 0M8.8 10a4.5 4.5 0 0 1 6.4 0"/><circle cx="12" cy="12.5" r="1.2" fill="currentColor"/><path d="M12 13.7V21M9 21h6"/>
+      </svg>
+      Quectel 天線選型
+    </div>
+    <nav class="market-switch" aria-label="市場">
+      <a href="#/global" data-route="global">Global</a>
+      <a href="#/japan" data-route="japan">日本市場</a>
+    </nav>
+    <button class="icon-btn" id="themeBtn" type="button" aria-label="切換深色/淺色模式">◐</button>
+  </div>
+</header>
+
+<section class="spectrum" aria-labelledby="specTitle">
+  <div class="spectrum-head">
+    <h1 id="specTitle"></h1>
+    <p id="specSub"></p>
+  </div>
+  <div class="ruler-scroll">
+    <div class="ruler" id="ruler">
+      <div class="lanes" id="lanes"></div>
+      <div class="axis" id="axis" aria-hidden="true"></div>
+    </div>
+  </div>
+  <p class="scroll-hint">左右滑動查看更多頻段</p>
+  <div class="custom-range">
+    <label for="cLo">自訂頻段</label>
+    <input id="cLo" type="number" inputmode="decimal" min="1" placeholder="低 MHz" aria-label="自訂頻段下限 MHz">
+    <span>–</span>
+    <input id="cHi" type="number" inputmode="decimal" min="1" placeholder="高 MHz" aria-label="自訂頻段上限 MHz">
+    <button class="icon-btn" id="cAdd" type="button">加入需求</button>
+    <span class="need-summary" id="needSummary" aria-live="polite"></span>
+  </div>
+</section>
+
+<main class="layout">
+  <aside class="filters" id="filters" aria-label="篩選條件">
+    <div class="filters-head"><span>篩選條件</span><button class="icon-btn" id="closeFilters" type="button">完成</button></div>
+    <div id="filterBody"></div>
+    <button class="icon-btn reset" id="resetBtn" type="button">清除所有條件</button>
+  </aside>
+
+  <section aria-label="篩選結果">
+    <div class="results-bar">
+      <div class="count" aria-live="polite"><b id="count">0</b> <span id="countOf"></span></div>
+      <div class="spacer"></div>
+      <button class="icon-btn mobile-filter-btn" id="openFilters" type="button">篩選 <span id="filterBadge"></span></button>
+      <label class="sr-only" for="sortSel">排序</label>
+      <select id="sortSel">
+        <option value="oc">依料號排序</option>
+        <option value="gain">依峰值增益 (高→低)</option>
+        <option value="span">依頻寬覆蓋 (寬→窄)</option>
+      </select>
+      <button class="icon-btn" id="copyBtn" type="button">複製料號清單</button>
+    </div>
+    <div class="active-tags" id="activeTags"></div>
+    <div class="list" id="list" role="list"></div>
+    <button class="icon-btn more" id="moreBtn" type="button" hidden>顯示更多</button>
+  </section>
+</main>
+
+<footer id="footer"></footer>
+
+<dialog class="detail" id="detail" aria-labelledby="dTitle"></dialog>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+"use strict";
+/* ==========================================================================
+   Quectel 天線選型 PWA
+   - 兩個頁面 (hash 路由)：#/global、#/japan
+   - 資料由 build_data.py 從 Excel 轉出並內嵌於 DATA
+   ========================================================================== */
+
+/** 內嵌資料 (build_data.py 取代此佔位符) */
+const DATA = /*__DATA__*/null;
+
+/**
+ * Datasheet 連結樣板：若要顯示 datasheet 連結，填入含 {oc} 的網址，
+ * 例如 'https://intranet.example.com/datasheet?q={oc}_Datasheet'。
+ * 預設留空 (不輸出內部連結)。
+ */
+const DATASHEET_URL = '';
+
+const PAGE_SIZE = 60;
+const F_MIN = 400, F_MAX = 8000;           // 頻譜尺範圍 (MHz)，對數刻度
+const AXIS_TICKS = [400, 500, 700, 1000, 1500, 2000, 3000, 4000, 5000, 6000, 8000];
+
+/* ---------- 頻段預設 (MHz)。邊界為一般公開頻段配置，僅供選型參考 ---------- */
+const BANDS = {
+  global: [
+    { id: 'lte-low', label: 'Sub-1G 617–960', lo: 617, hi: 960 },
+    { id: 'ism868', label: 'ISM 868', lo: 863, hi: 870 },
+    { id: 'ism915', label: 'ISM 915', lo: 902, hi: 928 },
+    { id: 'l5', label: 'GNSS L5', lo: 1164, hi: 1189 },
+    { id: 'l1', label: 'GNSS L1', lo: 1559, hi: 1610 },
+    { id: 'lband', label: 'L-band 1427–1518', lo: 1427, hi: 1518 },
+    { id: 'lte-mid', label: '中高頻 1710–2690', lo: 1710, hi: 2690 },
+    { id: 'wifi24', label: 'Wi-Fi 2.4G', lo: 2400, hi: 2500 },
+    { id: 'n77', label: 'n77/n78 3.3–4.2G', lo: 3300, hi: 4200 },
+    { id: 'n79', label: 'n79 4.4–5.0G', lo: 4400, hi: 5000 },
+    { id: 'wifi5', label: 'Wi-Fi 5G', lo: 5150, hi: 5850 },
+    { id: 'wifi6', label: 'Wi-Fi 6E', lo: 5925, hi: 7125 },
+  ],
+  japan: [
+    { id: 'b28', label: 'B28 700M', lo: 703, hi: 803 },
+    { id: 'b18', label: 'B18/19/26 800M', lo: 815, hi: 890 },
+    { id: 'b8', label: 'B8 900M', lo: 880, hi: 960 },
+    { id: 'lpwa920', label: '920M LPWA', lo: 920.5, hi: 928.1 },
+    { id: 'b11', label: 'B11/21 1.5G', lo: 1427, hi: 1511 },
+    { id: 'l1', label: 'GNSS L1', lo: 1559, hi: 1610 },
+    { id: 'b3', label: 'B3 1.7G', lo: 1710, hi: 1880 },
+    { id: 'b1', label: 'B1 2.1G', lo: 1920, hi: 2170 },
+    { id: 'wifi24', label: 'Wi-Fi 2.4G', lo: 2400, hi: 2484 },
+    { id: 'b41', label: 'B41 2.5G', lo: 2496, hi: 2690 },
+    { id: 'b42', label: 'B42 3.5G', lo: 3400, hi: 3600 },
+    { id: 'n77', label: 'n77/n78 3.7G', lo: 3600, hi: 4100 },
+    { id: 'n79', label: 'n79 4.5G', lo: 4500, hi: 4600 },
+    { id: 'wifi5', label: 'W52–W56', lo: 5150, hi: 5730 },
+    { id: 'wifi6', label: '6G LPI', lo: 5925, hi: 6425 },
+  ],
+};
+
+/* ---------- 正規化工具 ---------- */
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+function connFamily(s) {
+  if (!s) return '無';
+  const t = s.toLowerCase();
+  if (t.includes('fakra')) return 'FAKRA';
+  if (t.includes('rp') && t.includes('sma')) return 'RP-SMA';
+  if (t.includes('sma')) return 'SMA';
+  if (t.includes('mhf4')) return 'IPEX MHF4';
+  if (t.includes('mhf1') || t.includes('u.fl')) return 'IPEX MHF1 / U.FL';
+  if (t.includes('mhf') || t.includes('ipex')) return 'IPEX (其他)';
+  if (t.includes('n type') || t.includes('n-type')) return 'N type';
+  if (t.includes('tnc')) return 'TNC';
+  if (t.includes('mcx')) return 'MCX';
+  if (t.includes('4.3') || t.includes('7/16')) return '4.3-10 / 7/16 DIN';
+  return s;
+}
+function mountNorm(s) {
+  if (!s) return '未標示';
+  const t = s.replace(/\s*Mount$/i, '').trim();
+  if (/^sm[dt]$/i.test(t)) return 'SMT';
+  return t;
+}
+const TYPE_LABEL = { WIFI: 'Wi-Fi', 'UWB chip': 'UWB' };
+const typeLabel = (t) => TYPE_LABEL[t] || t || '其他';
+
+function firstNum(s) {
+  const m = String(s ?? '').match(/-?\d+(?:\.\d+)?/);
+  return m ? parseFloat(m[0]) : null;
+}
+/** 頻寬總覆蓋量 (MHz)，供排序 */
+const spanOf = (p) => (p.ranges || []).reduce((a, [lo, hi]) => a + (hi - lo), 0);
+
+/** 產品頻率區間是否完整涵蓋需求頻段 */
+function covers(ranges, lo, hi) {
+  return (ranges || []).some(([a, b]) => a <= lo + 0.01 && b >= hi - 0.01);
+}
+
+/** 對數刻度：頻率 → 百分比位置 */
+function xPct(f) {
+  const c = Math.min(Math.max(f, F_MIN), F_MAX);
+  return ((Math.log(c) - Math.log(F_MIN)) / (Math.log(F_MAX) - Math.log(F_MIN))) * 100;
+}
+
+/* ==========================================================================
+   各頁面設定：資料來源與篩選面向 (facets)
+   facet.get(p) 回傳該產品在此面向的值 (字串或字串陣列)
+   ========================================================================== */
+const PAGES = {
+  global: {
+    title: 'Global 天線選型',
+    sub: '點選頻段標示需求，只列出完整涵蓋所有已選頻段的天線',
+    items: () => DATA.global,
+    facets: [
+      { key: 'type', title: '技術類別', ui: 'chips', get: (p) => typeLabel(p.type) },
+      { key: 'ptype', title: '天線型態', ui: 'chips', get: (p) => p.ptype || '其他' },
+      { key: 'form', title: '外型', ui: 'checks', get: (p) => p.form || '未標示' },
+      { key: 'mount', title: '安裝方式', ui: 'checks', get: (p) => p.mount || '未標示' },
+      { key: 'conn', title: '連接器', ui: 'checks', get: (p) => (p.conn && p.conn.length ? p.conn.map(connFamily) : ['無']) },
+      { key: 'ip', title: '防護等級', ui: 'checks', get: (p) => p.ip || '無' },
+      { key: 'qty', title: '天線埠數', ui: 'chips', get: (p) => String(p.qty || '1'), sort: (a, b) => a - b },
+      { key: 'brochure', title: '銷售區域', ui: 'chips', get: (p) => p.brochure || '未標示' },
+    ],
+    toggles: [
+      { key: 'jpOnly', label: '僅顯示日本市場相容', test: (p) => p.jp },
+      { key: 'hideNonPro', label: '隱藏 Non-PRO (客製/配件)', test: (p) => p.src !== 'Non-PRO', default: false },
+    ],
+  },
+  japan: {
+    title: '日本市場天線選型',
+    sub: '先選 Quectel 模組，再以頻段與外型縮小範圍',
+    items: () => DATA.japan,
+    module: true,
+    facets: [
+      { key: 'cats', title: '產品分類', ui: 'chips', get: (p) => p.cats || [] },
+      { key: 'kind', title: '天線型態', ui: 'chips', get: (p) => p.kind || '其他' },
+      { key: 'form', title: '外型', ui: 'checks', get: (p) => p.form || '未標示' },
+      { key: 'mount', title: '安裝方式', ui: 'checks', get: (p) => mountNorm(p.mount) },
+      { key: 'conn', title: '連接器', ui: 'checks', get: (p) => connFamily(p.conn) },
+    ],
+    toggles: [
+      { key: 'hideEol', label: '隱藏 NRND / EOL 料號', test: (p) => !p.status, default: true },
+    ],
+  },
+};
+
+/* ==========================================================================
+   狀態 (每頁獨立，存在 localStorage)
+   ========================================================================== */
+const store = {
+  load(page) {
+    try { return JSON.parse(localStorage.getItem('antsel:' + page) || 'null'); } catch { return null; }
+  },
+  save(page, st) {
+    try { localStorage.setItem('antsel:' + page, JSON.stringify(st)); } catch { /* 無法存取 storage 時忽略 */ }
+  },
+};
+function freshState(page) {
+  const cfg = PAGES[page];
+  const st = { q: '', sel: {}, bands: [], custom: [], toggles: {}, sort: 'oc', module: '' };
+  cfg.toggles.forEach((t) => { st.toggles[t.key] = !!t.default; });
+  return st;
+}
+
+let page = 'global';
+let state = freshState('global');
+let shown = PAGE_SIZE;
+
+const $ = (id) => document.getElementById(id);
+
+/* ==========================================================================
+   篩選引擎
+   ========================================================================== */
+function asArr(v) { return Array.isArray(v) ? v : [v]; }
+
+/** 依目前條件篩選；skipKey 用於計算某面向的選項計數 (忽略自身) */
+function filterItems(skipKey) {
+  const cfg = PAGES[page];
+  const q = state.q.trim().toLowerCase();
+  const needs = allNeeds();
+  return cfg.items().filter((p) => {
+    if (cfg.module && state.module && !(p.modules || []).includes(state.module)) return false;
+    for (const t of cfg.toggles) if (state.toggles[t.key] && !t.test(p)) return false;
+    for (const f of cfg.facets) {
+      if (f.key === skipKey) continue;
+      const sel = state.sel[f.key];
+      if (sel && sel.length && !asArr(f.get(p)).some((v) => sel.includes(v))) return false;
+    }
+    for (const n of needs) if (!covers(p.ranges, n.lo, n.hi)) return false;
+    if (q) {
+      const hay = [p.oc, p.name, p.desc, p.freq, p.form, p.note, p.replace, p.suggest, (p.modules || []).join(' ')]
+        .join(' ').toLowerCase();
+      if (!q.split(/\s+/).every((w) => hay.includes(w))) return false;
+    }
+    return true;
+  });
+}
+
+function allNeeds() {
+  const presets = BANDS[page].filter((b) => state.bands.includes(b.id));
+  return presets.concat(state.custom);
+}
+
+function sorted(list) {
+  const arr = list.slice();
+  if (state.sort === 'gain') {
+    const g = (p) => firstNum(p.techs?.[0]?.gain) ?? -99;
+    arr.sort((a, b) => g(b) - g(a));
+  } else if (state.sort === 'span') {
+    arr.sort((a, b) => spanOf(b) - spanOf(a));
+  } else {
+    arr.sort((a, b) => a.oc.localeCompare(b.oc));
+  }
+  // 穩定排序：NRND / EOL 與 Non-PRO (客製/配件) 一律排在後面
+  const rank = (p) => (p.status ? 2 : 0) + (p.src === 'Non-PRO' ? 1 : 0);
+  arr.sort((a, b) => rank(a) - rank(b));
+  return arr;
+}
+
+/* ==========================================================================
+   Render：頻譜尺
+   ========================================================================== */
+function renderRuler() {
+  const lanes = [];               // 每條 lane 記錄已佔用區間右緣 (百分比)
+  const bands = BANDS[page].map((b) => ({ ...b, custom: false }))
+    .concat(state.custom.map((c, i) => ({ id: 'custom-' + i, label: `${c.lo}–${c.hi}`, lo: c.lo, hi: c.hi, custom: true })));
+  // 以最小顯示寬度 (含文字) 配置 lane，避免重疊
+  const MIN_W = 9.5;   // %
+  const placed = bands.map((b) => {
+    const x1 = xPct(b.lo), x2 = Math.max(xPct(b.hi), x1 + MIN_W);
+    let lane = lanes.findIndex((right) => right <= x1 - 0.3);
+    if (lane === -1) { lane = lanes.length; lanes.push(0); }
+    lanes[lane] = x2;
+    return { ...b, x1, x2, lane };
+  });
+  const laneH = 30;
+  $('lanes').style.height = lanes.length * laneH + 'px';
+  $('lanes').innerHTML = placed.map((b) => {
+    const pressed = b.custom || state.bands.includes(b.id);
+    return `<button type="button" class="band-btn${b.custom ? ' custom' : ''}" data-band="${b.id}"
+      aria-pressed="${pressed}" title="${esc(b.label)}：${b.lo}–${b.hi} MHz${b.custom ? '（再按一次移除）' : ''}"
+      style="left:${b.x1}%;width:${b.x2 - b.x1}%;top:${b.lane * laneH}px">${esc(b.label)}</button>`;
+  }).join('');
+  $('axis').innerHTML = AXIS_TICKS.map((f) => `<span style="left:${xPct(f)}%">${f >= 1000 ? f / 1000 + 'G' : f + 'M'}</span>`).join('');
+
+  const needs = allNeeds();
+  $('needSummary').innerHTML = needs.length
+    ? `需涵蓋 <b>${needs.length}</b> 個頻段`
+    : '尚未指定頻段需求';
+}
+
+/* ==========================================================================
+   Render：篩選面板
+   ========================================================================== */
+function counts(facet) {
+  const m = new Map();
+  for (const p of filterItems(facet.key)) for (const v of new Set(asArr(facet.get(p)))) m.set(v, (m.get(v) || 0) + 1);
+  return m;
+}
+function allValues(facet) {
+  const set = new Set();
+  for (const p of PAGES[page].items()) asArr(facet.get(p)).forEach((v) => set.add(v));
+  const arr = [...set];
+  return facet.sort ? arr.sort(facet.sort) : arr.sort((a, b) => String(a).localeCompare(String(b)));
+}
+
+function renderFilters() {
+  const cfg = PAGES[page];
+  let html = `<div class="fgroup"><label class="sr-only" for="q">搜尋</label>
+    <input class="search" id="q" type="search" placeholder="搜尋料號、名稱、頻率…" value="${esc(state.q)}"></div>`;
+
+  if (cfg.module) {
+    const opts = DATA.jpModules.map((m) => `<option value="${esc(m)}"${m === state.module ? ' selected' : ''}>${esc(m)}</option>`).join('');
+    html += `<div class="fgroup"><p class="ftitle"><label for="moduleSel">Quectel 模組</label></p>
+      <select class="module" id="moduleSel"><option value="">全部模組</option>${opts}</select>
+      <p class="module-hint">相容性取 JP 天線表與 Selector「PRO-JP」勾選的聯集</p></div>`;
+  }
+
+  for (const f of cfg.facets) {
+    const c = counts(f);
+    const sel = state.sel[f.key] || [];
+    const vals = allValues(f);
+    if (f.ui === 'chips') {
+      html += `<div class="fgroup"><p class="ftitle">${esc(f.title)}</p><div class="chips">` +
+        vals.map((v) => {
+          const n = c.get(v) || 0, on = sel.includes(v);
+          return `<button type="button" class="chip" data-facet="${f.key}" data-val="${esc(v)}" aria-pressed="${on}"${!n && !on ? ' disabled' : ''}>${esc(v)} <small>${n}</small></button>`;
+        }).join('') + `</div></div>`;
+    } else {
+      const open = sel.length ? ' open' : '';
+      html += `<div class="fgroup"><details${open}><summary>${esc(f.title)}${sel.length ? `<span class="sel-count">${sel.length}</span>` : ''}</summary><div class="checks">` +
+        vals.map((v) => {
+          const n = c.get(v) || 0, on = sel.includes(v);
+          return `<label class="${n ? '' : 'zero'}"><input type="checkbox" data-facet="${f.key}" data-val="${esc(v)}"${on ? ' checked' : ''}> ${esc(v)} <small>${n}</small></label>`;
+        }).join('') + `</div></details></div>`;
+    }
+  }
+  html += `<div class="fgroup">` + cfg.toggles.map((t) =>
+    `<label class="toggle"><input type="checkbox" data-toggle="${t.key}"${state.toggles[t.key] ? ' checked' : ''}> ${esc(t.label)}</label>`).join('') + `</div>`;
+
+  // 保留搜尋框焦點與游標位置
+  const active = document.activeElement?.id;
+  const caret = active === 'q' ? $('q').selectionStart : null;
+  $('filterBody').innerHTML = html;
+  if (active === 'q') { const el = $('q'); el.focus(); el.setSelectionRange(caret, caret); }
+}
+
+/* ==========================================================================
+   Render：結果清單
+   ========================================================================== */
+const PLACEHOLDER = `<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M6.3 7.5a8 8 0 0 1 11.4 0M8.8 10a4.5 4.5 0 0 1 6.4 0"/><path d="M12 12v9"/></svg>`;
+function thumb(oc) {
+  const src = DATA.images[oc];
+  return `<div class="thumb">${src ? `<img src="${src}" alt="" loading="lazy" decoding="async">` : PLACEHOLDER}</div>`;
+}
+function strip(p) {
+  const ranges = (p.ranges || []).map(([lo, hi]) => {
+    const a = xPct(lo), b = xPct(hi);
+    return `<i style="left:${a}%;width:${Math.max(b - a, 0.4)}%"></i>`;
+  }).join('');
+  const needs = allNeeds().map((n) => {
+    const a = xPct(n.lo), b = xPct(n.hi);
+    return `<b style="left:${a}%;width:${Math.max(b - a, 0.6)}%"></b>`;
+  }).join('');
+  return `<div class="strip" aria-hidden="true">${ranges}${needs}</div>`;
+}
+function badges(p) {
+  let b = '';
+  if (page === 'global') {
+    if (p.jp) b += `<span class="badge jp">JP 相容</span>`;
+    if (p.src === 'Non-PRO') b += `<span class="badge np">Non-PRO</span>`;
+  } else {
+    if (p.status === 'NRND') b += `<span class="badge nrnd">NRND</span>`;
+    if (p.status === 'EOL') b += `<span class="badge eol">EOL</span>`;
+  }
+  return b;
+}
+function specCells(p) {
+  const cells = page === 'global'
+    ? [['型態', p.form], ['安裝', p.mount], ['連接器', (p.conn || []).join(', ') || '—'], ['增益', p.techs?.[0]?.gain || '—']]
+    : [['外型', p.form], ['安裝', p.mount], ['連接器', p.conn || '—'], ['線長', p.cable || '—']];
+  return `<dl class="specs">${cells.map(([k, v]) => `<div><dt>${k}</dt><dd title="${esc(v)}">${esc(v || '—')}</dd></div>`).join('')}</dl>`;
+}
+
+let lastResults = [];
+function renderList() {
+  const res = sorted(filterItems());
+  lastResults = res;
+  const total = PAGES[page].items().length;
+  $('count').textContent = res.length;
+  $('countOf').textContent = `/ ${total} 項天線`;
+  if (!res.length) {
+    $('list').innerHTML = `<div class="empty"><strong>沒有符合所有條件的天線</strong>
+      移除部分頻段需求或篩選條件後再試一次。<br><button type="button" class="icon-btn" style="margin-top:12px" data-act="reset">清除所有條件</button></div>`;
+    $('moreBtn').hidden = true;
+    return;
+  }
+  $('list').innerHTML = res.slice(0, shown).map((p) => `
+    <button type="button" class="row" role="listitem" data-oc="${esc(p.oc)}">
+      ${thumb(p.oc)}
+      <div><div class="oc">${esc(p.oc)} ${badges(p)}</div><div class="pname">${esc(p.name || [p.kind, p.tech].filter(Boolean).join(' '))}</div></div>
+      <div class="strip-cell">${strip(p)}<div class="freq-text">${esc(p.freq || '')}</div></div>
+      ${specCells(p)}
+    </button>`).join('');
+  $('moreBtn').hidden = res.length <= shown;
+  $('moreBtn').textContent = `顯示更多 (尚有 ${res.length - shown} 項)`;
+}
+
+function renderActiveTags() {
+  const tags = [];
+  const cfg = PAGES[page];
+  if (state.module) tags.push({ label: '模組：' + state.module, act: 'module' });
+  for (const f of cfg.facets) for (const v of state.sel[f.key] || []) tags.push({ label: `${f.title}：${v}`, act: 'facet', f: f.key, v });
+  for (const b of BANDS[page]) if (state.bands.includes(b.id)) tags.push({ label: b.label, act: 'band', id: b.id });
+  state.custom.forEach((c, i) => tags.push({ label: `${c.lo}–${c.hi} MHz`, act: 'custom', i }));
+  $('activeTags').innerHTML = tags.map((t) =>
+    `<button type="button" aria-label="移除條件 ${esc(t.label)}" data-tag='${esc(JSON.stringify(t))}'>${esc(t.label)}</button>`).join('');
+  const n = tags.length + (state.q ? 1 : 0);
+  $('filterBadge').textContent = n ? `(${n})` : '';
+}
+
+function renderAll() {
+  renderRuler();
+  renderFilters();
+  renderActiveTags();
+  renderList();
+  store.save(page, state);
+}
+
+/* ==========================================================================
+   詳細資料 dialog
+   ========================================================================== */
+function kv(pairs) {
+  const rows = pairs.filter(([, v]) => v !== undefined && v !== null && v !== '' && !(Array.isArray(v) && !v.length));
+  return `<dl class="kv">${rows.map(([k, v]) => `<div><dt>${k}</dt><dd>${esc(Array.isArray(v) ? v.join(', ') : v)}</dd></div>`).join('')}</dl>`;
+}
+function ocLink(oc) {
+  // 替代料號可能含多個 (A/B/C)
+  return String(oc).split(/[\/,]/).map((o) => o.trim()).filter(Boolean)
+    .map((o) => `<button type="button" class="link-btn" data-goto="${esc(o)}">${esc(o)}</button>`).join(' / ');
+}
+
+function openDetail(oc) {
+  const p = PAGES[page].items().find((x) => x.oc === oc);
+  if (!p) return;
+  const isJp = page === 'japan';
+  const sheet = DATASHEET_URL ? `<a class="icon-btn" href="${esc(DATASHEET_URL.replace('{oc}', encodeURIComponent(p.oc)))}" target="_blank" rel="noopener">開啟 Datasheet</a>` : '';
+  const techRows = (p.techs || []).map((t) => `<tr><td>${esc(t.t)}</td><td>${esc(t.f || '')}</td><td>${esc(t.q || '')}</td><td>${esc(t.eff || '')}</td><td>${esc(t.gain || '')}</td><td>${esc(t.pat || '')}</td><td>${esc(t.pol || '')}</td></tr>`).join('');
+  const notice = isJp && p.status
+    ? `<div class="notice"><b>${p.status}</b>：${esc(p.note)}${p.suggest ? `<br>建議替代：${ocLink(p.suggest)}` : ''}</div>` : '';
+  const replaceNote = !isJp && p.replace ? `<div class="notice">此料號用以取代 ${ocLink(p.replace)}</div>` : '';
+
+  const general = isJp
+    ? kv([['分類', p.cats], ['天線型態', p.kind], ['技術', p.tech], ['頻段', p.freq], ['外型', p.form], ['安裝方式', p.mount],
+        ['連接器', p.conn], ['線長 (mm)', p.cable], ['IP 等級', p.ip], ['尺寸 (mm)', p.dim], ['備註', !p.status ? p.note : null],
+        ['資料來源', p.fromSelector ? 'Selector PRO-JP' : 'JP 天線表']])
+    : kv([['技術類別', typeLabel(p.type)], ['天線型態', p.ptype], ['外型', p.form], ['天線類型', p.atype], ['天線埠數', p.qty],
+        ['安裝方式', p.mount], ['尺寸 (mm)', p.dim], ['連接器', p.conn],
+        ['線材', (p.cables || []).map((c) => [c.len, c.type].filter(Boolean).join(' ')).filter(Boolean)],
+        ['LNA 增益 (dB)', p.lna], ['IP 等級', p.ip], ['IK 等級', p.ik], ['阻燃', p.flame], ['抗 UV', p.uv],
+        ['環保', p.env], ['工作溫度', p.temp], ['EVB 料號', p.evb], ['EVB 尺寸 (mm)', p.evbDim],
+        ['銷售區域', p.brochure], ['基準料號', p.base], ['日本市場', p.jp ? '相容' : null]]);
+
+  const mods = isJp && p.modules?.length
+    ? `<section><h3>相容模組 (${p.modules.length})</h3><div class="mod-list">${p.modules.map((m) => `<span class="${m === state.module ? 'hit' : ''}">${esc(m)}</span>`).join('')}</div></section>` : '';
+
+  $('detail').innerHTML = `
+    <div class="d-head">
+      ${thumb(p.oc)}
+      <div>
+        <h2 id="dTitle">${esc(p.oc)}</h2>
+        <p>${esc(p.name || p.desc || '')}</p>
+        <div class="d-actions">
+          <button type="button" class="icon-btn" data-copy="${esc(p.oc)}">複製料號</button>${sheet}
+        </div>
+      </div>
+      <div class="close-wrap"><button type="button" class="icon-btn" data-close aria-label="關閉">關閉</button></div>
+    </div>
+    <div class="d-body">
+      ${notice}${replaceNote}
+      <section><h3>頻率覆蓋</h3>${strip(p)}<p class="freq-text" style="-webkit-line-clamp:unset">${esc(p.freq || '')}</p></section>
+      ${techRows ? `<section><h3>射頻效能</h3><div class="tbl-wrap"><table><thead><tr><th>技術</th><th>頻率</th><th>數量</th><th>效率</th><th>峰值增益</th><th>場型</th><th>極化</th></tr></thead><tbody>${techRows}</tbody></table></div></section>` : ''}
+      <section><h3>規格</h3>${general}</section>
+      ${mods}
+    </div>`;
+  $('detail').showModal();
+}
+
+/* ==========================================================================
+   事件
+   ========================================================================== */
+function toast(msg) {
+  const t = $('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.remove('show'), 1800);
+}
+async function copyText(txt, msg) {
+  try { await navigator.clipboard.writeText(txt); toast(msg); }
+  catch {
+    const ta = document.createElement('textarea'); ta.value = txt; document.body.appendChild(ta); ta.select();
+    try { document.execCommand('copy'); toast(msg); } catch { toast('無法存取剪貼簿'); }
+    ta.remove();
+  }
+}
+function update() { shown = PAGE_SIZE; renderAll(); }
+
+$('lanes').addEventListener('click', (e) => {
+  const b = e.target.closest('[data-band]'); if (!b) return;
+  const id = b.dataset.band;
+  if (id.startsWith('custom-')) state.custom.splice(+id.slice(7), 1);
+  else state.bands = state.bands.includes(id) ? state.bands.filter((x) => x !== id) : state.bands.concat(id);
+  update();
+});
+$('cAdd').addEventListener('click', () => {
+  let lo = parseFloat($('cLo').value), hi = parseFloat($('cHi').value);
+  if (!isFinite(lo) || !isFinite(hi) || lo <= 0 || hi <= 0) { toast('請輸入有效的頻率 (MHz)'); return; }
+  if (lo > hi) [lo, hi] = [hi, lo];
+  state.custom.push({ lo, hi });
+  $('cLo').value = ''; $('cHi').value = '';
+  update();
+});
+[$('cLo'), $('cHi')].forEach((el) => el.addEventListener('keydown', (e) => { if (e.key === 'Enter') $('cAdd').click(); }));
+
+let qTimer;
+$('filterBody').addEventListener('input', (e) => {
+  if (e.target.id === 'q') {
+    state.q = e.target.value;
+    clearTimeout(qTimer); qTimer = setTimeout(update, 150);
+  }
+});
+$('filterBody').addEventListener('change', (e) => {
+  const t = e.target;
+  if (t.id === 'moduleSel') { state.module = t.value; update(); return; }
+  if (t.dataset.toggle) { state.toggles[t.dataset.toggle] = t.checked; update(); return; }
+  if (t.dataset.facet && t.type === 'checkbox') toggleSel(t.dataset.facet, t.dataset.val);
+});
+$('filterBody').addEventListener('click', (e) => {
+  const c = e.target.closest('button.chip'); if (c) toggleSel(c.dataset.facet, c.dataset.val);
+});
+function toggleSel(key, val) {
+  const cur = state.sel[key] || [];
+  state.sel[key] = cur.includes(val) ? cur.filter((v) => v !== val) : cur.concat(val);
+  update();
+}
+$('activeTags').addEventListener('click', (e) => {
+  const b = e.target.closest('[data-tag]'); if (!b) return;
+  const t = JSON.parse(b.dataset.tag);
+  if (t.act === 'module') state.module = '';
+  if (t.act === 'facet') state.sel[t.f] = (state.sel[t.f] || []).filter((v) => v !== t.v);
+  if (t.act === 'band') state.bands = state.bands.filter((x) => x !== t.id);
+  if (t.act === 'custom') state.custom.splice(t.i, 1);
+  update();
+});
+function resetAll() { state = freshState(page); update(); }
+$('resetBtn').addEventListener('click', resetAll);
+$('sortSel').addEventListener('change', (e) => { state.sort = e.target.value; update(); });
+$('moreBtn').addEventListener('click', () => { shown += PAGE_SIZE; renderList(); });
+$('copyBtn').addEventListener('click', () => {
+  if (!lastResults.length) { toast('目前沒有結果可複製'); return; }
+  copyText(lastResults.map((p) => p.oc).join('\n'), `已複製 ${lastResults.length} 個料號`);
+});
+$('list').addEventListener('click', (e) => {
+  if (e.target.closest('[data-act="reset"]')) { resetAll(); return; }
+  const r = e.target.closest('[data-oc]'); if (r) openDetail(r.dataset.oc);
+});
+$('detail').addEventListener('click', (e) => {
+  if (e.target === $('detail') || e.target.closest('[data-close]')) { $('detail').close(); return; }
+  const c = e.target.closest('[data-copy]'); if (c) { copyText(c.dataset.copy, '已複製料號 ' + c.dataset.copy); return; }
+  const g = e.target.closest('[data-goto]');
+  if (g) {
+    const oc = g.dataset.goto;
+    if (PAGES[page].items().some((x) => x.oc === oc)) openDetail(oc);
+    else { $('detail').close(); state.q = oc; update(); toast('此料號不在本頁清單，已改用搜尋'); }
+  }
+});
+
+/* 手機版篩選抽屜 */
+let scrim;
+function setFilters(open) {
+  $('filters').classList.toggle('open', open);
+  if (open && !scrim) { scrim = document.createElement('div'); scrim.className = 'scrim'; scrim.onclick = () => setFilters(false); document.body.appendChild(scrim); }
+  if (!open && scrim) { scrim.remove(); scrim = null; }
+}
+$('openFilters').addEventListener('click', () => setFilters(true));
+$('closeFilters').addEventListener('click', () => setFilters(false));
+
+/* 主題切換 */
+function applyTheme(t) { if (t) document.documentElement.dataset.theme = t; else delete document.documentElement.dataset.theme; }
+try { applyTheme(localStorage.getItem('antsel:theme')); } catch { /* ignore */ }
+$('themeBtn').addEventListener('click', () => {
+  const dark = document.documentElement.dataset.theme
+    ? document.documentElement.dataset.theme === 'dark'
+    : matchMedia('(prefers-color-scheme: dark)').matches;
+  const next = dark ? 'light' : 'dark';
+  applyTheme(next);
+  try { localStorage.setItem('antsel:theme', next); } catch { /* ignore */ }
+});
+
+/* ==========================================================================
+   路由
+   ========================================================================== */
+function route() {
+  const r = (location.hash.match(/^#\/(\w+)/) || [])[1];
+  page = PAGES[r] ? r : 'global';
+  document.documentElement.dataset.market = page;
+  document.querySelectorAll('[data-route]').forEach((a) => { if (a.dataset.route === page) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); });
+  const meta = document.querySelector('meta[name="theme-color"]');
+  if (meta) meta.content = page === 'japan' ? '#B4233C' : '#0F766E';
+  $('specTitle').textContent = PAGES[page].title;
+  $('specSub').textContent = PAGES[page].sub;
+  document.title = `${PAGES[page].title} | Quectel`;
+  state = Object.assign(freshState(page), store.load(page) || {});
+  $('sortSel').value = state.sort;
+  $('footer').textContent = `資料來源：${DATA.builtFrom.global}、${DATA.builtFrom.jp}。頻段邊界為一般公開配置，最終選型請以 datasheet 與實測結果為準。`;
+  setFilters(false);
+  update();
+}
+window.addEventListener('hashchange', route);
+route();
+
+/* ==========================================================================
+   Service Worker 註冊 (僅自架於 https / localhost 時生效；其他環境安靜略過)
+   ========================================================================== */
+if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(() => { /* 無 sw.js 時忽略 */ });
+  });
+}
+</script>
+</body>
+</html>
