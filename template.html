@@ -295,6 +295,15 @@ footer { max-width: 1360px; margin: 0 auto; padding: 0 20px 32px; font-size: 12p
 .tool-btn:hover { border-color: var(--muted); }
 .tool-btn svg { flex: none; }
 .tool-btn.ver { color: var(--muted); }
+/* 使用說明視窗 (全螢幕) */
+dialog.guide-dlg { width: 100vw; height: 100%; max-width: none; max-height: none; margin: 0; padding: 0; border: 0; background: #DDE2E3; }
+dialog.guide-dlg[open] { display: flex; flex-direction: column; }
+dialog.guide-dlg::backdrop { background: rgba(10, 18, 24, .5); }
+.guide-bar { display: flex; align-items: center; gap: 8px; padding: calc(env(safe-area-inset-top, 0px) + 10px) 14px 10px;
+  background: var(--surface); color: var(--ink); border-bottom: 1px solid var(--rule); }
+.guide-bar h2 { margin: 0 auto 0 0; font-size: 16px; }
+.guide-bar button:disabled { opacity: .5; cursor: progress; }
+#guideFrame { flex: 1; width: 100%; border: 0; background: #DDE2E3; }
 .tool-btn.lang { padding: 0 0 0 10px; position: relative; }
 .tool-btn.lang select {
   appearance: none; -webkit-appearance: none; border: 0; background: transparent; color: inherit;
@@ -401,6 +410,11 @@ html.offline .net { display: inline-flex; }
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/></svg>
         <span class="lbl" data-i18n="update"></span><span class="dot" aria-hidden="true"></span>
       </button>
+      <!-- 使用說明 (依目前語言即時產生) -->
+      <button class="tool-btn" id="guideBtn" type="button">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5V5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2.5z"/><path d="M8 7h7M8 11h7"/></svg>
+        <span class="lbl" data-i18n="guide"></span>
+      </button>
       <!-- 版本資訊 -->
       <button class="tool-btn ver" id="verBtn" type="button">
         <span class="lbl" id="verLbl"></span>
@@ -449,6 +463,14 @@ html.offline .net { display: inline-flex; }
 <dialog class="detail" id="detail" aria-labelledby="dTitle"></dialog>
 <dialog class="detail small" id="verDialog" aria-labelledby="verTitle"></dialog>
 <dialog class="detail small" id="installDialog" aria-labelledby="installTitle"></dialog>
+<dialog class="guide-dlg" id="guideDialog" aria-labelledby="guideTitle">
+  <div class="guide-bar">
+    <h2 id="guideTitle"></h2>
+    <button type="button" class="icon-btn" id="guidePrint" disabled></button>
+    <button type="button" class="icon-btn" id="guideClose"></button>
+  </div>
+  <iframe id="guideFrame" title=""></iframe>
+</dialog>
 <div class="toast" id="toast" role="status"></div>
 
 <script>
@@ -461,6 +483,15 @@ html.offline .net { display: inline-flex; }
 
 /** 內嵌資料 (build_data.py 取代此佔位符) */
 const DATA = /*__DATA__*/null;
+
+/**
+ * 執行模式 (同一個 index.html，離線也能使用)：
+ *   app   : 一般工具
+ *   guide : ?guide=1&lang=xx      使用說明 (即時依目前資料與介面產生)
+ *   embed : ?embed=<狀態>&lang=xx 使用說明中的 iPhone 畫面 (預設示範狀態；不讀寫使用者設定)
+ */
+const PARAMS = new URLSearchParams(location.search);
+const MODE = PARAMS.has('guide') ? 'guide' : PARAMS.has('embed') ? 'embed' : 'app';
 const APP_VERSION = DATA.version || '0.0.0';
 
 /**
@@ -509,7 +540,7 @@ const I18N = {
     certOnly: '僅顯示有 TELEC 認證的天線', badgeCert: 'TELEC ×{n}', certTitle: 'TELEC 認證模組 ({n})', certNone: '尚無 TELEC 認證模組',
     v_rev: 'Excel 版次',
     f_type: '技術類別 Tech', f_ptype: '產品型態 Product Type', f_atype: '天線類型 Antenna Type',
-    f_form: '外型', f_mount: '安裝方式', f_conn: '連接器', f_ip: '防護等級', f_qty: '天線埠數', f_brochure: '銷售區域',
+    f_form: '型態 Form', f_mount: '安裝方式', f_conn: '連接器', f_ip: '防護等級', f_qty: '天線埠數', f_brochure: '銷售區域',
     f_jp: '日本市場 Japan Market',
     [NA]: '未標示', [NONE]: '無', [OTHER]: '其他',
     badgeJp: 'JP 相容', removeTag: '移除條件 {x}',
@@ -547,6 +578,7 @@ const I18N = {
     cxFull: '{c} 接頭＋{t} 線材（Φ{d} mm），線長 {l} mm',
     cxLen: '{c} 接頭＋{t} 線材，線長 {l} mm', cxSep: '；',
     f_gnss: 'GNSS 天線類型',
+    guide: '使用說明', guidePrint: '列印 / 存成 PDF',
     datasheet: 'Datasheet', dsAria: '開啟 {oc} 的 Datasheet', dsOffline: 'Datasheet 需要網路連線 (並登入公司帳號)',
   },
   en: {
@@ -569,7 +601,7 @@ const I18N = {
     certOnly: 'TELEC-certified antennas only', badgeCert: 'TELEC ×{n}', certTitle: 'TELEC-certified modules ({n})', certNone: 'No TELEC-certified module yet',
     v_rev: 'Excel revision',
     f_type: 'Tech', f_ptype: 'Product Type', f_atype: 'Antenna Type',
-    f_form: 'Form factor', f_mount: 'Mounting', f_conn: 'Connector', f_ip: 'IP rating', f_qty: 'Antenna ports', f_brochure: 'Sales region',
+    f_form: 'Form', f_mount: 'Mounting', f_conn: 'Connector', f_ip: 'IP rating', f_qty: 'Antenna ports', f_brochure: 'Sales region',
     f_jp: 'Japan Market',
     [NA]: 'Unspecified', [NONE]: 'None', [OTHER]: 'Other',
     badgeJp: 'JP OK', removeTag: 'Remove filter {x}',
@@ -607,6 +639,7 @@ const I18N = {
     cxFull: '{c} connector + {t} cable (Φ{d} mm), {l} mm long',
     cxLen: '{c} connector + {t} cable, {l} mm long', cxSep: '; ',
     f_gnss: 'GNSS antenna type',
+    guide: 'User guide', guidePrint: 'Print / Save as PDF',
     datasheet: 'Datasheet', dsAria: 'Open datasheet for {oc}', dsOffline: 'Datasheets need a network connection (and company sign-in)',
   },
   ja: {
@@ -628,7 +661,7 @@ const I18N = {
     certOnly: 'TELEC 認証済みのアンテナのみ表示', badgeCert: 'TELEC ×{n}', certTitle: 'TELEC 認証モジュール（{n}）', certNone: 'TELEC 認証モジュールはまだありません',
     v_rev: 'Excel 版数',
     f_type: '技術タイプ Tech', f_ptype: '製品タイプ Product Type', f_atype: 'アンテナタイプ Antenna Type',
-    f_form: '形状', f_mount: '取付方法', f_conn: 'コネクタ', f_ip: '防塵防水等級', f_qty: 'アンテナポート数', f_brochure: '販売地域',
+    f_form: '形状 Form', f_mount: '取付方法', f_conn: 'コネクタ', f_ip: '防塵防水等級', f_qty: 'アンテナポート数', f_brochure: '販売地域',
     f_jp: '日本市場 Japan Market',
     [NA]: '未記載', [NONE]: 'なし', [OTHER]: 'その他',
     badgeJp: 'JP 対応', removeTag: '条件を解除：{x}',
@@ -665,6 +698,7 @@ const I18N = {
     cxFull: '{c} コネクタ＋{t} ケーブル（Φ{d} mm）、長さ {l} mm',
     cxLen: '{c} コネクタ＋{t} ケーブル、長さ {l} mm', cxSep: '；',
     f_gnss: 'GNSS アンテナタイプ',
+    guide: 'ユーザーガイド', guidePrint: '印刷 / PDF に保存',
     datasheet: 'Datasheet', dsAria: '{oc} のデータシートを開く', dsOffline: 'データシートの表示にはネットワーク接続（と社内アカウントでのサインイン）が必要です',
   },
   ko: {
@@ -686,7 +720,7 @@ const I18N = {
     certOnly: 'TELEC 인증 안테나만 표시', badgeCert: 'TELEC ×{n}', certTitle: 'TELEC 인증 모듈 ({n})', certNone: '아직 TELEC 인증 모듈이 없습니다',
     v_rev: 'Excel 개정판',
     f_type: '기술 유형 Tech', f_ptype: '제품 유형 Product Type', f_atype: '안테나 유형 Antenna Type',
-    f_form: '형태', f_mount: '장착 방식', f_conn: '커넥터', f_ip: '방진·방수 등급', f_qty: '안테나 포트 수', f_brochure: '판매 지역',
+    f_form: '형태 Form', f_mount: '장착 방식', f_conn: '커넥터', f_ip: '방진·방수 등급', f_qty: '안테나 포트 수', f_brochure: '판매 지역',
     f_jp: '일본 시장 Japan Market',
     [NA]: '미기재', [NONE]: '없음', [OTHER]: '기타',
     badgeJp: 'JP 호환', removeTag: '조건 해제: {x}',
@@ -723,6 +757,7 @@ const I18N = {
     cxFull: '{c} 커넥터 + {t} 케이블 (Φ{d} mm), 길이 {l} mm',
     cxLen: '{c} 커넥터 + {t} 케이블, 길이 {l} mm', cxSep: '; ',
     f_gnss: 'GNSS 안테나 유형',
+    guide: '사용자 가이드', guidePrint: '인쇄 / PDF로 저장',
     datasheet: 'Datasheet', dsAria: '{oc} 데이터시트 열기', dsOffline: '데이터시트를 보려면 네트워크 연결(및 회사 계정 로그인)이 필요합니다',
   },
 };
@@ -752,6 +787,8 @@ function applyStaticI18n() {
   $('updateBtn').setAttribute('aria-label', t('updateAria'));
   $('updateBtn').title = t('updateAria');
   $('verLbl').textContent = 'v' + APP_VERSION;
+  $('guideBtn').setAttribute('aria-label', t('guide'));
+  $('guideBtn').title = t('guide');
   $('verBtn').setAttribute('aria-label', t('verAria') + ' v' + APP_VERSION);
   renderThemeBtn();
 }
@@ -800,7 +837,7 @@ const PAGES = {
     module: true,
     facets: [
       // 下拉選單順序 (由上到下)：
-      //   Tech → Japan Market → [TELEC 認證模組：Japan Market = Yes 時] → [GNSS 天線類型：Tech = GNSS 時] → Product Type
+      //   Tech → Japan Market → [TELEC 認證模組：Japan Market = Yes 時] → [GNSS 天線類型：Tech = GNSS 時] → Product Type → Form
       { key: 'type', ui: 'select', get: (p) => typeLabel(p.type) },
       // Japan Market：取自 Excel「Compatible with Japan Market」欄 (YES → Yes，其餘 → No)
       { key: 'jp', ui: 'select', get: (p) => (p.jp ? 'Yes' : 'No'), sort: (a, b) => (b === 'Yes') - (a === 'Yes') },
@@ -809,7 +846,7 @@ const PAGES = {
         scope: (p) => p.type === 'GNSS',                       // 選項只取 GNSS 天線的值
         sort: (a, b) => ((GNSS_ORDER.indexOf(a) + 1) || 99) - ((GNSS_ORDER.indexOf(b) + 1) || 99) },
       { key: 'ptype', ui: 'select', get: (p) => p.ptype || OTHER },
-      { key: 'form', ui: 'checks', get: (p) => p.form || NA },
+      { key: 'form', ui: 'select', get: (p) => p.form || NA },
       { key: 'mount', ui: 'checks', get: (p) => p.mount || NA },
       { key: 'conn', ui: 'checks', get: (p) => (p.conn && p.conn.length ? p.conn.map(connFamily) : [NONE]) },
       { key: 'ip', ui: 'checks', get: (p) => p.ip || NONE },
@@ -835,7 +872,7 @@ const toggleLabel = { certOnly: 'certOnly' };
    ========================================================================== */
 const store = {
   get(k) { try { return localStorage.getItem('antsel:' + k); } catch { return null; } },
-  set(k, v) { try { localStorage.setItem('antsel:' + k, v); } catch { /* storage 無法使用時忽略 */ } },
+  set(k, v) { if (MODE !== 'app') return; try { localStorage.setItem('antsel:' + k, v); } catch { /* storage 無法使用時忽略 */ } },
   load(page) { try { return JSON.parse(this.get(page) || 'null'); } catch { return null; } },
   save(page, st) { this.set(page, JSON.stringify(st)); },
 };
@@ -1196,6 +1233,7 @@ async function fetchLatest() {
   } catch { return null; }
 }
 async function checkForUpdate() {
+  if (MODE !== 'app') return null;
   const latest = await fetchLatest();
   const has = !!latest && cmpVer(latest.version, APP_VERSION) > 0;
   $('updateBtn').classList.toggle('has-update', has);
@@ -1269,7 +1307,7 @@ async function forceUpdate() {
    App 化：安裝、離線狀態、永久儲存
    ========================================================================== */
 const isStandalone = () => matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
-const platform = (() => {
+const platform = MODE === 'embed' ? 'ios' : (() => {
   const ua = navigator.userAgent;
   if (/iPad|iPhone|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)) return 'ios';
   if (/Android/i.test(ua)) return 'android';
@@ -1371,6 +1409,7 @@ function renderThemeBtn() {
    ========================================================================== */
 function toast(msg, ms = 1800) {
   const el = $('toast');
+  if (!el || MODE !== 'app') return;
   el.textContent = msg; el.classList.add('show');
   clearTimeout(toast._t); toast._t = setTimeout(() => el.classList.remove('show'), ms);
 }
@@ -1469,6 +1508,7 @@ $('langSel').addEventListener('change', (e) => {
   applyStaticI18n(); renderPageText(); renderAll();
   if ($('verDialog').open) openVersion();
   if ($('installDialog').open) openInstallHelp();
+  if ($('guideDialog').open) openGuide();
 });
 $('themeBtn').addEventListener('click', () => {
   const next = isDark() ? 'light' : 'dark';
@@ -1488,6 +1528,586 @@ function setFilters(open) {
 $('openFilters').addEventListener('click', () => setFilters(true));
 $('closeFilters').addEventListener('click', () => setFilters(false));
 
+
+/* ==========================================================================
+   使用說明 (User guide)
+   - 依目前語言即時產生；版本、資料數量、範例料號皆取自目前資料
+   - iPhone 畫面為工具本身在示範狀態下的即時畫面 (embed 模式)，介面改動會自動反映
+   - 列印 / 存成 PDF：A4 版面
+   ========================================================================== */
+const GUIDE = {
+ "zh": {
+  "title": "Quectel 天線選型 · TELEC 認證",
+  "sub": "使用說明",
+  "meta": [
+   "App 版本 v{v}",
+   "資料版次 {r}（{d}）"
+  ],
+  "lead": "可快速查詢 <b>{a} 款 Quectel 天線</b>的規格，以及它們與 <b>{m} 款模組</b>的 <b>TELEC 認證</b>組合。可依模組、類型、尺寸等條件篩選，手機、平板、電腦都能使用；安裝後<b>不需網路</b>也能查詢。",
+  "url": "開啟網址",
+  "h01": "下拉選單說明",
+  "S1": "日本市場 = Yes",
+  "S2": "技術類別 = GNSS",
+  "M": [
+   "<b>技術類別 Tech</b>：天線的技術，例如 4G、5G、GNSS、Wi-Fi、LPWA/ISM、Combo。",
+   "<b>日本市場 Japan Market</b>：Yes 為 Excel 中標示「Compatible with Japan Market」的天線；No 為其他天線。",
+   "<b>TELEC 認證模組</b>：只有日本市場選 Yes 時才會出現。只列出與所選模組一起取得認證的天線，並顯示該模組的類別、認證日期與認證天線數。",
+   "<b>GNSS 天線類型</b>：只有技術類別選 GNSS 時才會出現，可選 Passive（被動式）、Active（主動式）或 Dipole。",
+   "<b>產品型態 Product Type</b>：External Antenna（外接）或 Embedded Antenna（內嵌）。",
+   "<b>型態 Form</b>：天線外型，例如 Rubber、Low Profile、PCB Chip、FPC + Cable、Ceramic Patch。"
+  ],
+  "tip": "括號內的數字，是在其他已選條件下符合的天線數量。選「<b>全部</b>」即可取消該選單的條件。日本市場改為 Yes 以外時，TELEC 認證模組會自動清除；技術類別改為 GNSS 以外時，GNSS 天線類型會自動清除。",
+  "h02": "天線詳細資料",
+  "P1": "已認證天線",
+  "P2": "主動式 GNSS 天線",
+  "D": [
+   "<b>複製料號</b>與 <b>Datasheet</b>（需要網路連線並登入公司帳號）。",
+   "<b>TELEC 認證模組</b>：依類別列出並附認證日期，目前選定的模組以綠色標示。",
+   "<b>射頻效能</b>：效率、峰值增益、場型、極化。主動式 GNSS 天線另外顯示 <b>LNA 增益</b>。",
+   "<b>連接器與線材</b>：使用 IPEX MHF 連接器或 RG174 線材的天線，會將連接器、線材型號與線長合併描述（IPEX 另含線徑）。"
+  ],
+  "labels": "清單標示說明",
+  "th_label": "標示",
+  "th_mean": "意義",
+  "lab": [
+   "已和 10 款模組一起取得 TELEC 認證。外框加粗表示包含目前選定的模組。",
+   "Excel 中標示為「Compatible with Japan Market」。「<b>日本市場</b>」選 Yes 即只列出這些天線。",
+   "在新分頁開啟 Datasheet。"
+  ],
+  "lna_tag": "LNA 增益",
+  "lna_mean": "只有主動式 GNSS 天線（內建 LNA）會顯示，清單與詳細資料都看得到。",
+  "cx_tag": "連接器與線材",
+  "cx_mean": "使用 IPEX MHF 連接器或 RG174 / RG174LL 線材的天線，例如「{ex1}」、「{ex2}」。有兩條線的天線會逐條列出。",
+  "h03": "安裝成 App 與離線使用",
+  "th_dev": "裝置",
+  "th_how": "安裝方式",
+  "inst": [
+   "用 <b>Safari</b> 開啟（必須）→ 分享 → <b>加入主畫面</b> → 新增",
+   "用 Chrome 開啟 → 點上方的「<b>安裝 App</b>」，或選單 ⋮ → 安裝應用程式",
+   "用 Edge 或 Chrome 開啟 →「<b>安裝 App</b>」或網址列的安裝圖示；也可以釘選到工作列。"
+  ],
+  "callout": "<b>從 LINE、Teams 或 Email 開啟？</b>這些 App 內建的瀏覽器無法安裝。請點「<b>安裝 App</b>」，再按 {open} 改用瀏覽器開啟，或按 {copy} 後貼到 Safari 或 Chrome。",
+  "offline": "<b>離線使用</b>：安裝後請先<b>在有網路時開啟一次</b>，之後即可完全離線使用。斷網時上方會顯示「離線模式」。",
+  "ios_note": "iPhone 上的 App 若連續數週未開啟，iOS 可能清除離線資料，連網開啟一次即可恢復。",
+  "h04": "常見問題",
+  "faq": [
+   [
+    "顯示「此模組目前沒有已認證的天線」？",
+    "代表 Excel 認證表中，這個模組還沒有已認證的天線。"
+   ],
+   [
+    "沒有結果，或顯示 0 項？",
+    "條件可能太多。點條件標籤上的 × 移除，或使用「清除所有條件」。"
+   ],
+   [
+    "資料好像不是最新的？",
+    "連網後按「強制更新」，或在版本資訊中比對伺服器版本。"
+   ],
+   [
+    "Datasheet 打不開？",
+    "Datasheet 存放在公司 SharePoint，需要網路連線並登入公司帳號。"
+   ]
+  ],
+  "notes_t": "注意事項",
+  "notes": [
+   "資料來源為「Quectel Antenna Product and TELEC Certification」Excel，每季更新；正式資訊以 Excel 為準。",
+   "LNA 增益、線材型號與線長取自 Excel；線長單位為 mm。IPEX 線徑依線材型號標示（例如 RF1.13 為 Φ1.13 mm），RG174 未標示線徑。"
+  ],
+  "footer": "Quectel 天線選型 · TELEC 認證 — 使用說明"
+ },
+ "en": {
+  "title": "Quectel Antenna Selector · TELEC Certification",
+  "sub": "User Guide",
+  "meta": [
+   "App version v{v}",
+   "Data revision {r} ({d})"
+  ],
+  "lead": "Look up specifications for <b>{a} Quectel antennas</b> and their <b>TELEC certifications</b> with <b>{m} modules</b>. Filter by module, type, size and more on a phone, tablet or computer. Once installed, it works <b>without a network connection</b>.",
+  "url": "Web address",
+  "h01": "Dropdown menus",
+  "S1": "Japan Market = Yes",
+  "S2": "Tech = GNSS",
+  "M": [
+   "<b>Tech</b>: the technology, e.g. 4G, 5G, GNSS, Wi-Fi, LPWA/ISM, Combo.",
+   "<b>Japan Market</b>: Yes = marked \"Compatible with Japan Market\" in the Excel; No = all others.",
+   "<b>TELEC-certified module</b>: appears only when Japan Market is Yes. Lists only antennas certified with the selected module and shows its category, cert date and number of certified antennas.",
+   "<b>GNSS antenna type</b>: appears only when Tech is GNSS. Choose Passive, Active or Dipole.",
+   "<b>Product Type</b>: External Antenna or Embedded Antenna.",
+   "<b>Form</b>: the antenna form factor, e.g. Rubber, Low Profile, PCB Chip, FPC + Cable, Ceramic Patch."
+  ],
+  "tip": "The number in brackets is how many antennas match your other selections. Choose <b>All</b> to clear a menu. Changing Japan Market from Yes clears the TELEC module; changing Tech from GNSS clears the GNSS antenna type.",
+  "h02": "Antenna details",
+  "P1": "Certified antenna",
+  "P2": "Active GNSS antenna",
+  "D": [
+   "<b>Copy part no.</b> and <b>Datasheet</b> (needs a network connection and company sign-in).",
+   "<b>TELEC-certified modules</b>, grouped by category with cert dates. The module you selected is highlighted.",
+   "<b>RF performance</b>: efficiency, peak gain, pattern, polarization. Active GNSS antennas also show their <b>LNA gain</b>.",
+   "<b>Connector &amp; cable</b>: for IPEX MHF connectors and RG174 cables, the connector, cable type and length are described together (IPEX also shows the cable diameter)."
+  ],
+  "labels": "Labels in the list",
+  "th_label": "Label",
+  "th_mean": "Meaning",
+  "lab": [
+   "Certified with 10 modules. A bold outline means it includes the module you selected.",
+   "Marked \"Compatible with Japan Market\" in the Excel source. Set <b>Japan Market</b> to Yes to list only these.",
+   "Opens the datasheet in a new tab."
+  ],
+  "lna_tag": "LNA gain",
+  "lna_mean": "Shown only for active GNSS antennas (with a built-in LNA), in the list and the details.",
+  "cx_tag": "Connector &amp; cable",
+  "cx_mean": "IPEX MHF connectors or RG174 / RG174LL cables, e.g. \"{ex1}\" or \"{ex2}\". Antennas with two cables list each one.",
+  "h03": "Install as an app &amp; use offline",
+  "th_dev": "Device",
+  "th_how": "How to install",
+  "inst": [
+   "Open in <b>Safari</b> (required) → Share → <b>Add to Home Screen</b> → Add",
+   "Open in Chrome → tap <b>Install app</b> at the top, or menu ⋮ → Install app",
+   "Open in Edge or Chrome → <b>Install app</b> or the install icon in the address bar. Pin it to the taskbar if you like."
+  ],
+  "callout": "<b>Opened from LINE, Teams or email?</b> In-app browsers can't install apps. Tap <b>Install app</b>, then {open} to switch to your browser, or {copy} and paste it into Safari or Chrome.",
+  "offline": "<b>Offline use:</b> after installing, open the app <b>once while online</b>. From then on it works with no network. An \"Offline\" badge appears at the top when you're disconnected.",
+  "ios_note": "If an iPhone app isn't opened for several weeks, iOS may clear its offline data. Opening it once online restores it.",
+  "h04": "FAQ",
+  "faq": [
+   [
+    "\"No antenna is certified with this module yet\"?",
+    "The Excel certification table has no certified antenna for that module."
+   ],
+   [
+    "No results, or 0 antennas?",
+    "Too many filters may be active. Tap × on the filter tags, or use Clear all filters."
+   ],
+   [
+    "The data looks out of date?",
+    "Go online and tap Force update, or compare versions in Version info."
+   ],
+   [
+    "The datasheet won't open?",
+    "Datasheets are stored on the company SharePoint and need a network connection and company sign-in."
+   ]
+  ],
+  "notes_t": "Notes",
+  "notes": [
+   "Data comes from the \"Quectel Antenna Product and TELEC Certification\" Excel, updated quarterly. The Excel file is the authoritative source.",
+   "LNA gain, cable type and cable length come from the Excel. Cable length is in mm. IPEX cable diameter follows the cable type (e.g. RF1.13 = Φ1.13 mm); RG174 diameter isn't listed."
+  ],
+  "footer": "Quectel Antenna Selector · TELEC Certification — User Guide"
+ },
+ "ja": {
+  "title": "Quectel アンテナ選定 · TELEC 認証",
+  "sub": "ユーザーガイド",
+  "meta": [
+   "アプリのバージョン v{v}",
+   "データ版数 {r}（{d}）"
+  ],
+  "lead": "<b>{a} 種類の Quectel アンテナ</b>の仕様と、<b>{m} 種類のモジュール</b>との <b>TELEC 認証</b>の組み合わせを検索できます。モジュール、タイプ、サイズなどで絞り込めます。スマートフォン、タブレット、パソコンで使え、インストール後は<b>ネットワークなし</b>でも利用できます。",
+  "url": "Web アドレス",
+  "h01": "ドロップダウンメニュー",
+  "S1": "日本市場 = Yes",
+  "S2": "技術タイプ = GNSS",
+  "M": [
+   "<b>技術タイプ Tech</b>：4G、5G、GNSS、Wi-Fi、LPWA/ISM、Combo などの技術。",
+   "<b>日本市場 Japan Market</b>：Yes は Excel で「Compatible with Japan Market」とされているアンテナ、No はそれ以外です。",
+   "<b>TELEC 認証モジュール</b>：日本市場で Yes を選んだときのみ表示されます。選んだモジュールと認証済みのアンテナのみ表示し、カテゴリ、認証日、認証済みアンテナ数も表示します。",
+   "<b>GNSS アンテナタイプ</b>：技術タイプで GNSS を選んだときのみ表示されます。Passive（パッシブ）、Active（アクティブ）、Dipole から選べます。",
+   "<b>製品タイプ Product Type</b>：External Antenna（外付け）または Embedded Antenna（内蔵）。",
+   "<b>形状 Form</b>：Rubber、Low Profile、PCB Chip、FPC + Cable、Ceramic Patch などのアンテナ形状。"
+  ],
+  "tip": "括弧内の数字は、ほかの選択条件に該当するアンテナの数です。「<b>すべて</b>」を選ぶと条件が解除されます。日本市場を Yes 以外に変えると TELEC 認証モジュールが、技術タイプを GNSS 以外に変えると GNSS アンテナタイプが自動的に解除されます。",
+  "h02": "アンテナの詳細",
+  "P1": "認証済みアンテナ",
+  "P2": "アクティブ GNSS アンテナ",
+  "D": [
+   "<b>品番をコピー</b>と<b>データシート</b>（ネットワーク接続と社内アカウントでのサインインが必要）。",
+   "<b>TELEC 認証モジュール</b>：カテゴリ別に認証日とともに表示されます。選択中のモジュールは緑色で強調されます。",
+   "<b>RF 性能</b>：効率、ピークゲイン、放射パターン、偏波。アクティブ GNSS アンテナは <b>LNA ゲイン</b>も表示されます。",
+   "<b>コネクタとケーブル</b>：IPEX MHF コネクタまたは RG174 ケーブルのアンテナは、コネクタ、ケーブルの型番、長さをまとめて表示します（IPEX は線径も表示）。"
+  ],
+  "labels": "一覧の表示",
+  "th_label": "ラベル",
+  "th_mean": "意味",
+  "lab": [
+   "10 種類のモジュールと認証済み。太い枠は、選択中のモジュールが含まれることを示します。",
+   "Excel で「Compatible with Japan Market」とされている製品です。<b>日本市場</b>で Yes を選ぶと、これらのみ表示されます。",
+   "データシートを新しいタブで開きます。"
+  ],
+  "lna_tag": "LNA ゲイン",
+  "lna_mean": "アクティブ GNSS アンテナ（LNA 内蔵）のみ、一覧と詳細に表示されます。",
+  "cx_tag": "コネクタとケーブル",
+  "cx_mean": "IPEX MHF コネクタまたは RG174 / RG174LL ケーブルのアンテナ。例：「{ex1}」「{ex2}」。ケーブルが 2 本あるアンテナは 1 本ずつ表示します。",
+  "h03": "アプリとしてインストール／オフライン利用",
+  "th_dev": "デバイス",
+  "th_how": "インストール方法",
+  "inst": [
+   "<b>Safari</b> で開く（必須）→ 共有 → <b>ホーム画面に追加</b> → 追加",
+   "Chrome で開く → 上部の<b>アプリをインストール</b>、またはメニュー ⋮ → アプリをインストール",
+   "Edge または Chrome で開く → <b>アプリをインストール</b>、またはアドレスバーのインストールアイコン。タスクバーにピン留めもできます。"
+  ],
+  "callout": "<b>LINE、Teams、メールから開いた場合</b>：アプリ内ブラウザではインストールできません。<b>アプリをインストール</b>をタップし、{open} でブラウザに切り替えるか、{copy} して Safari や Chrome に貼り付けてください。",
+  "offline": "<b>オフライン利用</b>：インストール後、<b>オンラインの状態で一度開いてください</b>。以降はネットワークなしで使えます。接続がないときは上部に「オフライン」と表示されます。",
+  "ios_note": "iPhone で数週間アプリを開かないと、iOS がオフラインデータを削除することがあります。オンラインで一度開けば元に戻ります。",
+  "h04": "よくある質問",
+  "faq": [
+   [
+    "「このモジュールで認証済みのアンテナはまだありません」と表示される",
+    "Excel の認証表で、そのモジュールに認証済みのアンテナがまだないことを示します。"
+   ],
+   [
+    "結果が表示されない／0 件になる",
+    "条件が多すぎる可能性があります。条件タグの × をタップするか、「すべての条件をクリア」を使ってください。"
+   ],
+   [
+    "データが古いようだ",
+    "オンラインで「強制更新」をタップするか、バージョン情報でサーバーのバージョンを確認してください。"
+   ],
+   [
+    "データシートが開かない",
+    "データシートは社内 SharePoint にあり、ネットワーク接続と社内アカウントでのサインインが必要です。"
+   ]
+  ],
+  "notes_t": "注意事項",
+  "notes": [
+   "データは「Quectel Antenna Product and TELEC Certification」Excel に基づき、四半期ごとに更新されます。正式な情報は Excel を参照してください。",
+   "LNA ゲイン、ケーブルの型番と長さは Excel の値です。ケーブル長の単位は mm です。IPEX の線径はケーブルの型番に基づき（例：RF1.13 = Φ1.13 mm）、RG174 の線径は記載されていません。"
+  ],
+  "footer": "Quectel アンテナ選定 · TELEC 認証 — ユーザーガイド"
+ },
+ "ko": {
+  "title": "Quectel 안테나 선정 · TELEC 인증",
+  "sub": "사용자 가이드",
+  "meta": [
+   "앱 버전 v{v}",
+   "데이터 개정판 {r} ({d})"
+  ],
+  "lead": "<b>Quectel 안테나 {a}종</b>의 사양과 <b>모듈 {m}종</b>과의 <b>TELEC 인증</b> 조합을 조회할 수 있습니다. 모듈, 유형, 크기 등으로 필터링할 수 있으며 휴대폰, 태블릿, PC에서 사용할 수 있습니다. 설치한 뒤에는 <b>네트워크 없이도</b> 사용할 수 있습니다.",
+  "url": "웹 주소",
+  "h01": "드롭다운 메뉴",
+  "S1": "일본 시장 = Yes",
+  "S2": "기술 유형 = GNSS",
+  "M": [
+   "<b>기술 유형 Tech</b>: 4G, 5G, GNSS, Wi-Fi, LPWA/ISM, Combo 등 기술.",
+   "<b>일본 시장 Japan Market</b>: Yes는 Excel에 \"Compatible with Japan Market\"으로 표시된 안테나, No는 그 밖의 안테나입니다.",
+   "<b>TELEC 인증 모듈</b>: 일본 시장에서 Yes를 선택했을 때만 나타납니다. 선택한 모듈과 인증된 안테나만 표시하고, 분류·인증일·인증 안테나 수도 보여 줍니다.",
+   "<b>GNSS 안테나 유형</b>: 기술 유형에서 GNSS를 선택했을 때만 나타나며, Passive(패시브), Active(액티브), Dipole 중에서 선택합니다.",
+   "<b>제품 유형 Product Type</b>: External Antenna(외장) 또는 Embedded Antenna(내장).",
+   "<b>형태 Form</b>: Rubber, Low Profile, PCB Chip, FPC + Cable, Ceramic Patch 등 안테나 형태."
+  ],
+  "tip": "괄호 안의 숫자는 다른 선택 조건에 맞는 안테나 수입니다. \"<b>전체</b>\"를 선택하면 조건이 해제됩니다. 일본 시장을 Yes 외의 항목으로 바꾸면 TELEC 인증 모듈이, 기술 유형을 GNSS 외의 항목으로 바꾸면 GNSS 안테나 유형이 자동으로 해제됩니다.",
+  "h02": "안테나 상세 정보",
+  "P1": "인증된 안테나",
+  "P2": "액티브 GNSS 안테나",
+  "D": [
+   "<b>품번 복사</b>와 <b>데이터시트</b> (네트워크 연결과 회사 계정 로그인 필요).",
+   "<b>TELEC 인증 모듈</b>: 분류별로 인증일과 함께 표시됩니다. 선택한 모듈은 초록색으로 강조됩니다.",
+   "<b>RF 성능</b>: 효율, 피크 이득, 방사 패턴, 편파. 액티브 GNSS 안테나는 <b>LNA 이득</b>도 표시됩니다.",
+   "<b>커넥터 및 케이블</b>: IPEX MHF 커넥터 또는 RG174 케이블을 사용하는 안테나는 커넥터, 케이블 모델, 길이를 함께 표시합니다 (IPEX는 지름도 표시)."
+  ],
+  "labels": "목록 표시",
+  "th_label": "표시",
+  "th_mean": "의미",
+  "lab": [
+   "모듈 10종과 인증되었습니다. 굵은 테두리는 선택한 모듈이 포함되어 있다는 뜻입니다.",
+   "Excel에 \"Compatible with Japan Market\"으로 표시된 제품입니다. <b>일본 시장</b>에서 Yes를 선택하면 이 제품만 표시됩니다.",
+   "데이터시트를 새 탭에서 엽니다."
+  ],
+  "lna_tag": "LNA 이득",
+  "lna_mean": "액티브 GNSS 안테나(LNA 내장)에만 목록과 상세 정보에 표시됩니다.",
+  "cx_tag": "커넥터 및 케이블",
+  "cx_mean": "IPEX MHF 커넥터 또는 RG174 / RG174LL 케이블을 사용하는 안테나. 예: \"{ex1}\", \"{ex2}\". 케이블이 두 개인 안테나는 하나씩 표시합니다.",
+  "h03": "앱으로 설치 및 오프라인 사용",
+  "th_dev": "기기",
+  "th_how": "설치 방법",
+  "inst": [
+   "<b>Safari</b>로 열기 (필수) → 공유 → <b>홈 화면에 추가</b> → 추가",
+   "Chrome으로 열기 → 상단의 <b>앱 설치</b>, 또는 메뉴 ⋮ → 앱 설치",
+   "Edge 또는 Chrome으로 열기 → <b>앱 설치</b> 또는 주소창의 설치 아이콘. 작업 표시줄에 고정할 수도 있습니다."
+  ],
+  "callout": "<b>LINE, Teams, 이메일에서 열었나요?</b> 앱 안의 브라우저에서는 설치할 수 없습니다. <b>앱 설치</b>를 누른 뒤 {open}로 브라우저로 전환하거나, {copy} 후 Safari나 Chrome에 붙여 넣으세요.",
+  "offline": "<b>오프라인 사용</b>: 설치 후 <b>온라인 상태에서 한 번 열어 두세요</b>. 그다음부터는 네트워크 없이 사용할 수 있습니다. 연결이 끊기면 상단에 \"오프라인\"이 표시됩니다.",
+  "ios_note": "iPhone에서 몇 주 동안 앱을 열지 않으면 iOS가 오프라인 데이터를 삭제할 수 있습니다. 온라인에서 한 번 열면 복구됩니다.",
+  "h04": "자주 묻는 질문",
+  "faq": [
+   [
+    "\"이 모듈로 인증된 안테나가 아직 없습니다\"라고 표시됩니다",
+    "Excel 인증표에 해당 모듈과 인증된 안테나가 아직 없다는 뜻입니다."
+   ],
+   [
+    "결과가 없거나 0개로 표시됩니다",
+    "조건이 너무 많을 수 있습니다. 조건 태그의 ×를 누르거나 \"모든 조건 지우기\"를 사용하세요."
+   ],
+   [
+    "데이터가 최신이 아닌 것 같습니다",
+    "온라인 상태에서 \"강제 업데이트\"를 누르거나, 버전 정보에서 서버 버전을 확인하세요."
+   ],
+   [
+    "데이터시트가 열리지 않습니다",
+    "데이터시트는 회사 SharePoint에 있으며, 네트워크 연결과 회사 계정 로그인이 필요합니다."
+   ]
+  ],
+  "notes_t": "참고 사항",
+  "notes": [
+   "데이터는 \"Quectel Antenna Product and TELEC Certification\" Excel을 기준으로 하며 분기마다 업데이트됩니다. 공식 정보는 Excel을 기준으로 합니다.",
+   "LNA 이득, 케이블 모델과 길이는 Excel 값입니다. 케이블 길이 단위는 mm입니다. IPEX 지름은 케이블 모델을 따르며 (예: RF1.13 = Φ1.13 mm), RG174는 지름이 표시되지 않습니다."
+  ],
+  "footer": "Quectel 안테나 선정 · TELEC 인증 — 사용자 가이드"
+ }
+};
+
+/** 從目前資料挑選示範用的模組與天線 (Excel 更新後自動改用仍存在的料號) */
+function guidePicks() {
+  const items = DATA.items;
+  const isRg = (p) => (p.cables || []).length === 1 && RG174_RE.test(p.cables[0].type || '');
+  const isIpex = (p) => (p.conn || []).some((c) => IPEX_RE.test(c));
+  const module = [...DATA.modules].sort((a, b) => b.n - a.n)[0]?.name || '';
+  const cert = [...items].filter((p) => (p.certs || []).length && connCableInfo(p))
+    .sort((a, b) => b.certs.length - a.certs.length)[0]
+    || [...items].filter((p) => (p.certs || []).length).sort((a, b) => b.certs.length - a.certs.length)[0];
+  const active = items.find((p) => p.lna && p.type === 'GNSS' && isRg(p))
+    || items.find((p) => p.lna && connCableInfo(p)) || items.find((p) => p.lna);
+  const exRg = items.find(isRg);
+  const exIpex = items.find(isIpex);
+  return { module, cert: cert?.oc, active: active?.oc,
+           exRg: exRg ? connCableInfo(exRg) : '', exIpex: exIpex ? connCableInfo(exIpex) : '' };
+}
+
+/** 標註：在元素外框加上編號 (dialog 開啟時放在 dialog 內才會顯示在最上層) */
+function drawCallouts(items) {
+  for (const [sel, n, dx, dy, pad = 3] of items) {
+    const els = Array.isArray(sel) ? sel.flatMap((x) => [...document.querySelectorAll(x)]) : [document.querySelector(sel)].filter(Boolean);
+    if (!els.length) continue;
+    const rs = els.map((e) => e.getBoundingClientRect());
+    const r = { left: Math.min(...rs.map((x) => x.left)), top: Math.min(...rs.map((x) => x.top)),
+                right: Math.max(...rs.map((x) => x.right)), bottom: Math.max(...rs.map((x) => x.bottom)) };
+    const host = document.querySelector('dialog[open]') || document.body;
+    const box = document.createElement('div');
+    box.className = 'g-co-box';
+    Object.assign(box.style, { left: (r.left - pad) + 'px', top: (r.top - pad) + 'px',
+      width: (r.right - r.left + 2 * pad) + 'px', height: (r.bottom - r.top + 2 * pad) + 'px' });
+    const num = document.createElement('div');
+    num.className = 'g-co-num';
+    num.textContent = n;
+    const left = dx === 'right' ? r.right + 4 : dx === 'inR' ? r.right - 26 : r.left + dx;
+    Object.assign(num.style, { left: left + 'px', top: (r.top + dy) + 'px' });
+    host.append(box, num);
+  }
+}
+
+const nextFrame = () => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+
+/** embed 模式：把工具設定成指定的示範狀態並加上標註，完成後通知使用說明頁 */
+async function runEmbed(name) {
+  document.documentElement.classList.add('embed');
+  const css = document.createElement('style');
+  css.textContent = `.toast{display:none!important} .net{display:none!important} html.embed{scrollbar-width:none} html.embed::-webkit-scrollbar{display:none}
+    .g-co-box{position:fixed;border:2px solid #D9480F;border-radius:8px;z-index:9998;pointer-events:none}
+    .g-co-num{position:fixed;width:22px;height:22px;border-radius:50%;background:#D9480F;color:#fff;font:700 13px/22px -apple-system,sans-serif;
+      text-align:center;z-index:9999;box-shadow:0 0 0 2px #fff,0 1px 4px rgba(0,0,0,.35)}
+    #detail .d-body h3{display:inline-block;padding-right:2px} #detail .d-actions{width:fit-content}
+    ${name === 'install' ? '' : '#installBtn{display:none!important}'}`;
+  document.head.appendChild(css);
+  const pick = guidePicks();
+  const toQuick = () => window.scrollTo(0, $('quick').getBoundingClientRect().top + scrollY - 118);
+  const sel = (k) => `.quick label:has(select[data-quick="${k}"])`;
+  if (name === 'menusA') {
+    state.sel.jp = ['Yes']; state.module = pick.module; update(); await nextFrame(); toQuick(); await nextFrame();
+    drawCallouts([[sel('type'), '1', 'inR', -12], [sel('jp'), '2', 'inR', -12],
+      [['.quick label.module', '.module-info'], '3', 'inR', -12], [sel('ptype'), '5', 'inR', -12], [sel('form'), '6', 'inR', -12]]);
+  } else if (name === 'menusB') {
+    state.sel.type = ['GNSS']; update(); await nextFrame(); toQuick(); await nextFrame();
+    drawCallouts([[sel('type'), '1', 'inR', -12], [sel('atype'), '4', 'inR', -12]]);
+  } else if (name === 'detailA' && pick.cert) {
+    openDetail(pick.cert); await nextFrame();
+    drawCallouts([['#detail .d-actions', '1', 'right', 6], ['#detail .d-body section:nth-of-type(1) h3', '2', 'right', -3, 2]]);
+  } else if (name === 'detailB' && pick.active) {
+    openDetail(pick.active); await nextFrame();
+    const d = $('detail');
+    const rf = d.querySelector('.lna-line')?.closest('section');
+    if (rf) d.scrollTop = rf.offsetTop - 12;
+    for (const dt of d.querySelectorAll('.kv dt')) if (dt.textContent === t('k_cx')) dt.parentElement.id = 'cxItem';
+    await nextFrame();
+    drawCallouts([['#detail .lna-line', '3', 'right', -4], ['#cxItem', '4', 'inR', -12]]);
+  } else if (name === 'install') {
+    openInstallHelp(); await nextFrame();
+  }
+  if (parent !== window) parent.postMessage({ type: 'guide-embed-ready', name }, location.origin);
+}
+
+/** guide 模式：產生使用說明頁 */
+function renderGuide() {
+  const g = GUIDE[lang] || GUIDE.en;
+  const fill = (str, v) => String(str).replace(/\{(\w+)\}/g, (m, k) => (k in v ? v[k] : m));
+  const pick = guidePicks();
+  const rev = DATA.revision || {};
+  const built = String(DATA.built || '').slice(0, 10);
+  const W = 210, H = Math.round(W * 772 / 393), SC = W / 393;   // iPhone 畫面：393×772 縮放
+  const statusIcons = `<svg viewBox="0 0 18 12" class="sig"><rect x="0" y="8" width="3" height="4" rx=".8"/><rect x="5" y="5.5" width="3" height="6.5" rx=".8"/><rect x="10" y="3" width="3" height="9" rx=".8"/><rect x="15" y="0" width="3" height="12" rx=".8"/></svg><svg viewBox="0 0 16 12" class="wifi"><path d="M8 2.2c2.4 0 4.6.9 6.3 2.5l1.2-1.3C13.4 1.4 10.8.4 8 .4S2.6 1.4.5 3.4l1.2 1.3C3.4 3.1 5.6 2.2 8 2.2zm0 3.6c1.4 0 2.7.5 3.7 1.4l1.2-1.3C11.6 4.7 9.9 4 8 4s-3.6.7-4.9 1.9l1.2 1.3c1-.9 2.3-1.4 3.7-1.4zm0 3.6c.5 0 1 .2 1.3.5L8 11.6 6.7 9.9c.3-.3.8-.5 1.3-.5z"/></svg><svg viewBox="0 0 27 12" class="bat"><rect x=".5" y=".5" width="22" height="11" rx="3" fill="none" stroke="currentColor" opacity=".45"/><rect x="2" y="2" width="19" height="8" rx="1.8"/><rect x="24" y="4" width="2" height="4" rx="1" opacity=".45"/></svg>`;
+  const phone = (stateName, label) => `<figure class="g-phone">${label ? `<figcaption>${esc(label)}</figcaption>` : ''}
+    <div class="g-frame"><div class="g-screen">
+      <div class="g-status"><span>9:41</span><span class="g-island"></span><span class="g-icons">${statusIcons}</span></div>
+      <div class="g-view" style="width:${W}px;height:${H}px"><iframe src="${location.pathname}?embed=${stateName}&lang=${lang}" style="transform:scale(${SC})" tabindex="-1" aria-hidden="true" title=""></iframe></div>
+      <div class="g-home"><i></i></div>
+    </div></div></figure>`;
+  const legend = (arr, cls = '', start = 1) => `<ol class="g-legend ${cls}">${arr.map((x, i) => `<li><span class="g-num">${i + start}</span><span>${x}</span></li>`).join('')}</ol>`;
+  const tags = [`<span class="g-tag cert">TELEC ×10</span>`, `<span class="g-tag jp">${esc(t('badgeJp'))}</span>`,
+    `<span class="g-tag ds">Datasheet</span>`, `<b class="g-acc">${g.lna_tag}</b>`, `<b>${g.cx_tag}</b>`];
+  const means = [...g.lab, g.lna_mean, fill(g.cx_mean, { ex1: esc(pick.exRg), ex2: esc(pick.exIpex) })];
+  const devs = ['iPhone / iPad', 'Android', 'Windows / Mac'];
+  const callout = fill(g.callout, { open: `<span class="g-tag btn">${esc(t('openWeb'))}</span>`, copy: `<span class="g-tag btn2">${esc(t('copyLink'))}</span>` });
+  const foot = `<div class="g-foot">${g.footer} · v${esc(APP_VERSION)}</div>`;
+
+  const html = `
+  <div class="g-page">
+    <div class="g-hero"><div><h1>${g.title}</h1><div class="g-sub">${g.sub}</div></div>
+      <div class="g-meta">${esc(fill(g.meta[0], { v: APP_VERSION }))}<br>${esc(fill(g.meta[1], { r: rev.rev || '—', d: rev.date || '—' }))}<br>${esc(built)}</div></div>
+    <p class="g-lead">${fill(g.lead, { a: DATA.items.length, m: DATA.modules.length })}</p>
+    <div class="g-url"><b>${g.url}</b><code>${esc(appUrl() || location.href.split('?')[0])}</code></div>
+    <section><h2><span class="g-no">01</span>${g.h01}</h2>
+      <div class="g-pair">${phone('menusA', g.S1)}${phone('menusB', g.S2)}</div>
+      ${legend(g.M, 'g-cols3')}<p class="g-tip">${g.tip}</p></section>
+    ${foot}
+  </div>
+  <div class="g-page">
+    <section><h2><span class="g-no">02</span>${g.h02}</h2>
+      <div class="g-pair">${phone('detailA', g.P1)}${phone('detailB', g.P2)}</div>
+      ${legend(g.D, 'g-cols2')}
+      <h3>${g.labels}</h3>
+      <div class="g-tbl"><table><tr><th style="width:150px">${g.th_label}</th><th>${g.th_mean}</th></tr>
+        ${tags.map((tg, i) => `<tr><td>${tg}</td><td>${means[i]}</td></tr>`).join('')}</table></div></section>
+    ${foot}
+  </div>
+  <div class="g-page">
+    <section><h2><span class="g-no">03</span>${g.h03}</h2>
+      <div class="g-side">${phone('install', '')}
+        <div class="g-body">
+          <div class="g-tbl"><table><tr><th style="width:100px">${g.th_dev}</th><th>${g.th_how}</th></tr>
+            ${devs.map((d, i) => `<tr><td>${d}</td><td>${g.inst[i]}</td></tr>`).join('')}</table></div>
+          <div class="g-callout">${callout}</div>
+          <p>${g.offline}</p><p class="g-muted">${g.ios_note}</p>
+        </div></div></section>
+    <section><h2><span class="g-no">04</span>${g.h04}</h2>
+      <dl class="g-faq">${g.faq.map(([q, a]) => `<div><dt>${q}</dt><dd>${a}</dd></div>`).join('')}</dl></section>
+    <div class="g-note"><b>${g.notes_t}</b><ul>${g.notes.map((x) => `<li>${x}</li>`).join('')}</ul></div>
+    ${foot}
+  </div>`;
+
+  document.title = `${g.title} — ${g.sub}`;
+  document.body.className = 'g-body-root';
+  document.body.innerHTML = `<style>${GUIDE_CSS}</style>${html}`;
+
+  // 等待所有 iPhone 畫面完成後才允許列印 (逾時 15 秒仍放行)
+  let pending = document.querySelectorAll('.g-view iframe').length;
+  const done = () => {
+    if (window.__guideReady) return;
+    window.__guideReady = true;
+    if (parent !== window) parent.postMessage({ type: 'guide-ready' }, location.origin);
+  };
+  window.addEventListener('message', (e) => {
+    if (e.origin !== location.origin || e.data?.type !== 'guide-embed-ready') return;
+    if (--pending <= 0) setTimeout(done, 150);
+  });
+  setTimeout(done, 15000);
+}
+
+const GUIDE_CSS = `
+  @page { size: A4; margin: 12mm 13mm 13mm; }
+  body.g-body-root { margin: 0; background: #DDE2E3; color: var(--ink); font: 13px/1.55 var(--font); -webkit-user-select: text; user-select: text; }
+  .g-page { width: 794px; min-height: 1123px; margin: 18px auto; padding: 46px 50px 36px; background: #fff; box-sizing: border-box;
+    box-shadow: 0 2px 14px rgba(0,0,0,.12); position: relative; display: flex; flex-direction: column; }
+  .g-page > section { margin-bottom: 20px; }
+  .g-foot { margin-top: auto; padding-top: 14px; font-size: 10px; color: var(--muted); }
+  h1, h2, h3 { margin: 0; line-height: 1.25; }
+  .g-hero { display: flex; justify-content: space-between; align-items: flex-end; gap: 20px; padding-bottom: 12px; border-bottom: 3px solid var(--ink); margin-bottom: 14px; }
+  .g-hero h1 { font-size: 22px; letter-spacing: -.01em; }
+  .g-sub { font-size: 15px; color: var(--accent); font-weight: 700; margin-top: 4px; }
+  .g-meta { text-align: right; font-size: 11px; color: var(--muted); line-height: 1.5; white-space: nowrap; }
+  .g-lead { font-size: 13.5px; margin: 0 0 10px; }
+  .g-url { display: flex; gap: 10px; align-items: center; padding: 8px 12px; border-radius: 8px; background: var(--accent-soft); margin-bottom: 16px; font-size: 12.5px; }
+  .g-url b { white-space: nowrap; }
+  .g-url code { font-size: 12px; overflow-wrap: anywhere; }
+  h2 { font-size: 17px; padding-bottom: 5px; margin-bottom: 12px; border-bottom: 1.5px solid var(--accent); display: flex; gap: 9px; align-items: baseline; }
+  .g-no { color: var(--accent); font-size: 14px; }
+  h3 { font-size: 13.5px; margin: 16px 0 6px; }
+  .g-pair { display: flex; gap: 34px; justify-content: center; flex-wrap: wrap; }
+  .g-phone { margin: 0; display: flex; flex-direction: column; align-items: center; }
+  .g-phone figcaption { font-size: 11.5px; font-weight: 700; color: var(--accent); margin-bottom: 6px; }
+  .g-frame { padding: 6px; background: #1D1D1F; border-radius: 32px; box-shadow: 0 0 0 1.3px #3A3A3C inset; }
+  .g-screen { border-radius: 26px; overflow: hidden; background: #F2F4F3; }
+  .g-status { height: 25px; display: flex; align-items: center; justify-content: space-between; padding: 0 20px 0 24px;
+    font: 600 9px/1 -apple-system, var(--font); color: #000; position: relative; }
+  .g-island { position: absolute; left: 50%; top: 5px; transform: translateX(-50%); width: 64px; height: 14px; background: #000; border-radius: 99px; }
+  .g-icons { display: flex; gap: 3px; align-items: center; }
+  .g-icons svg { height: 7.5px; fill: currentColor; } .g-icons .sig { width: 11px; } .g-icons .wifi { width: 10px; } .g-icons .bat { width: 17px; }
+  .g-view { position: relative; overflow: hidden; }
+  .g-view iframe { position: absolute; left: 0; top: 0; width: 393px; height: 772px; border: 0; transform-origin: 0 0; pointer-events: none; background: #F2F4F3; }
+  .g-home { height: 18px; display: grid; place-items: center; } .g-home i { width: 76px; height: 3.5px; border-radius: 99px; background: #000; }
+  .g-legend { list-style: none; margin: 14px 0 0; padding: 0; display: grid; gap: 7px 28px; }
+  .g-legend li { display: grid; grid-template-columns: 19px 1fr; gap: 7px; font-size: 12.3px; line-height: 1.45; }
+  .g-cols3 { grid-template-columns: 1fr 1fr; grid-template-rows: repeat(3, auto); grid-auto-flow: column; }
+  .g-cols2 { grid-template-columns: 1fr 1fr; grid-template-rows: repeat(2, auto); grid-auto-flow: column; }
+  .g-num { display: inline-grid; place-items: center; width: 18px; height: 18px; border-radius: 50%; background: #D9480F; color: #fff; font-size: 10px; font-weight: 700; margin-top: 1px; }
+  .g-tip { margin: 14px 0 0; font-size: 12.3px; background: var(--accent-soft); border-radius: 8px; padding: 9px 12px; }
+  .g-tbl { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th { background: #F2F4F3; color: var(--muted); font-weight: 700; }
+  td:first-child { font-weight: 700; white-space: nowrap; }
+  .g-tag { display: inline-block; font-size: 10.5px; font-weight: 700; padding: 1px 6px; border-radius: 4px; white-space: nowrap; }
+  .g-tag.cert { background: #0F766E; color: #fff; } .g-tag.jp { background: #F7DCE1; color: #A8233A; }
+  .g-tag.ds { border: 1px solid #0F766E; color: #0F766E; } .g-tag.btn { background: #0F766E; color: #fff; } .g-tag.btn2 { border: 1px solid var(--rule); background: #fff; }
+  .g-acc { color: #0F766E; }
+  .g-side { display: flex; gap: 24px; align-items: flex-start; } .g-body { flex: 1; min-width: 0; }
+  .g-callout { border-left: 3px solid #0F766E; background: var(--accent-soft); padding: 9px 12px; border-radius: 0 8px 8px 0; font-size: 12.3px; margin: 12px 0; }
+  .g-body p { margin: 0 0 8px; font-size: 12.8px; } .g-muted { color: var(--muted); font-size: 11.8px !important; }
+  .g-faq { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 24px; margin: 0; }
+  .g-faq dt { font-weight: 700; font-size: 12.5px; } .g-faq dd { margin: 0; font-size: 12px; }
+  .g-note { background: #FBEBD0; border-radius: 8px; padding: 10px 14px; font-size: 12px; }
+  .g-note ul { margin: 4px 0 0; padding-left: 18px; } .g-note li + li { margin-top: 3px; }
+  html:lang(ko) body.g-body-root { word-break: keep-all; overflow-wrap: anywhere; }
+  /* 窄螢幕 (手機檢視) */
+  @media screen and (max-width: 820px) {
+    .g-page { width: auto; min-height: 0; margin: 10px; padding: 22px 18px; }
+    .g-hero { flex-direction: column; align-items: flex-start; } .g-meta { text-align: left; }
+    .g-cols3, .g-cols2, .g-faq { grid-template-columns: 1fr; grid-template-rows: none; grid-auto-flow: row; }
+    .g-side { flex-direction: column; align-items: center; } .g-pair { gap: 18px; }
+  }
+  /* 列印 / 存成 PDF */
+  @media print {
+    body.g-body-root { background: #fff; }
+    .g-page { width: auto; min-height: 0; margin: 0; padding: 0; box-shadow: none; page-break-after: always; break-after: page; }
+    .g-foot { display: none; }   /* 列印時頁尾交給瀏覽器 / 匯出腳本 (含頁碼) */
+    .g-lead { font-size: 12.6px; margin-bottom: 8px; } .g-url { margin-bottom: 12px; }
+    .g-legend { margin-top: 10px; gap: 5px 24px; } .g-legend li, .g-tip { font-size: 11.6px; }
+    .g-tip { margin-top: 10px; padding: 7px 11px; } .g-hero { margin-bottom: 10px; }
+    .g-page:last-child { page-break-after: auto; break-after: auto; }
+    * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  }`;
+
+/* 工具內的「使用說明」按鈕：在全螢幕視窗中顯示目前語言的使用說明 */
+function openGuide() {
+  const dlg = $('guideDialog');
+  $('guideTitle').textContent = t('guide');
+  $('guidePrint').textContent = t('guidePrint');
+  $('guideClose').textContent = t('close');
+  $('guidePrint').disabled = true;
+  $('guideFrame').title = t('guide');
+  $('guideFrame').src = `${location.pathname}?guide=1&lang=${lang}`;
+  if (!dlg.open) dlg.showModal();
+}
+function closeGuide() {
+  $('guideDialog').close();
+  $('guideFrame').src = 'about:blank';   // 釋放記憶體
+}
+if (MODE === 'app') {
+  window.addEventListener('message', (e) => {
+    if (e.origin === location.origin && e.data?.type === 'guide-ready') $('guidePrint').disabled = false;
+  });
+  $('guideBtn').addEventListener('click', openGuide);
+  $('guideClose').addEventListener('click', closeGuide);
+  $('guideDialog').addEventListener('cancel', (e) => { e.preventDefault(); closeGuide(); });
+  $('guidePrint').addEventListener('click', () => { try { $('guideFrame').contentWindow.print(); } catch { /* 忽略 */ } });
+}
+
 /* ==========================================================================
    路由與初始化
    ========================================================================== */
@@ -1495,7 +2115,7 @@ function route() {
   // v3 起為單一頁面；舊連結 (#/global、#/japan) 一律導向主畫面
   page = 'main';
   if (location.hash) history.replaceState(null, '', location.pathname + location.search);
-  state = Object.assign(freshState(page), store.load(page) || {});
+  state = Object.assign(freshState(page), MODE === 'app' ? (store.load(page) || {}) : {});
   if (state.module && !DATA.modules.some((m) => m.name === state.module)) state.module = '';
   if (state.toggles?.jpOnly) { state.sel.jp = ['Yes']; }
   if (state.toggles) delete state.toggles.jpOnly;
@@ -1504,25 +2124,30 @@ function route() {
   // v3.7 起 TELEC 模組只在 Japan Market = Yes 時使用
   if (state.module && !(state.sel.jp || []).length) state.sel.jp = ['Yes'];
   if (!isJpYes()) state.module = '';
+  // v3.9 起 Form 改為下拉選單 (單選)：舊版多選只保留第一個
+  if ((state.sel.form || []).length > 1) state.sel.form = state.sel.form.slice(0, 1);
   $('sortSel').value = state.sort;
   renderPageText();
   setFilters(false);
   update();
 }
 
-const savedLang = store.get('lang');
+const savedLang = MODE === 'app' ? store.get('lang') : PARAMS.get('lang');
 lang = LANGS.includes(savedLang) ? savedLang : DEFAULT_LANG;
 const savedTheme = store.get('theme');
-applyTheme(savedTheme === 'dark' || savedTheme === 'light' ? savedTheme : null);
+// 使用說明一律淺色 (方便列印)
+applyTheme(MODE !== 'app' ? 'light' : savedTheme === 'dark' || savedTheme === 'light' ? savedTheme : null);
 applyStaticI18n();
 setNet();
 // iOS 不支援安裝事件：未安裝時直接顯示「安裝 App」按鈕 (開啟說明)
 if (platform === 'ios') $('installBtn').dataset.manual = '1';
 refreshInstallBtn();
 route();
+if (MODE === 'embed') runEmbed(PARAMS.get('embed'));
+if (MODE === 'guide') renderGuide();
 
 /* Service Worker：僅在 https / localhost 註冊；偵測到新版即提示 */
-if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+if (MODE === 'app' && 'serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('sw.js').then((reg) => {
       requestPersist();
@@ -1540,7 +2165,7 @@ if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.
   });
 }
 // 啟動後檢查 version.json (失敗時安靜略過)
-setTimeout(checkForUpdate, 1500);
+if (MODE === 'app') setTimeout(checkForUpdate, 1500);
 </script>
 </body>
 </html>

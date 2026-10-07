@@ -1,6 +1,6 @@
 # Quectel 天線選型 · TELEC 認證 PWA
 
-目前版本：**v3.8.0**
+目前版本：**v3.9.0**
 資料來源：`Quectel_Antenna_Product_and_TELEC_Certification_*.xlsx`（單一 Excel）
 
 ## 功能
@@ -8,11 +8,26 @@
 - 清單每列顯示「TELEC ×N」已認證模組數、JP 相容標示、尺寸、Datasheet 按鈕
 - 主動式 GNSS 天線顯示 LNA 增益；IPEX MHF 與 RG174 / RG174LL 線材：連接器、線材型號、線長（IPEX 另含線徑）合併描述
 - 詳細資料列出所有認證模組（依類別、附認證日期）、射頻效能、完整規格
-- 快速選單（由上到下）：Tech → Japan Market（Yes / No）→ TELEC 認證模組（僅 Japan Market = Yes 時出現）→ GNSS 天線類型（僅 Tech = GNSS 時出現：Passive / Active / Dipole）→ Product Type；側欄：外型、安裝、連接器、IP、埠數、銷售區域、尺寸上限
+- 快速選單（由上到下）：Tech → Japan Market（Yes / No）→ TELEC 認證模組（僅 Japan Market = Yes 時出現）→ GNSS 天線類型（僅 Tech = GNSS 時出現：Passive / Active / Dipole）→ Product Type → Form（型態）；側欄：安裝、連接器、IP、埠數、銷售區域、尺寸上限
 - 篩選：僅顯示有 TELEC 認證；日本市場相容改由 Japan Market 下拉選單篩選
 - 介面語言：中文 / English / 日本語 / 한국어（首次開啟預設為英文，之後記住使用者的選擇；預設值為 `template.html` 的 `DEFAULT_LANG`）
 - 深色 / 淺色、版本資訊、強制更新
 - 完全離線、可安裝為 App（iOS / Android / Windows / macOS）
+
+## 使用說明（自動同步）
+右上角「使用說明」按鈕會依**目前選擇的語言**即時產生使用說明（中 / 英 / 日 / 韓），可「列印 / 存成 PDF」。
+
+- 使用說明內建在 `index.html`（`index.html?guide=1&lang=xx`），離線也能開啟。
+- iPhone 畫面是工具本身在示範狀態下的**即時畫面**（`?embed=…`），不是截圖；介面改動會自動反映。
+- 版本號、Excel 版次、天線與模組數量、範例料號都取自目前資料。範例料號會自動挑選仍存在的料號。
+- 因此每次用 `build_data.py` 更新工具，使用說明就會同步更新，不需另外處理。
+- **新增功能時**：使用說明的文字在 `template.html` 的 `GUIDE` 物件（四種語言），需隨功能一併補上說明。
+
+匯出 PDF 檔（選用，例如要寄送或上傳）：
+```bash
+pip install playwright && python -m playwright install chromium
+python3 tools/export_guides.py            # 輸出到 guides/，四種語言
+```
 
 ## Excel 讀取規則
 | 工作表 | 用途 |
@@ -54,6 +69,8 @@ App 內不顯示更新紀錄；版本變更請記錄在本 README 的「更新�
 | `sw.js` | 離線快取 | ✅ |
 | `version.json` | 新版偵測 | ✅ |
 | `template.html`、`build_data.py`、`fonts/` | 產生 `index.html` 的原始碼 | 建議放在 repo |
+| `tools/export_guides.py` | 將內建使用說明匯出為 PDF（選用） | 建議放在 repo |
+| `guides/*.pdf` | 已匯出的使用說明 PDF（四種語言） | 選用 |
 
 ## 注意事項
 - 不要 commit 原始 `.xlsx`。
@@ -61,6 +78,7 @@ App 內不顯示更新紀錄；版本變更請記錄在本 README 的「更新�
 - 頻段預設邊界為一般公開配置，僅供初篩。
 
 ## 更新紀錄
+- **v3.9.0**：新增「型態 Form」下拉選單（Product Type 下方，取代側欄外型篩選）；右上角新增「使用說明」按鈕，依目前語言即時產生使用說明並可存成 PDF，隨工具更新自動同步
 - **v3.8.0**：下拉選單改為單欄由上往下排列；移除 TELEC 認證模組的「選填」說明（顯示條件不變）
 - **v3.7.0**：Type 改名為 Tech 並移到最上方；TELEC 認證模組改為僅在 Japan Market = Yes 時出現；Product Type 移到最下方
 - **v3.6.0**：RG174 線材的連接器與線長合併描述；TELEC 認證模組加註「選填」；下拉選單順序調整；天線類型改為僅在 Type = GNSS 時出現
