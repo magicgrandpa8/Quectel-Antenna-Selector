@@ -322,6 +322,9 @@ footer { max-width: 1360px; margin: 0 auto; padding: 0 20px 32px; font-size: 12p
 }
 .quick select.active { border-color: var(--accent); background: var(--accent-soft); font-weight: 600; }
 .quick .module select { border-color: var(--accent); }
+.mod-head { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.mod-opt { font-size: 11.5px; font-weight: 400; color: var(--muted); }
+.quick .module { grid-column: 1 / -1; max-width: 560px; }
 
 .ver-grid { display: grid; grid-template-columns: max-content 1fr; gap: 8px 20px; margin: 0; font-size: 14px; }
 .ver-grid dt { color: var(--muted); }
@@ -545,6 +548,8 @@ const I18N = {
     sizeHint: '以尺寸中最大的數值比較 (Φ 為直徑)', sizeTag: '最長邊 ≤ {n} mm',
     s_lna: 'LNA 增益', s_cx: '連接器與線材', k_cx: '連接器與線材',
     cxFull: '{c} 接頭＋{t} 線材（Φ{d} mm），線長 {l} mm',
+    cxLen: '{c} 接頭＋{t} 線材，線長 {l} mm', cxSep: '；',
+    modOpt: '選填，不需要 TELEC 認證時可不選', f_gnss: 'GNSS 天線類型',
     datasheet: 'Datasheet', dsAria: '開啟 {oc} 的 Datasheet', dsOffline: 'Datasheet 需要網路連線 (並登入公司帳號)',
   },
   en: {
@@ -603,6 +608,8 @@ const I18N = {
     sizeHint: 'Compared using the largest value in the dimensions (Φ = diameter)', sizeTag: 'Longest side ≤ {n} mm',
     s_lna: 'LNA gain', s_cx: 'Connector & cable', k_cx: 'Connector & cable',
     cxFull: '{c} connector + {t} cable (Φ{d} mm), {l} mm long',
+    cxLen: '{c} connector + {t} cable, {l} mm long', cxSep: '; ',
+    modOpt: "Optional. Skip it if you don't need TELEC certification.", f_gnss: 'GNSS antenna type',
     datasheet: 'Datasheet', dsAria: 'Open datasheet for {oc}', dsOffline: 'Datasheets need a network connection (and company sign-in)',
   },
   ja: {
@@ -659,6 +666,8 @@ const I18N = {
     sizeHint: '寸法の最大値で比較します（Φ は直径）', sizeTag: '最長辺 ≤ {n} mm',
     s_lna: 'LNA ゲイン', s_cx: 'コネクタとケーブル', k_cx: 'コネクタとケーブル',
     cxFull: '{c} コネクタ＋{t} ケーブル（Φ{d} mm）、長さ {l} mm',
+    cxLen: '{c} コネクタ＋{t} ケーブル、長さ {l} mm', cxSep: '；',
+    modOpt: '任意。TELEC 認証が不要な場合は選択不要です', f_gnss: 'GNSS アンテナタイプ',
     datasheet: 'Datasheet', dsAria: '{oc} のデータシートを開く', dsOffline: 'データシートの表示にはネットワーク接続（と社内アカウントでのサインイン）が必要です',
   },
   ko: {
@@ -715,6 +724,8 @@ const I18N = {
     sizeHint: '크기 값 중 가장 큰 값으로 비교합니다 (Φ는 지름)', sizeTag: '가장 긴 변 ≤ {n} mm',
     s_lna: 'LNA 이득', s_cx: '커넥터 및 케이블', k_cx: '커넥터 및 케이블',
     cxFull: '{c} 커넥터 + {t} 케이블 (Φ{d} mm), 길이 {l} mm',
+    cxLen: '{c} 커넥터 + {t} 케이블, 길이 {l} mm', cxSep: '; ',
+    modOpt: '선택 사항. TELEC 인증이 필요 없으면 선택하지 않아도 됩니다', f_gnss: 'GNSS 안테나 유형',
     datasheet: 'Datasheet', dsAria: '{oc} 데이터시트 열기', dsOffline: '데이터시트를 보려면 네트워크 연결(및 회사 계정 로그인)이 필요합니다',
   },
 };
@@ -791,11 +802,15 @@ const PAGES = {
     items: () => DATA.items,
     module: true,
     facets: [
-      { key: 'type', ui: 'select', get: (p) => typeLabel(p.type) },
-      { key: 'ptype', ui: 'select', get: (p) => p.ptype || OTHER },
-      { key: 'atype', ui: 'select', get: (p) => p.atype || NA },
+      // 下拉選單順序：(TELEC 認證模組) → 日本市場 → 技術類別 → 產品型態 → [GNSS 天線類型]
       // Japan Market：取自 Excel「Compatible with Japan Market」欄 (YES → Yes，其餘 → No)
       { key: 'jp', ui: 'select', get: (p) => (p.jp ? 'Yes' : 'No'), sort: (a, b) => (b === 'Yes') - (a === 'Yes') },
+      { key: 'type', ui: 'select', get: (p) => typeLabel(p.type) },
+      { key: 'ptype', ui: 'select', get: (p) => p.ptype || OTHER },
+      // 天線類型只在技術類別選 GNSS 時出現 (Passive / Active / Dipole)
+      { key: 'atype', ui: 'select', title: 'f_gnss', when: () => isGnss(), get: (p) => p.atype || NA,
+        scope: (p) => p.type === 'GNSS',                       // 選項只取 GNSS 天線的值
+        sort: (a, b) => ((GNSS_ORDER.indexOf(a) + 1) || 99) - ((GNSS_ORDER.indexOf(b) + 1) || 99) },
       { key: 'form', ui: 'checks', get: (p) => p.form || NA },
       { key: 'mount', ui: 'checks', get: (p) => p.mount || NA },
       { key: 'conn', ui: 'checks', get: (p) => (p.conn && p.conn.length ? p.conn.map(connFamily) : [NONE]) },
@@ -808,7 +823,11 @@ const PAGES = {
     ],
   },
 };
-const facetTitle = (f) => t('f_' + f.key);
+const facetTitle = (f) => t(f.title || 'f_' + f.key);
+/** 技術類別是否選了 GNSS (決定是否顯示 GNSS 天線類型選單) */
+/** GNSS 天線類型選項順序；其他值 (若 Excel 日後新增) 排在最後 */
+const GNSS_ORDER = ['Passive', 'Active', 'Dipole'];
+const isGnss = () => (state.sel.type || []).includes('GNSS');
 const toggleLabel = { certOnly: 'certOnly' };
 
 /* ==========================================================================
@@ -844,7 +863,7 @@ function filterItems(skipKey) {
     if (cfg.module && skipKey !== '__module' && state.module && !(p.certs || []).includes(state.module)) return false;
     for (const x of cfg.toggles) if (state.toggles[x.key] && !x.test(p)) return false;
     for (const f of cfg.facets) {
-      if (f.key === skipKey) continue;
+      if (f.key === skipKey || (f.when && !f.when())) continue;
       const sel = state.sel[f.key];
       if (sel && sel.length && !asArr(f.get(p)).some((v) => sel.includes(v))) return false;
     }
@@ -880,7 +899,7 @@ function counts(facet) {
 }
 function allValues(facet) {
   const set = new Set();
-  for (const p of PAGES[page].items()) asArr(facet.get(p)).forEach((v) => set.add(v));
+  for (const p of PAGES[page].items()) if (!facet.scope || facet.scope(p)) asArr(facet.get(p)).forEach((v) => set.add(v));
   const arr = [...set];
   if (facet.sort) return arr.sort(facet.sort);
   // 特殊代號 (未標示/無/其他) 排最後
@@ -904,12 +923,12 @@ function renderQuick() {
       groups.get(m.cat).push(opt);
     }
     const opts = [...groups].map(([cat, list]) => `<optgroup label="${esc(cat)}">${list.join('')}</optgroup>`).join('');
-    html += `<label class="module" title="${esc(t('moduleHint'))}">${esc(t('module'))}
+    html += `<label class="module" title="${esc(t('moduleHint'))}"><span class="mod-head">${esc(t('module'))}<small class="mod-opt">${esc(t('modOpt'))}</small></span>
       <select data-quick="__module" class="${state.module ? 'active' : ''}"><option value="">${esc(t('allModules'))}</option>${opts}</select></label>`;
     const m = DATA.modules.find((x) => x.name === state.module);
     if (m) html += `<p class="module-info">${t('modInfo', { c: esc(m.cat), d: esc(m.date || t('noDate')), n: m.n })}</p>`;
   }
-  for (const f of cfg.facets.filter((x) => x.ui === 'select')) {
+  for (const f of cfg.facets.filter((x) => x.ui === 'select' && (!x.when || x.when()))) {
     const c = counts(f);
     const cur = (state.sel[f.key] || [])[0] || '';
     const total = filterItems(f.key).length;
@@ -991,17 +1010,29 @@ function openDatasheet(oc) {
 /** LNA 增益：Excel 值多為「28 ±3」，未含單位時補上 dB。有值即代表主動式 GNSS 天線 */
 const fmtLna = (v) => (v ? (/db/i.test(v) ? v : `${v} dB`) : '');
 /**
- * IPEX MHF 連接器與線材合併描述，例如「IPEX MHF1 接頭＋RF1.13 線材（Φ1.13 mm），線長 100 mm」。
- * 線徑取自線材型號中的數字 (RF1.13 → 1.13 mm)；線長單位為 mm (Excel Cable Length 欄)。
- * 非 IPEX 連接器回傳 null，維持原本分開顯示。
+ * 連接器與線材合併描述 (每一條線一段)，適用：
+ *   - IPEX MHF 連接器：含線徑，例「IPEX MHF1 接頭＋RF1.13 線材（Φ1.13 mm），線長 100 mm」
+ *   - RG174 / RG174LL 線材：例「SMA Male 接頭＋RG174 線材，線長 300 mm」
+ * 第 n 條線對應 Connector Type n；連接器欄位較少時沿用最後一個 (Excel 多只填 Type1)。
+ * 線徑只在型號含尺寸時顯示 (RF1.13 → Φ1.13 mm)；線長單位為 mm。
+ * 不符合上述條件時回傳 null，維持連接器與線材分開顯示。
  */
-function ipexInfo(p) {
-  const conn = (p.conn || []).find((c) => /mhf|ipex|u\.fl/i.test(c));
-  if (!conn) return null;
-  const cable = (p.cables || [])[0] || {};
-  const d = (String(cable.type || '').match(/\d+(?:\.\d+)?/) || [])[0];
-  if (cable.type && d && cable.len) return t('cxFull', { c: conn, t: cable.type, d, l: cable.len });
-  return [conn, cable.type, cable.len && `${cable.len} mm`].filter(Boolean).join(' / ');
+const RG174_RE = /rg\s*174/i;
+const IPEX_RE = /mhf|ipex|u\.fl/i;
+function connCableInfo(p) {
+  const conns = p.conn || [];
+  const cables = p.cables || [];
+  if (!cables.length || !(conns.some((c) => IPEX_RE.test(c)) || cables.some((c) => RG174_RE.test(c.type || '')))) return null;
+  const leads = cables.map((cab, i) => {
+    const c = conns[Math.min(i, conns.length - 1)] || '';
+    const d = (String(cab.type || '').match(/^RF\s*(\d+(?:\.\d+)?)/i) || [])[1];
+    if (c && cab.type && cab.len) return t(d ? 'cxFull' : 'cxLen', { c, t: cab.type, d, l: cab.len });
+    return [c, cab.type, cab.len && `${cab.len} mm`].filter(Boolean).join(' / ');
+  });
+  // 相同的線合併為「×N」
+  const counts = new Map();
+  for (const x of leads) counts.set(x, (counts.get(x) || 0) + 1);
+  return [...counts].map(([x, n]) => (n > 1 ? `${x} ×${n}` : x)).join(t('cxSep'));
 }
 
 /* ==========================================================================
@@ -1020,7 +1051,7 @@ function badges(p) {
   return b;
 }
 function specCells(p) {
-  const cx = ipexInfo(p);
+  const cx = connCableInfo(p);
   // [標籤, 值, 樣式]：wide = 佔滿整列
   const cells = [['s_form', p.form], ['s_mount', p.mount]];
   if (!cx) cells.push(['s_conn', (p.conn || []).join(', ')]);
@@ -1059,7 +1090,7 @@ function renderActiveTags() {
   const tags = [];
   const cfg = PAGES[page];
   if (state.module) tags.push({ label: `${t('module')}${sep()}${state.module}`, act: 'module' });
-  for (const f of cfg.facets) for (const v of state.sel[f.key] || []) tags.push({ label: `${facetTitle(f)}${sep()}${valLabel(v)}`, act: 'facet', f: f.key, v });
+  for (const f of cfg.facets.filter((x) => !x.when || x.when())) for (const v of state.sel[f.key] || []) tags.push({ label: `${facetTitle(f)}${sep()}${valLabel(v)}`, act: 'facet', f: f.key, v });
   if (state.maxL) tags.push({ label: t('sizeTag', { n: state.maxL }), act: 'size' });
   $('activeTags').innerHTML = tags.map((x) =>
     `<button type="button" aria-label="${esc(t('removeTag', { x: x.label }))}" data-tag='${esc(JSON.stringify(x))}'>${esc(x.label)}</button>`).join('');
@@ -1097,7 +1128,7 @@ function openDetail(oc) {
   if (!p) return;
   const sheet = dsButton(p, true);
   const techRows = (p.techs || []).map((x) => `<tr><td>${esc(x.t)}</td><td>${esc(x.f || '')}</td><td>${esc(x.q || '')}</td><td>${esc(x.eff || '')}</td><td>${esc(x.gain || '')}</td><td>${esc(x.pat || '')}</td><td>${esc(x.pol || '')}</td></tr>`).join('');
-  const cx = ipexInfo(p);
+  const cx = connCableInfo(p);
   const replaceNote = p.replace ? `<div class="notice">${esc(t('replaces'))}${ocLink(p.replace)}</div>` : '';
   const general = kv([['k_type', typeLabel(p.type)], ['k_ptype', p.ptype], ['k_form', p.form], ['k_atype', p.atype], ['k_qty', p.qty],
     ['k_mount', p.mount], ['k_dim', p.dim],
@@ -1351,6 +1382,7 @@ $('quick').addEventListener('change', (e) => {
   const key = e.target.dataset.quick; if (!key) return;
   if (key === '__module') state.module = e.target.value;
   else state.sel[key] = e.target.value ? [e.target.value] : [];
+  if (key === 'type' && !isGnss()) state.sel.atype = [];
   update();
 });
 
@@ -1460,6 +1492,7 @@ function route() {
   if (state.toggles?.jpOnly) { state.sel.jp = ['Yes']; }
   if (state.toggles) delete state.toggles.jpOnly;
   delete state.bands; delete state.custom;   // v3.5 起移除頻段尺
+  if (!isGnss()) state.sel.atype = [];        // v3.6 起天線類型只用於 GNSS
   $('sortSel').value = state.sort;
   renderPageText();
   setFilters(false);
