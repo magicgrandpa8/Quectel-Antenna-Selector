@@ -5,12 +5,22 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Quectel 天線選型工具</title>
 <meta name="theme-color" content="#0F766E">
+<meta name="description" content="Quectel 天線產品選型：Global 與日本市場，可離線使用">
 <link rel="manifest" href="manifest.webmanifest">
+<!-- iOS：加入主畫面後以全螢幕 App 方式開啟 -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="天線選型">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<!-- Windows：釘選磚與標題列色彩 -->
+<meta name="msapplication-TileColor" content="#0F766E">
+<meta name="msapplication-TileImage" content="icon-192.png">
+<meta name="format-detection" content="telephone=no">
 <style>
+/* 內嵌字型 (IBM Plex Sans 拉丁字元，SIL OFL 1.1)；中文使用各平台系統字型，不依賴網路 */
+/*__FONTS__*/
 /* ======================================================================
    Design tokens
    ====================================================================== */
@@ -28,7 +38,7 @@
   --warn-soft: #FBEBD0;
   --danger: #A8233A;
   --danger-soft: #F7DCE1;
-  --font: "IBM Plex Sans", "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", system-ui, sans-serif;
+  --font: "IBM Plex Sans", "PingFang TC", "Heiti TC", "Microsoft JhengHei", "Noto Sans CJK TC", "Noto Sans TC", "Source Han Sans TC", system-ui, sans-serif;
   --r-sm: 4px;
   --r-md: 8px;
   box-sizing: border-box;
@@ -209,6 +219,7 @@ select.module {
 .empty { padding: 48px 24px; text-align: center; color: var(--muted); }
 .empty strong { display: block; color: var(--ink); font-size: 16px; margin-bottom: 6px; }
 .more { display: block; margin: 12px auto 0; }
+.more[hidden] { display: none; }
 
 /* ======================================================================
    Detail dialog
@@ -274,6 +285,70 @@ footer { max-width: 1360px; margin: 0 auto; padding: 0 20px 32px; font-size: 12p
   .spectrum-head h1 { font-size: 19px; }
   .scroll-hint { display: block; }
 }
+
+/* ======================================================================
+   v2.0 新增：頂部工具列、快速選單、版本資訊
+   ====================================================================== */
+.tools { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.tool-btn {
+  display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--rule); background: var(--surface);
+  border-radius: var(--r-md); padding: 6px 10px; cursor: pointer; font-size: 13px; font-weight: 500; white-space: nowrap;
+}
+.tool-btn:hover { border-color: var(--muted); }
+.tool-btn svg { flex: none; }
+.tool-btn.ver { color: var(--muted); }
+.tool-btn .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--danger); display: none; }
+.tool-btn.has-update .dot { display: inline-block; }
+.tool-btn.spin svg { animation: spin .8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.quick {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px 12px;
+  background: var(--surface); border: 1px solid var(--rule); border-radius: var(--r-md); padding: 12px 14px; margin-bottom: 12px;
+}
+.quick label { display: grid; gap: 4px; font-size: 12px; color: var(--muted); font-weight: 500; min-width: 0; }
+.quick select {
+  width: 100%; padding: 8px 10px; border: 1px solid var(--rule); border-radius: var(--r-sm);
+  background: var(--paper); color: var(--ink); font-size: 14px; font-weight: 500;
+}
+.quick select.active { border-color: var(--accent); background: var(--accent-soft); font-weight: 600; }
+.quick .module select { border-color: var(--accent); }
+
+.ver-grid { display: grid; grid-template-columns: max-content 1fr; gap: 8px 20px; margin: 0; font-size: 14px; }
+.ver-grid dt { color: var(--muted); }
+.ver-grid dd { margin: 0; font-weight: 500; overflow-wrap: anywhere; }
+.ok { color: var(--accent); }
+.changelog { margin: 0; padding: 0; list-style: none; display: grid; gap: 12px; }
+.changelog h4 { margin: 0 0 4px; font-size: 14px; }
+.changelog ul { margin: 0; padding-left: 18px; font-size: 13px; color: var(--muted); }
+dialog.detail.small { width: min(560px, calc(100vw - 24px)); }
+.d-simple-head { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; border-bottom: 1px solid var(--rule); }
+.d-simple-head h2 { margin: 0; font-size: 18px; }
+
+/* 離線狀態標示 */
+.net { display: none; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; padding: 4px 10px;
+  border-radius: 999px; background: var(--warn-soft); color: var(--warn); }
+.net::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+html.offline .net { display: inline-flex; }
+.tool-btn.install { border-color: var(--accent); color: var(--accent); }
+.tool-btn[hidden] { display: none; }
+.steps { margin: 0; padding-left: 20px; display: grid; gap: 10px; font-size: 14px; }
+.steps b { color: var(--accent); }
+.kbd { display: inline-block; padding: 0 6px; border: 1px solid var(--rule); border-radius: 4px; font-size: 13px; }
+/* 以 App 方式執行時：關閉文字選取放大、讓按鈕更像原生 */
+@media (display-mode: standalone) {
+  body { -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent; overscroll-behavior-y: none; }
+  input, textarea, .oc, .kv dd, .freq-text, .pname { -webkit-user-select: text; user-select: text; }
+}
+
+@media (max-width: 820px) {
+  .top-inner { gap: 10px; padding: 10px 14px; }
+  .brand { width: 100%; }
+  .tool-btn .lbl { display: none; }
+  .tool-btn.ver .lbl, .tool-btn.lang .lbl, .tool-btn.install .lbl { display: inline; }
+  .quick { grid-template-columns: 1fr 1fr; padding: 10px; }
+  .quick .module { grid-column: 1 / -1; }
+}
 </style>
 </head>
 <body>
@@ -283,13 +358,39 @@ footer { max-width: 1360px; margin: 0 auto; padding: 0 20px 32px; font-size: 12p
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
         <path d="M6.3 7.5a8 8 0 0 1 11.4 0M8.8 10a4.5 4.5 0 0 1 6.4 0"/><circle cx="12" cy="12.5" r="1.2" fill="currentColor"/><path d="M12 13.7V21M9 21h6"/>
       </svg>
-      Quectel 天線選型
+      <span data-i18n="brand"></span>
     </div>
-    <nav class="market-switch" aria-label="市場">
-      <a href="#/global" data-route="global">Global</a>
-      <a href="#/japan" data-route="japan">日本市場</a>
+    <nav class="market-switch" data-i18n-aria="market">
+      <a href="#/global" data-route="global" data-i18n="global"></a>
+      <a href="#/japan" data-route="japan" data-i18n="japan"></a>
     </nav>
-    <button class="icon-btn" id="themeBtn" type="button" aria-label="切換深色/淺色模式">◐</button>
+    <div class="tools">
+      <span class="net" id="netBadge" role="status" data-i18n="offline"></span>
+      <!-- 安裝 App (已安裝或不支援時隱藏) -->
+      <button class="tool-btn install" id="installBtn" type="button" hidden>
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg>
+        <span class="lbl" data-i18n="install"></span>
+      </button>
+      <!-- 中英文切換 -->
+      <button class="tool-btn lang" id="langBtn" type="button">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg>
+        <span class="lbl" id="langLbl"></span>
+      </button>
+      <!-- 深色/淺色切換 -->
+      <button class="tool-btn" id="themeBtn" type="button">
+        <svg id="themeIcon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"></svg>
+        <span class="lbl" id="themeLbl"></span>
+      </button>
+      <!-- 強制更新 -->
+      <button class="tool-btn" id="updateBtn" type="button">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/></svg>
+        <span class="lbl" data-i18n="update"></span><span class="dot" aria-hidden="true"></span>
+      </button>
+      <!-- 版本資訊 -->
+      <button class="tool-btn ver" id="verBtn" type="button">
+        <span class="lbl" id="verLbl"></span>
+      </button>
+    </div>
   </div>
 </header>
 
@@ -304,69 +405,215 @@ footer { max-width: 1360px; margin: 0 auto; padding: 0 20px 32px; font-size: 12p
       <div class="axis" id="axis" aria-hidden="true"></div>
     </div>
   </div>
-  <p class="scroll-hint">左右滑動查看更多頻段</p>
+  <p class="scroll-hint" data-i18n="scrollHint"></p>
   <div class="custom-range">
-    <label for="cLo">自訂頻段</label>
-    <input id="cLo" type="number" inputmode="decimal" min="1" placeholder="低 MHz" aria-label="自訂頻段下限 MHz">
+    <label for="cLo" data-i18n="customBand"></label>
+    <input id="cLo" type="number" inputmode="decimal" min="1" data-i18n-ph="lo">
     <span>–</span>
-    <input id="cHi" type="number" inputmode="decimal" min="1" placeholder="高 MHz" aria-label="自訂頻段上限 MHz">
-    <button class="icon-btn" id="cAdd" type="button">加入需求</button>
+    <input id="cHi" type="number" inputmode="decimal" min="1" data-i18n-ph="hi">
+    <button class="icon-btn" id="cAdd" type="button" data-i18n="addNeed"></button>
     <span class="need-summary" id="needSummary" aria-live="polite"></span>
   </div>
 </section>
 
 <main class="layout">
-  <aside class="filters" id="filters" aria-label="篩選條件">
-    <div class="filters-head"><span>篩選條件</span><button class="icon-btn" id="closeFilters" type="button">完成</button></div>
+  <aside class="filters" id="filters">
+    <div class="filters-head"><span data-i18n="filters"></span><button class="icon-btn" id="closeFilters" type="button" data-i18n="done"></button></div>
     <div id="filterBody"></div>
-    <button class="icon-btn reset" id="resetBtn" type="button">清除所有條件</button>
+    <button class="icon-btn reset" id="resetBtn" type="button" data-i18n="resetAll"></button>
   </aside>
 
-  <section aria-label="篩選結果">
+  <section>
+    <!-- 快速選單：模組 (日本頁) / Type / Product Type / Antenna Type -->
+    <div class="quick" id="quick"></div>
     <div class="results-bar">
       <div class="count" aria-live="polite"><b id="count">0</b> <span id="countOf"></span></div>
       <div class="spacer"></div>
-      <button class="icon-btn mobile-filter-btn" id="openFilters" type="button">篩選 <span id="filterBadge"></span></button>
-      <label class="sr-only" for="sortSel">排序</label>
-      <select id="sortSel">
-        <option value="oc">依料號排序</option>
-        <option value="gain">依峰值增益 (高→低)</option>
-        <option value="span">依頻寬覆蓋 (寬→窄)</option>
+      <button class="icon-btn mobile-filter-btn" id="openFilters" type="button"><span data-i18n="filterBtn"></span> <span id="filterBadge"></span></button>
+      <select id="sortSel" data-i18n-aria="sort">
+        <option value="oc" data-i18n="sortOc"></option>
+        <option value="gain" data-i18n="sortGain"></option>
+        <option value="span" data-i18n="sortSpan"></option>
       </select>
-      <button class="icon-btn" id="copyBtn" type="button">複製料號清單</button>
+      <button class="icon-btn" id="copyBtn" type="button" data-i18n="copyList"></button>
     </div>
     <div class="active-tags" id="activeTags"></div>
     <div class="list" id="list" role="list"></div>
-    <button class="icon-btn more" id="moreBtn" type="button" hidden>顯示更多</button>
+    <button class="icon-btn more" id="moreBtn" type="button" hidden></button>
   </section>
 </main>
 
 <footer id="footer"></footer>
 
 <dialog class="detail" id="detail" aria-labelledby="dTitle"></dialog>
+<dialog class="detail small" id="verDialog" aria-labelledby="verTitle"></dialog>
+<dialog class="detail small" id="installDialog" aria-labelledby="installTitle"></dialog>
 <div class="toast" id="toast" role="status"></div>
 
 <script>
 "use strict";
 /* ==========================================================================
-   Quectel 天線選型 PWA
+   Quectel 天線選型 PWA  v2
    - 兩個頁面 (hash 路由)：#/global、#/japan
-   - 資料由 build_data.py 從 Excel 轉出並內嵌於 DATA
+   - 資料、版本號、建置時間由 build_data.py 內嵌於 DATA
    ========================================================================== */
 
 /** 內嵌資料 (build_data.py 取代此佔位符) */
 const DATA = /*__DATA__*/null;
+const APP_VERSION = DATA.version || '0.0.0';
 
 /**
- * Datasheet 連結樣板：若要顯示 datasheet 連結，填入含 {oc} 的網址，
- * 例如 'https://intranet.example.com/datasheet?q={oc}_Datasheet'。
- * 預設留空 (不輸出內部連結)。
+ * Datasheet 連結樣板：填入含 {oc} 的網址即會顯示 datasheet 按鈕。
+ * 例如 'https://intranet.example.com/datasheet?q={oc}_Datasheet'。預設留空。
  */
 const DATASHEET_URL = '';
+
+/** 更新紀錄 (新版本請加在最上方) */
+const CHANGELOG = [
+  { v: '2.1.0', zh: ['完全離線：移除所有外部資源，字型內嵌，首次開啟即快取全部檔案', '新增「安裝 App」按鈕與 iOS / Android / Windows 安裝說明', '新增離線狀態標示', '強制更新會先確認伺服器可連線，離線時不會清除快取', '申請永久儲存，降低離線資料被系統清除的機會'],
+    en: ['Fully offline: no external resources, embedded fonts, all files cached on first launch', 'Install button with iOS / Android / Windows instructions', 'Offline status indicator', 'Force update checks the server first and never clears the cache while offline', 'Requests persistent storage so offline data is less likely to be evicted'] },
+  { v: '2.0.0', zh: ['新增強制更新按鈕，並自動偵測伺服器新版本', '新增深色 / 淺色模式切換按鈕', '新增中文 / English 介面切換', '新增版本資訊視窗', '新增 Type、Product Type、Antenna Type 下拉選單（日本頁另含模組選單）'],
+    en: ['Force-update button with automatic new-version detection', 'Dark / light theme toggle', 'Chinese / English UI switch', 'Version info dialog', 'Type, Product Type and Antenna Type dropdowns (plus module menu on the Japan page)'] },
+  { v: '1.0.0', zh: ['初版：Global 與日本市場兩頁、頻譜尺篩選、離線 PWA'], en: ['Initial release: Global and Japan pages, spectrum ruler filter, offline PWA'] },
+];
 
 const PAGE_SIZE = 60;
 const F_MIN = 400, F_MAX = 8000;           // 頻譜尺範圍 (MHz)，對數刻度
 const AXIS_TICKS = [400, 500, 700, 1000, 1500, 2000, 3000, 4000, 5000, 6000, 8000];
+
+/* 篩選值的特殊代號 (顯示時依語言翻譯) */
+const NA = '__na__', NONE = '__none__', OTHER = '__other__';
+
+/* ==========================================================================
+   i18n
+   ========================================================================== */
+const I18N = {
+  zh: {
+    brand: 'Quectel 天線選型', market: '市場', global: 'Global', japan: '日本市場',
+    langLbl: 'EN', langAria: 'Switch to English',
+    themeDark: '深色', themeLight: '淺色', themeAriaDark: '切換為深色模式', themeAriaLight: '切換為淺色模式',
+    update: '強制更新', updateAria: '清除快取並重新載入最新版本', updating: '正在清除快取並重新載入…',
+    newVersion: '伺服器有新版本 v{v}，按「強制更新」套用',
+    verAria: '版本資訊',
+    gTitle: 'Global 天線選型', gSub: '點選頻段標示需求，只列出完整涵蓋所有已選頻段的天線',
+    jTitle: '日本市場天線選型', jSub: '先選 Quectel 模組，再以頻段與外型縮小範圍',
+    scrollHint: '左右滑動查看更多頻段', customBand: '自訂頻段', lo: '低 MHz', hi: '高 MHz', addNeed: '加入需求',
+    needN: '需涵蓋 <b>{n}</b> 個頻段', noNeed: '尚未指定頻段需求', bandTitle: '{l}：{lo}–{hi} MHz', bandRemove: '（再按一次移除）',
+    filters: '篩選條件', done: '完成', resetAll: '清除所有條件', search: '搜尋料號、名稱、頻率…', searchAria: '搜尋',
+    countOf: '/ {n} 項天線', filterBtn: '篩選', sort: '排序',
+    sortOc: '依料號排序', sortGain: '依峰值增益 (高→低)', sortSpan: '依頻寬覆蓋 (寬→窄)',
+    copyList: '複製料號清單', more: '顯示更多 (尚有 {n} 項)',
+    emptyT: '沒有符合所有條件的天線', emptyD: '移除部分頻段需求或篩選條件後再試一次。',
+    all: '全部', module: 'Quectel 模組', allModules: '全部模組',
+    moduleHint: '相容性取 JP 天線表與 Selector「PRO-JP」勾選的聯集',
+    f_type: '技術類別 Type', f_ptype: '產品型態 Product Type', f_atype: '天線類型 Antenna Type',
+    f_form: '外型', f_mount: '安裝方式', f_conn: '連接器', f_ip: '防護等級', f_qty: '天線埠數', f_brochure: '銷售區域',
+    jpOnly: '僅顯示日本市場相容', hideNonPro: '隱藏 Non-PRO (客製/配件)', hideEol: '隱藏 NRND / EOL 料號',
+    [NA]: '未標示', [NONE]: '無', [OTHER]: '其他',
+    badgeJp: 'JP 相容', removeTag: '移除條件 {x}',
+    s_form: '型態', s_mount: '安裝', s_conn: '連接器', s_gain: '增益', s_cable: '線長',
+    copyOc: '複製料號', openSheet: '開啟 Datasheet', close: '關閉',
+    freqCov: '頻率覆蓋', rfPerf: '射頻效能', specs: '規格', compat: '相容模組 ({n})',
+    th_tech: '技術', th_freq: '頻率', th_qty: '數量', th_eff: '效率', th_gain: '峰值增益', th_pat: '場型', th_pol: '極化',
+    suggest: '建議替代：', replaces: '此料號用以取代 ',
+    k_cats: '分類', k_kind: '產品型態', k_tech: '技術', k_band: '頻段', k_form: '外型', k_mount: '安裝方式', k_conn: '連接器',
+    k_cable: '線長 (mm)', k_ip: 'IP 等級', k_dim: '尺寸 (mm)', k_note: '備註', k_src: '資料來源',
+    k_type: '技術類別', k_ptype: '產品型態', k_atype: '天線類型', k_qty: '天線埠數', k_cables: '線材', k_lna: 'LNA 增益 (dB)',
+    k_ik: 'IK 等級', k_flame: '阻燃', k_uv: '抗 UV', k_env: '環保', k_temp: '工作溫度', k_evb: 'EVB 料號', k_evbDim: 'EVB 尺寸 (mm)',
+    k_brochure: '銷售區域', k_base: '基準料號', k_jp: '日本市場', jpYes: '相容', srcSel: 'Selector PRO-JP', srcJp: 'JP 天線表',
+    copied: '已複製料號 {oc}', copiedN: '已複製 {n} 個料號', noResults: '目前沒有結果可複製', clipFail: '無法存取剪貼簿',
+    invalidFreq: '請輸入有效的頻率 (MHz)', notOnPage: '此料號不在本頁清單，已改用搜尋',
+    footer: '資料來源：{g}、{j}。頻段邊界為一般公開配置，最終選型請以 datasheet 與實測結果為準。',
+    verTitle: '版本資訊', v_app: 'App 版本', v_built: '資料建置時間', v_latest: '伺服器版本', v_sw: '離線快取',
+    v_src: '資料來源', v_count: '產品數量', v_countVal: 'Global {g} 項；日本 {j} 項；JP 模組 {m} 款',
+    checking: '檢查中…', upToDate: 'v{v}（已是最新）', newer: 'v{v}（可更新）', cantCheck: '無法檢查（離線或預覽環境）',
+    swOn: '已啟用，可離線使用', swOff: '未啟用（需部署於 HTTPS）', changelog: '更新紀錄',
+    offline: '離線模式', backOnline: '已恢復連線', offlineReady: '已可離線使用',
+    install: '安裝 App', installTitle: '安裝為 App', installed: '已安裝，可從主畫面或開始選單開啟',
+    offlineNoUpdate: '目前離線，無法更新。恢復連線後再試一次。',
+    serverUnreachable: '無法連線到伺服器，已保留目前版本。',
+    v_mode: '執行模式', modeApp: 'App (已安裝)', modeBrowser: '瀏覽器', v_storage: '離線資料保存', persistOn: '已鎖定，不會被系統自動清除', persistOff: '一般 (長期未開啟可能被系統清除)',
+    iosSteps: ['用 <b>Safari</b> 開啟此網頁 (iOS 只能用 Safari 安裝)', '點下方工具列的 <b>分享</b> 按鈕 <span class="kbd">⬆︎</span>', '向下捲動，點 <b>加入主畫面</b>', '點右上角 <b>新增</b>，之後從主畫面的「天線選型」圖示開啟'],
+    androidSteps: ['用 <b>Chrome</b> 開啟此網頁', '點右上角 <b>⋮</b> 選單', '點 <b>安裝應用程式</b> (或「加到主畫面」)', '之後從主畫面或應用程式清單開啟'],
+    desktopSteps: ['用 <b>Edge</b> 或 <b>Chrome</b> 開啟此網頁', '點網址列右側的 <b>安裝</b> 圖示 <span class="kbd">⊕</span>，或選單 → <b>應用程式</b> → <b>安裝此網站為應用程式</b>', '安裝後可從 <b>開始功能表</b> 開啟，也可釘選到工作列'],
+    installNote: '安裝完成並開啟一次後，即可在沒有網路的環境使用。',
+  },
+  en: {
+    brand: 'Quectel Antenna Selector', market: 'Market', global: 'Global', japan: 'Japan',
+    langLbl: '中文', langAria: '切換為中文',
+    themeDark: 'Dark', themeLight: 'Light', themeAriaDark: 'Switch to dark mode', themeAriaLight: 'Switch to light mode',
+    update: 'Force update', updateAria: 'Clear cache and reload the latest version', updating: 'Clearing cache and reloading…',
+    newVersion: 'Version v{v} is available. Press "Force update" to apply.',
+    verAria: 'Version info',
+    gTitle: 'Global antenna selection', gSub: 'Tap bands to set requirements. Only antennas covering every selected band are listed.',
+    jTitle: 'Japan market antenna selection', jSub: 'Pick a Quectel module first, then narrow down by band and form factor.',
+    scrollHint: 'Swipe sideways for more bands', customBand: 'Custom band', lo: 'Low MHz', hi: 'High MHz', addNeed: 'Add',
+    needN: '<b>{n}</b> band(s) required', noNeed: 'No band requirement yet', bandTitle: '{l}: {lo}–{hi} MHz', bandRemove: ' (tap again to remove)',
+    filters: 'Filters', done: 'Done', resetAll: 'Clear all filters', search: 'Search part no., name, frequency…', searchAria: 'Search',
+    countOf: '/ {n} antennas', filterBtn: 'Filters', sort: 'Sort',
+    sortOc: 'Sort by part no.', sortGain: 'Sort by peak gain (high→low)', sortSpan: 'Sort by bandwidth (wide→narrow)',
+    copyList: 'Copy part numbers', more: 'Show more ({n} left)',
+    emptyT: 'No antenna matches all conditions', emptyD: 'Remove some band requirements or filters and try again.',
+    all: 'All', module: 'Quectel module', allModules: 'All modules',
+    moduleHint: 'Compatibility merges the JP antenna list and the Selector "PRO-JP" ticks',
+    f_type: 'Type', f_ptype: 'Product Type', f_atype: 'Antenna Type',
+    f_form: 'Form factor', f_mount: 'Mounting', f_conn: 'Connector', f_ip: 'IP rating', f_qty: 'Antenna ports', f_brochure: 'Sales region',
+    jpOnly: 'Japan-compatible only', hideNonPro: 'Hide Non-PRO (custom / accessories)', hideEol: 'Hide NRND / EOL parts',
+    [NA]: 'Unspecified', [NONE]: 'None', [OTHER]: 'Other',
+    badgeJp: 'JP OK', removeTag: 'Remove filter {x}',
+    s_form: 'Form', s_mount: 'Mount', s_conn: 'Connector', s_gain: 'Gain', s_cable: 'Cable',
+    copyOc: 'Copy part no.', openSheet: 'Open datasheet', close: 'Close',
+    freqCov: 'Frequency coverage', rfPerf: 'RF performance', specs: 'Specifications', compat: 'Compatible modules ({n})',
+    th_tech: 'Technology', th_freq: 'Frequency', th_qty: 'Qty', th_eff: 'Efficiency', th_gain: 'Peak gain', th_pat: 'Pattern', th_pol: 'Polarization',
+    suggest: 'Suggested replacement: ', replaces: 'This part replaces ',
+    k_cats: 'Category', k_kind: 'Product type', k_tech: 'Technology', k_band: 'Bands', k_form: 'Form factor', k_mount: 'Mounting', k_conn: 'Connector',
+    k_cable: 'Cable length (mm)', k_ip: 'IP rating', k_dim: 'Dimensions (mm)', k_note: 'Note', k_src: 'Source',
+    k_type: 'Type', k_ptype: 'Product type', k_atype: 'Antenna type', k_qty: 'Antenna ports', k_cables: 'Cable', k_lna: 'LNA gain (dB)',
+    k_ik: 'IK rating', k_flame: 'Flame rating', k_uv: 'UV resistant', k_env: 'Environmental', k_temp: 'Operating temp.', k_evb: 'EVB part no.', k_evbDim: 'EVB dimensions (mm)',
+    k_brochure: 'Sales region', k_base: 'Base part no.', k_jp: 'Japan market', jpYes: 'Compatible', srcSel: 'Selector PRO-JP', srcJp: 'JP antenna list',
+    copied: 'Copied {oc}', copiedN: 'Copied {n} part numbers', noResults: 'No results to copy', clipFail: 'Clipboard unavailable',
+    invalidFreq: 'Enter a valid frequency (MHz)', notOnPage: 'Not on this page; searching for it instead',
+    footer: 'Sources: {g}, {j}. Band edges follow common public allocations; confirm final selection with datasheets and measurements.',
+    verTitle: 'Version info', v_app: 'App version', v_built: 'Data built', v_latest: 'Server version', v_sw: 'Offline cache',
+    v_src: 'Data sources', v_count: 'Products', v_countVal: 'Global {g}; Japan {j}; JP modules {m}',
+    checking: 'Checking…', upToDate: 'v{v} (up to date)', newer: 'v{v} (update available)', cantCheck: 'Unavailable (offline or preview)',
+    swOn: 'Active, works offline', swOff: 'Inactive (requires HTTPS deployment)', changelog: 'Changelog',
+    offline: 'Offline', backOnline: 'Back online', offlineReady: 'Ready to work offline',
+    install: 'Install app', installTitle: 'Install as an app', installed: 'Installed. Open it from your home screen or Start menu.',
+    offlineNoUpdate: 'You are offline, so the app cannot update. Try again when connected.',
+    serverUnreachable: 'Server unreachable. The current version was kept.',
+    v_mode: 'Running as', modeApp: 'App (installed)', modeBrowser: 'Browser', v_storage: 'Offline storage', persistOn: 'Persistent, not cleared automatically', persistOff: 'Best-effort (may be cleared if unused for a long time)',
+    iosSteps: ['Open this page in <b>Safari</b> (iOS only installs from Safari)', 'Tap the <b>Share</b> button <span class="kbd">⬆︎</span> in the toolbar', 'Scroll down and tap <b>Add to Home Screen</b>', 'Tap <b>Add</b>, then launch it from the home screen icon'],
+    androidSteps: ['Open this page in <b>Chrome</b>', 'Tap the <b>⋮</b> menu', 'Tap <b>Install app</b> (or "Add to Home screen")', 'Launch it from the home screen or app drawer'],
+    desktopSteps: ['Open this page in <b>Edge</b> or <b>Chrome</b>', 'Click the <b>Install</b> icon <span class="kbd">⊕</span> in the address bar, or menu → <b>Apps</b> → <b>Install this site as an app</b>', 'Launch it from the <b>Start menu</b> or pin it to the taskbar'],
+    installNote: 'After installing and opening it once, it works without any network connection.',
+  },
+};
+let lang = 'zh';
+/** 取翻譯字串並代入 {var} */
+function t(key, vars) {
+  let s = I18N[lang][key] ?? I18N.zh[key] ?? key;
+  if (vars) for (const [k, v] of Object.entries(vars)) s = s.split('{' + k + '}').join(v);
+  return s;
+}
+/** 篩選值顯示文字 (特殊代號才翻譯，資料原值維持英文) */
+/** 標籤分隔符號：中文全形冒號、英文半形 */
+const sep = () => (lang === 'zh' ? '：' : ': ');
+const valLabel = (v) => (v === NA || v === NONE || v === OTHER ? t(v) : v);
+/** 套用靜態元素文字 */
+function applyStaticI18n() {
+  document.documentElement.lang = lang === 'zh' ? 'zh-Hant-TW' : 'en';
+  document.querySelectorAll('[data-i18n]').forEach((el) => { el.textContent = t(el.dataset.i18n); });
+  document.querySelectorAll('[data-i18n-ph]').forEach((el) => { el.placeholder = t(el.dataset.i18nPh); el.setAttribute('aria-label', t(el.dataset.i18nPh)); });
+  document.querySelectorAll('[data-i18n-aria]').forEach((el) => { el.setAttribute('aria-label', t(el.dataset.i18nAria)); });
+  $('langLbl').textContent = t('langLbl');
+  $('langBtn').setAttribute('aria-label', t('langAria'));
+  $('updateBtn').setAttribute('aria-label', t('updateAria'));
+  $('updateBtn').title = t('updateAria');
+  $('verLbl').textContent = 'v' + APP_VERSION;
+  $('verBtn').setAttribute('aria-label', t('verAria') + ' v' + APP_VERSION);
+  renderThemeBtn();
+}
 
 /* ---------- 頻段預設 (MHz)。邊界為一般公開頻段配置，僅供選型參考 ---------- */
 const BANDS = {
@@ -377,7 +624,7 @@ const BANDS = {
     { id: 'l5', label: 'GNSS L5', lo: 1164, hi: 1189 },
     { id: 'l1', label: 'GNSS L1', lo: 1559, hi: 1610 },
     { id: 'lband', label: 'L-band 1427–1518', lo: 1427, hi: 1518 },
-    { id: 'lte-mid', label: '中高頻 1710–2690', lo: 1710, hi: 2690 },
+    { id: 'lte-mid', label: { zh: '中高頻 1710–2690', en: 'Mid/High 1710–2690' }, lo: 1710, hi: 2690 },
     { id: 'wifi24', label: 'Wi-Fi 2.4G', lo: 2400, hi: 2500 },
     { id: 'n77', label: 'n77/n78 3.3–4.2G', lo: 3300, hi: 4200 },
     { id: 'n79', label: 'n79 4.4–5.0G', lo: 4400, hi: 5000 },
@@ -402,46 +649,41 @@ const BANDS = {
     { id: 'wifi6', label: '6G LPI', lo: 5925, hi: 6425 },
   ],
 };
+const bandLabel = (b) => (typeof b.label === 'string' ? b.label : b.label[lang]);
 
 /* ---------- 正規化工具 ---------- */
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
 function connFamily(s) {
-  if (!s) return '無';
-  const t = s.toLowerCase();
-  if (t.includes('fakra')) return 'FAKRA';
-  if (t.includes('rp') && t.includes('sma')) return 'RP-SMA';
-  if (t.includes('sma')) return 'SMA';
-  if (t.includes('mhf4')) return 'IPEX MHF4';
-  if (t.includes('mhf1') || t.includes('u.fl')) return 'IPEX MHF1 / U.FL';
-  if (t.includes('mhf') || t.includes('ipex')) return 'IPEX (其他)';
-  if (t.includes('n type') || t.includes('n-type')) return 'N type';
-  if (t.includes('tnc')) return 'TNC';
-  if (t.includes('mcx')) return 'MCX';
-  if (t.includes('4.3') || t.includes('7/16')) return '4.3-10 / 7/16 DIN';
+  if (!s) return NONE;
+  const x = s.toLowerCase();
+  if (x.includes('fakra')) return 'FAKRA';
+  if (x.includes('rp') && x.includes('sma')) return 'RP-SMA';
+  if (x.includes('sma')) return 'SMA';
+  if (x.includes('mhf4')) return 'IPEX MHF4';
+  if (x.includes('mhf1') || x.includes('u.fl')) return 'IPEX MHF1 / U.FL';
+  if (x.includes('mhf') || x.includes('ipex')) return 'IPEX';
+  if (x.includes('n type') || x.includes('n-type')) return 'N type';
+  if (x.includes('tnc')) return 'TNC';
+  if (x.includes('mcx')) return 'MCX';
+  if (x.includes('4.3') || x.includes('7/16')) return '4.3-10 / 7/16 DIN';
   return s;
 }
 function mountNorm(s) {
-  if (!s) return '未標示';
-  const t = s.replace(/\s*Mount$/i, '').trim();
-  if (/^sm[dt]$/i.test(t)) return 'SMT';
-  return t;
+  if (!s) return NA;
+  const m = s.replace(/\s*Mount$/i, '').trim();
+  return /^sm[dt]$/i.test(m) ? 'SMT' : m;
 }
 const TYPE_LABEL = { WIFI: 'Wi-Fi', 'UWB chip': 'UWB' };
-const typeLabel = (t) => TYPE_LABEL[t] || t || '其他';
+const typeLabel = (x) => TYPE_LABEL[x] || x || OTHER;
 
 function firstNum(s) {
   const m = String(s ?? '').match(/-?\d+(?:\.\d+)?/);
   return m ? parseFloat(m[0]) : null;
 }
-/** 頻寬總覆蓋量 (MHz)，供排序 */
 const spanOf = (p) => (p.ranges || []).reduce((a, [lo, hi]) => a + (hi - lo), 0);
-
 /** 產品頻率區間是否完整涵蓋需求頻段 */
-function covers(ranges, lo, hi) {
-  return (ranges || []).some(([a, b]) => a <= lo + 0.01 && b >= hi - 0.01);
-}
-
+const covers = (ranges, lo, hi) => (ranges || []).some(([a, b]) => a <= lo + 0.01 && b >= hi - 0.01);
 /** 對數刻度：頻率 → 百分比位置 */
 function xPct(f) {
   const c = Math.min(Math.max(f, F_MIN), F_MAX);
@@ -449,75 +691,74 @@ function xPct(f) {
 }
 
 /* ==========================================================================
-   各頁面設定：資料來源與篩選面向 (facets)
-   facet.get(p) 回傳該產品在此面向的值 (字串或字串陣列)
+   各頁面設定
+   facet.ui: 'select' = 快速下拉選單 (單選)；'chips' / 'checks' = 側欄 (多選)
    ========================================================================== */
 const PAGES = {
   global: {
-    title: 'Global 天線選型',
-    sub: '點選頻段標示需求，只列出完整涵蓋所有已選頻段的天線',
+    title: 'gTitle', sub: 'gSub',
     items: () => DATA.global,
     facets: [
-      { key: 'type', title: '技術類別', ui: 'chips', get: (p) => typeLabel(p.type) },
-      { key: 'ptype', title: '天線型態', ui: 'chips', get: (p) => p.ptype || '其他' },
-      { key: 'form', title: '外型', ui: 'checks', get: (p) => p.form || '未標示' },
-      { key: 'mount', title: '安裝方式', ui: 'checks', get: (p) => p.mount || '未標示' },
-      { key: 'conn', title: '連接器', ui: 'checks', get: (p) => (p.conn && p.conn.length ? p.conn.map(connFamily) : ['無']) },
-      { key: 'ip', title: '防護等級', ui: 'checks', get: (p) => p.ip || '無' },
-      { key: 'qty', title: '天線埠數', ui: 'chips', get: (p) => String(p.qty || '1'), sort: (a, b) => a - b },
-      { key: 'brochure', title: '銷售區域', ui: 'chips', get: (p) => p.brochure || '未標示' },
+      { key: 'type', ui: 'select', get: (p) => typeLabel(p.type) },
+      { key: 'ptype', ui: 'select', get: (p) => p.ptype || OTHER },
+      { key: 'atype', ui: 'select', get: (p) => p.atype || NA },
+      { key: 'form', ui: 'checks', get: (p) => p.form || NA },
+      { key: 'mount', ui: 'checks', get: (p) => p.mount || NA },
+      { key: 'conn', ui: 'checks', get: (p) => (p.conn && p.conn.length ? p.conn.map(connFamily) : [NONE]) },
+      { key: 'ip', ui: 'checks', get: (p) => p.ip || NONE },
+      { key: 'qty', ui: 'chips', get: (p) => String(p.qty || '1'), sort: (a, b) => a - b },
+      { key: 'brochure', ui: 'chips', get: (p) => p.brochure || NA },
     ],
     toggles: [
-      { key: 'jpOnly', label: '僅顯示日本市場相容', test: (p) => p.jp },
-      { key: 'hideNonPro', label: '隱藏 Non-PRO (客製/配件)', test: (p) => p.src !== 'Non-PRO', default: false },
+      { key: 'jpOnly', test: (p) => p.jp },
+      { key: 'hideNonPro', test: (p) => p.src !== 'Non-PRO', default: false },
     ],
   },
   japan: {
-    title: '日本市場天線選型',
-    sub: '先選 Quectel 模組，再以頻段與外型縮小範圍',
+    title: 'jTitle', sub: 'jSub',
     items: () => DATA.japan,
     module: true,
     facets: [
-      { key: 'cats', title: '產品分類', ui: 'chips', get: (p) => p.cats || [] },
-      { key: 'kind', title: '天線型態', ui: 'chips', get: (p) => p.kind || '其他' },
-      { key: 'form', title: '外型', ui: 'checks', get: (p) => p.form || '未標示' },
-      { key: 'mount', title: '安裝方式', ui: 'checks', get: (p) => mountNorm(p.mount) },
-      { key: 'conn', title: '連接器', ui: 'checks', get: (p) => connFamily(p.conn) },
+      { key: 'type', ui: 'select', get: (p) => p.cats || [OTHER] },
+      { key: 'ptype', ui: 'select', get: (p) => p.kind || OTHER },
+      { key: 'atype', ui: 'select', get: (p) => p.atype || NA },
+      { key: 'form', ui: 'checks', get: (p) => p.form || NA },
+      { key: 'mount', ui: 'checks', get: (p) => mountNorm(p.mount) },
+      { key: 'conn', ui: 'checks', get: (p) => connFamily(p.conn) },
     ],
     toggles: [
-      { key: 'hideEol', label: '隱藏 NRND / EOL 料號', test: (p) => !p.status, default: true },
+      { key: 'hideEol', test: (p) => !p.status, default: true },
     ],
   },
 };
+const facetTitle = (f) => t('f_' + f.key);
+const toggleLabel = { jpOnly: 'jpOnly', hideNonPro: 'hideNonPro', hideEol: 'hideEol' };
 
 /* ==========================================================================
    狀態 (每頁獨立，存在 localStorage)
    ========================================================================== */
 const store = {
-  load(page) {
-    try { return JSON.parse(localStorage.getItem('antsel:' + page) || 'null'); } catch { return null; }
-  },
-  save(page, st) {
-    try { localStorage.setItem('antsel:' + page, JSON.stringify(st)); } catch { /* 無法存取 storage 時忽略 */ }
-  },
+  get(k) { try { return localStorage.getItem('antsel:' + k); } catch { return null; } },
+  set(k, v) { try { localStorage.setItem('antsel:' + k, v); } catch { /* storage 無法使用時忽略 */ } },
+  load(page) { try { return JSON.parse(this.get(page) || 'null'); } catch { return null; } },
+  save(page, st) { this.set(page, JSON.stringify(st)); },
 };
-function freshState(page) {
-  const cfg = PAGES[page];
+function freshState(pg) {
   const st = { q: '', sel: {}, bands: [], custom: [], toggles: {}, sort: 'oc', module: '' };
-  cfg.toggles.forEach((t) => { st.toggles[t.key] = !!t.default; });
+  PAGES[pg].toggles.forEach((x) => { st.toggles[x.key] = !!x.default; });
   return st;
 }
 
 let page = 'global';
 let state = freshState('global');
 let shown = PAGE_SIZE;
-
 const $ = (id) => document.getElementById(id);
 
 /* ==========================================================================
    篩選引擎
    ========================================================================== */
-function asArr(v) { return Array.isArray(v) ? v : [v]; }
+const asArr = (v) => (Array.isArray(v) ? v : [v]);
+const allNeeds = () => BANDS[page].filter((b) => state.bands.includes(b.id)).concat(state.custom);
 
 /** 依目前條件篩選；skipKey 用於計算某面向的選項計數 (忽略自身) */
 function filterItems(skipKey) {
@@ -525,8 +766,8 @@ function filterItems(skipKey) {
   const q = state.q.trim().toLowerCase();
   const needs = allNeeds();
   return cfg.items().filter((p) => {
-    if (cfg.module && state.module && !(p.modules || []).includes(state.module)) return false;
-    for (const t of cfg.toggles) if (state.toggles[t.key] && !t.test(p)) return false;
+    if (cfg.module && skipKey !== '__module' && state.module && !(p.modules || []).includes(state.module)) return false;
+    for (const x of cfg.toggles) if (state.toggles[x.key] && !x.test(p)) return false;
     for (const f of cfg.facets) {
       if (f.key === skipKey) continue;
       const sel = state.sel[f.key];
@@ -534,19 +775,13 @@ function filterItems(skipKey) {
     }
     for (const n of needs) if (!covers(p.ranges, n.lo, n.hi)) return false;
     if (q) {
-      const hay = [p.oc, p.name, p.desc, p.freq, p.form, p.note, p.replace, p.suggest, (p.modules || []).join(' ')]
+      const hay = [p.oc, p.name, p.desc, p.freq, p.form, p.atype, p.note, p.replace, p.suggest, (p.modules || []).join(' ')]
         .join(' ').toLowerCase();
       if (!q.split(/\s+/).every((w) => hay.includes(w))) return false;
     }
     return true;
   });
 }
-
-function allNeeds() {
-  const presets = BANDS[page].filter((b) => state.bands.includes(b.id));
-  return presets.concat(state.custom);
-}
-
 function sorted(list) {
   const arr = list.slice();
   if (state.sort === 'gain') {
@@ -557,21 +792,32 @@ function sorted(list) {
   } else {
     arr.sort((a, b) => a.oc.localeCompare(b.oc));
   }
-  // 穩定排序：NRND / EOL 與 Non-PRO (客製/配件) 一律排在後面
+  // 穩定排序：NRND / EOL 與 Non-PRO 一律排在後面
   const rank = (p) => (p.status ? 2 : 0) + (p.src === 'Non-PRO' ? 1 : 0);
-  arr.sort((a, b) => rank(a) - rank(b));
-  return arr;
+  return arr.sort((a, b) => rank(a) - rank(b));
+}
+function counts(facet) {
+  const m = new Map();
+  for (const p of filterItems(facet.key)) for (const v of new Set(asArr(facet.get(p)))) m.set(v, (m.get(v) || 0) + 1);
+  return m;
+}
+function allValues(facet) {
+  const set = new Set();
+  for (const p of PAGES[page].items()) asArr(facet.get(p)).forEach((v) => set.add(v));
+  const arr = [...set];
+  if (facet.sort) return arr.sort(facet.sort);
+  // 特殊代號 (未標示/無/其他) 排最後
+  return arr.sort((a, b) => (a.startsWith('__') - b.startsWith('__')) || String(a).localeCompare(String(b)));
 }
 
 /* ==========================================================================
    Render：頻譜尺
    ========================================================================== */
 function renderRuler() {
-  const lanes = [];               // 每條 lane 記錄已佔用區間右緣 (百分比)
-  const bands = BANDS[page].map((b) => ({ ...b, custom: false }))
-    .concat(state.custom.map((c, i) => ({ id: 'custom-' + i, label: `${c.lo}–${c.hi}`, lo: c.lo, hi: c.hi, custom: true })));
-  // 以最小顯示寬度 (含文字) 配置 lane，避免重疊
-  const MIN_W = 9.5;   // %
+  const lanes = [];
+  const bands = BANDS[page].map((b) => ({ ...b, text: bandLabel(b), custom: false }))
+    .concat(state.custom.map((c, i) => ({ id: 'custom-' + i, text: `${c.lo}–${c.hi}`, lo: c.lo, hi: c.hi, custom: true })));
+  const MIN_W = 9.5;   // 按鈕最小寬度 (%)，以容納文字
   const placed = bands.map((b) => {
     const x1 = xPct(b.lo), x2 = Math.max(xPct(b.hi), x1 + MIN_W);
     let lane = lanes.findIndex((right) => right <= x1 - 0.3);
@@ -583,72 +829,78 @@ function renderRuler() {
   $('lanes').style.height = lanes.length * laneH + 'px';
   $('lanes').innerHTML = placed.map((b) => {
     const pressed = b.custom || state.bands.includes(b.id);
-    return `<button type="button" class="band-btn${b.custom ? ' custom' : ''}" data-band="${b.id}"
-      aria-pressed="${pressed}" title="${esc(b.label)}：${b.lo}–${b.hi} MHz${b.custom ? '（再按一次移除）' : ''}"
-      style="left:${b.x1}%;width:${b.x2 - b.x1}%;top:${b.lane * laneH}px">${esc(b.label)}</button>`;
+    const title = t('bandTitle', { l: b.text, lo: b.lo, hi: b.hi }) + (b.custom ? t('bandRemove') : '');
+    return `<button type="button" class="band-btn${b.custom ? ' custom' : ''}" data-band="${b.id}" aria-pressed="${pressed}"
+      title="${esc(title)}" style="left:${b.x1}%;width:${b.x2 - b.x1}%;top:${b.lane * laneH}px">${esc(b.text)}</button>`;
   }).join('');
   $('axis').innerHTML = AXIS_TICKS.map((f) => `<span style="left:${xPct(f)}%">${f >= 1000 ? f / 1000 + 'G' : f + 'M'}</span>`).join('');
-
-  const needs = allNeeds();
-  $('needSummary').innerHTML = needs.length
-    ? `需涵蓋 <b>${needs.length}</b> 個頻段`
-    : '尚未指定頻段需求';
+  const n = allNeeds().length;
+  $('needSummary').innerHTML = n ? t('needN', { n }) : esc(t('noNeed'));
 }
 
 /* ==========================================================================
-   Render：篩選面板
+   Render：快速下拉選單 (模組 / Type / Product Type / Antenna Type)
    ========================================================================== */
-function counts(facet) {
-  const m = new Map();
-  for (const p of filterItems(facet.key)) for (const v of new Set(asArr(facet.get(p)))) m.set(v, (m.get(v) || 0) + 1);
-  return m;
-}
-function allValues(facet) {
-  const set = new Set();
-  for (const p of PAGES[page].items()) asArr(facet.get(p)).forEach((v) => set.add(v));
-  const arr = [...set];
-  return facet.sort ? arr.sort(facet.sort) : arr.sort((a, b) => String(a).localeCompare(String(b)));
+function renderQuick() {
+  const cfg = PAGES[page];
+  let html = '';
+  if (cfg.module) {
+    // 模組選項計數：忽略模組條件、套用其他條件
+    const pool = filterItems('__module');
+    const opts = DATA.jpModules.map((m) => {
+      const n = pool.filter((p) => (p.modules || []).includes(m)).length;
+      return `<option value="${esc(m)}"${m === state.module ? ' selected' : ''}${!n && m !== state.module ? ' disabled' : ''}>${esc(m)} (${n})</option>`;
+    }).join('');
+    html += `<label class="module" title="${esc(t('moduleHint'))}">${esc(t('module'))}
+      <select data-quick="__module" class="${state.module ? 'active' : ''}"><option value="">${esc(t('allModules'))}</option>${opts}</select></label>`;
+  }
+  for (const f of cfg.facets.filter((x) => x.ui === 'select')) {
+    const c = counts(f);
+    const cur = (state.sel[f.key] || [])[0] || '';
+    const total = filterItems(f.key).length;
+    const opts = allValues(f).map((v) => {
+      const n = c.get(v) || 0;
+      return `<option value="${esc(v)}"${v === cur ? ' selected' : ''}${!n && v !== cur ? ' disabled' : ''}>${esc(valLabel(v))} (${n})</option>`;
+    }).join('');
+    html += `<label>${esc(facetTitle(f))}
+      <select data-quick="${f.key}" class="${cur ? 'active' : ''}"><option value="">${esc(t('all'))} (${total})</option>${opts}</select></label>`;
+  }
+  $('quick').innerHTML = html;
 }
 
+/* ==========================================================================
+   Render：側欄篩選
+   ========================================================================== */
 function renderFilters() {
   const cfg = PAGES[page];
-  let html = `<div class="fgroup"><label class="sr-only" for="q">搜尋</label>
-    <input class="search" id="q" type="search" placeholder="搜尋料號、名稱、頻率…" value="${esc(state.q)}"></div>`;
-
-  if (cfg.module) {
-    const opts = DATA.jpModules.map((m) => `<option value="${esc(m)}"${m === state.module ? ' selected' : ''}>${esc(m)}</option>`).join('');
-    html += `<div class="fgroup"><p class="ftitle"><label for="moduleSel">Quectel 模組</label></p>
-      <select class="module" id="moduleSel"><option value="">全部模組</option>${opts}</select>
-      <p class="module-hint">相容性取 JP 天線表與 Selector「PRO-JP」勾選的聯集</p></div>`;
-  }
-
-  for (const f of cfg.facets) {
+  let html = `<div class="fgroup"><label class="sr-only" for="q">${esc(t('searchAria'))}</label>
+    <input class="search" id="q" type="search" placeholder="${esc(t('search'))}" value="${esc(state.q)}"></div>`;
+  for (const f of cfg.facets.filter((x) => x.ui !== 'select')) {
     const c = counts(f);
     const sel = state.sel[f.key] || [];
     const vals = allValues(f);
     if (f.ui === 'chips') {
-      html += `<div class="fgroup"><p class="ftitle">${esc(f.title)}</p><div class="chips">` +
+      html += `<div class="fgroup"><p class="ftitle">${esc(facetTitle(f))}</p><div class="chips">` +
         vals.map((v) => {
           const n = c.get(v) || 0, on = sel.includes(v);
-          return `<button type="button" class="chip" data-facet="${f.key}" data-val="${esc(v)}" aria-pressed="${on}"${!n && !on ? ' disabled' : ''}>${esc(v)} <small>${n}</small></button>`;
+          return `<button type="button" class="chip" data-facet="${f.key}" data-val="${esc(v)}" aria-pressed="${on}"${!n && !on ? ' disabled' : ''}>${esc(valLabel(v))} <small>${n}</small></button>`;
         }).join('') + `</div></div>`;
     } else {
-      const open = sel.length ? ' open' : '';
-      html += `<div class="fgroup"><details${open}><summary>${esc(f.title)}${sel.length ? `<span class="sel-count">${sel.length}</span>` : ''}</summary><div class="checks">` +
+      html += `<div class="fgroup"><details${sel.length ? ' open' : ''}><summary>${esc(facetTitle(f))}${sel.length ? `<span class="sel-count">${sel.length}</span>` : ''}</summary><div class="checks">` +
         vals.map((v) => {
           const n = c.get(v) || 0, on = sel.includes(v);
-          return `<label class="${n ? '' : 'zero'}"><input type="checkbox" data-facet="${f.key}" data-val="${esc(v)}"${on ? ' checked' : ''}> ${esc(v)} <small>${n}</small></label>`;
+          return `<label class="${n ? '' : 'zero'}"><input type="checkbox" data-facet="${f.key}" data-val="${esc(v)}"${on ? ' checked' : ''}> ${esc(valLabel(v))} <small>${n}</small></label>`;
         }).join('') + `</div></details></div>`;
     }
   }
-  html += `<div class="fgroup">` + cfg.toggles.map((t) =>
-    `<label class="toggle"><input type="checkbox" data-toggle="${t.key}"${state.toggles[t.key] ? ' checked' : ''}> ${esc(t.label)}</label>`).join('') + `</div>`;
+  html += `<div class="fgroup">` + cfg.toggles.map((x) =>
+    `<label class="toggle"><input type="checkbox" data-toggle="${x.key}"${state.toggles[x.key] ? ' checked' : ''}> ${esc(t(toggleLabel[x.key]))}</label>`).join('') + `</div>`;
 
-  // 保留搜尋框焦點與游標位置
-  const active = document.activeElement?.id;
-  const caret = active === 'q' ? $('q').selectionStart : null;
+  // 重繪時保留搜尋框焦點與游標位置
+  const focused = document.activeElement?.id === 'q';
+  const caret = focused ? $('q').selectionStart : null;
   $('filterBody').innerHTML = html;
-  if (active === 'q') { const el = $('q'); el.focus(); el.setSelectionRange(caret, caret); }
+  if (focused) { const el = $('q'); el.focus(); el.setSelectionRange(caret, caret); }
 }
 
 /* ==========================================================================
@@ -673,7 +925,7 @@ function strip(p) {
 function badges(p) {
   let b = '';
   if (page === 'global') {
-    if (p.jp) b += `<span class="badge jp">JP 相容</span>`;
+    if (p.jp) b += `<span class="badge jp">${esc(t('badgeJp'))}</span>`;
     if (p.src === 'Non-PRO') b += `<span class="badge np">Non-PRO</span>`;
   } else {
     if (p.status === 'NRND') b += `<span class="badge nrnd">NRND</span>`;
@@ -683,21 +935,20 @@ function badges(p) {
 }
 function specCells(p) {
   const cells = page === 'global'
-    ? [['型態', p.form], ['安裝', p.mount], ['連接器', (p.conn || []).join(', ') || '—'], ['增益', p.techs?.[0]?.gain || '—']]
-    : [['外型', p.form], ['安裝', p.mount], ['連接器', p.conn || '—'], ['線長', p.cable || '—']];
-  return `<dl class="specs">${cells.map(([k, v]) => `<div><dt>${k}</dt><dd title="${esc(v)}">${esc(v || '—')}</dd></div>`).join('')}</dl>`;
+    ? [['s_form', p.form], ['s_mount', p.mount], ['s_conn', (p.conn || []).join(', ')], ['s_gain', p.techs?.[0]?.gain]]
+    : [['s_form', p.form], ['s_mount', p.mount], ['s_conn', p.conn], ['s_cable', p.cable]];
+  return `<dl class="specs">${cells.map(([k, v]) => `<div><dt>${esc(t(k))}</dt><dd title="${esc(v || '')}">${esc(v || '—')}</dd></div>`).join('')}</dl>`;
 }
 
 let lastResults = [];
 function renderList() {
   const res = sorted(filterItems());
   lastResults = res;
-  const total = PAGES[page].items().length;
   $('count').textContent = res.length;
-  $('countOf').textContent = `/ ${total} 項天線`;
+  $('countOf').textContent = t('countOf', { n: PAGES[page].items().length });
   if (!res.length) {
-    $('list').innerHTML = `<div class="empty"><strong>沒有符合所有條件的天線</strong>
-      移除部分頻段需求或篩選條件後再試一次。<br><button type="button" class="icon-btn" style="margin-top:12px" data-act="reset">清除所有條件</button></div>`;
+    $('list').innerHTML = `<div class="empty"><strong>${esc(t('emptyT'))}</strong>${esc(t('emptyD'))}<br>
+      <button type="button" class="icon-btn" style="margin-top:12px" data-act="reset">${esc(t('resetAll'))}</button></div>`;
     $('moreBtn').hidden = true;
     return;
   }
@@ -709,24 +960,31 @@ function renderList() {
       ${specCells(p)}
     </button>`).join('');
   $('moreBtn').hidden = res.length <= shown;
-  $('moreBtn').textContent = `顯示更多 (尚有 ${res.length - shown} 項)`;
+  $('moreBtn').textContent = t('more', { n: res.length - shown });
 }
 
 function renderActiveTags() {
   const tags = [];
   const cfg = PAGES[page];
-  if (state.module) tags.push({ label: '模組：' + state.module, act: 'module' });
-  for (const f of cfg.facets) for (const v of state.sel[f.key] || []) tags.push({ label: `${f.title}：${v}`, act: 'facet', f: f.key, v });
-  for (const b of BANDS[page]) if (state.bands.includes(b.id)) tags.push({ label: b.label, act: 'band', id: b.id });
+  if (state.module) tags.push({ label: `${t('module')}${sep()}${state.module}`, act: 'module' });
+  for (const f of cfg.facets) for (const v of state.sel[f.key] || []) tags.push({ label: `${facetTitle(f)}${sep()}${valLabel(v)}`, act: 'facet', f: f.key, v });
+  for (const b of BANDS[page]) if (state.bands.includes(b.id)) tags.push({ label: bandLabel(b), act: 'band', id: b.id });
   state.custom.forEach((c, i) => tags.push({ label: `${c.lo}–${c.hi} MHz`, act: 'custom', i }));
-  $('activeTags').innerHTML = tags.map((t) =>
-    `<button type="button" aria-label="移除條件 ${esc(t.label)}" data-tag='${esc(JSON.stringify(t))}'>${esc(t.label)}</button>`).join('');
+  $('activeTags').innerHTML = tags.map((x) =>
+    `<button type="button" aria-label="${esc(t('removeTag', { x: x.label }))}" data-tag='${esc(JSON.stringify(x))}'>${esc(x.label)}</button>`).join('');
   const n = tags.length + (state.q ? 1 : 0);
   $('filterBadge').textContent = n ? `(${n})` : '';
 }
 
+function renderPageText() {
+  $('specTitle').textContent = t(PAGES[page].title);
+  $('specSub').textContent = t(PAGES[page].sub);
+  document.title = `${t(PAGES[page].title)} | Quectel`;
+  $('footer').textContent = t('footer', { g: DATA.builtFrom.global, j: DATA.builtFrom.jp }) + ` v${APP_VERSION}`;
+}
 function renderAll() {
   renderRuler();
+  renderQuick();
   renderFilters();
   renderActiveTags();
   renderList();
@@ -738,37 +996,33 @@ function renderAll() {
    ========================================================================== */
 function kv(pairs) {
   const rows = pairs.filter(([, v]) => v !== undefined && v !== null && v !== '' && !(Array.isArray(v) && !v.length));
-  return `<dl class="kv">${rows.map(([k, v]) => `<div><dt>${k}</dt><dd>${esc(Array.isArray(v) ? v.join(', ') : v)}</dd></div>`).join('')}</dl>`;
+  return `<dl class="kv">${rows.map(([k, v]) => `<div><dt>${esc(t(k))}</dt><dd>${esc(Array.isArray(v) ? v.join(', ') : v)}</dd></div>`).join('')}</dl>`;
 }
 function ocLink(oc) {
-  // 替代料號可能含多個 (A/B/C)
   return String(oc).split(/[\/,]/).map((o) => o.trim()).filter(Boolean)
     .map((o) => `<button type="button" class="link-btn" data-goto="${esc(o)}">${esc(o)}</button>`).join(' / ');
 }
-
 function openDetail(oc) {
   const p = PAGES[page].items().find((x) => x.oc === oc);
   if (!p) return;
   const isJp = page === 'japan';
-  const sheet = DATASHEET_URL ? `<a class="icon-btn" href="${esc(DATASHEET_URL.replace('{oc}', encodeURIComponent(p.oc)))}" target="_blank" rel="noopener">開啟 Datasheet</a>` : '';
-  const techRows = (p.techs || []).map((t) => `<tr><td>${esc(t.t)}</td><td>${esc(t.f || '')}</td><td>${esc(t.q || '')}</td><td>${esc(t.eff || '')}</td><td>${esc(t.gain || '')}</td><td>${esc(t.pat || '')}</td><td>${esc(t.pol || '')}</td></tr>`).join('');
+  const sheet = DATASHEET_URL ? `<a class="icon-btn" href="${esc(DATASHEET_URL.replace('{oc}', encodeURIComponent(p.oc)))}" target="_blank" rel="noopener">${esc(t('openSheet'))}</a>` : '';
+  const techRows = (p.techs || []).map((x) => `<tr><td>${esc(x.t)}</td><td>${esc(x.f || '')}</td><td>${esc(x.q || '')}</td><td>${esc(x.eff || '')}</td><td>${esc(x.gain || '')}</td><td>${esc(x.pat || '')}</td><td>${esc(x.pol || '')}</td></tr>`).join('');
   const notice = isJp && p.status
-    ? `<div class="notice"><b>${p.status}</b>：${esc(p.note)}${p.suggest ? `<br>建議替代：${ocLink(p.suggest)}` : ''}</div>` : '';
-  const replaceNote = !isJp && p.replace ? `<div class="notice">此料號用以取代 ${ocLink(p.replace)}</div>` : '';
-
+    ? `<div class="notice"><b>${p.status}</b>${sep()}${esc(p.note)}${p.suggest ? `<br>${esc(t('suggest'))}${ocLink(p.suggest)}` : ''}</div>` : '';
+  const replaceNote = !isJp && p.replace ? `<div class="notice">${esc(t('replaces'))}${ocLink(p.replace)}</div>` : '';
   const general = isJp
-    ? kv([['分類', p.cats], ['天線型態', p.kind], ['技術', p.tech], ['頻段', p.freq], ['外型', p.form], ['安裝方式', p.mount],
-        ['連接器', p.conn], ['線長 (mm)', p.cable], ['IP 等級', p.ip], ['尺寸 (mm)', p.dim], ['備註', !p.status ? p.note : null],
-        ['資料來源', p.fromSelector ? 'Selector PRO-JP' : 'JP 天線表']])
-    : kv([['技術類別', typeLabel(p.type)], ['天線型態', p.ptype], ['外型', p.form], ['天線類型', p.atype], ['天線埠數', p.qty],
-        ['安裝方式', p.mount], ['尺寸 (mm)', p.dim], ['連接器', p.conn],
-        ['線材', (p.cables || []).map((c) => [c.len, c.type].filter(Boolean).join(' ')).filter(Boolean)],
-        ['LNA 增益 (dB)', p.lna], ['IP 等級', p.ip], ['IK 等級', p.ik], ['阻燃', p.flame], ['抗 UV', p.uv],
-        ['環保', p.env], ['工作溫度', p.temp], ['EVB 料號', p.evb], ['EVB 尺寸 (mm)', p.evbDim],
-        ['銷售區域', p.brochure], ['基準料號', p.base], ['日本市場', p.jp ? '相容' : null]]);
-
+    ? kv([['k_cats', p.cats], ['k_kind', p.kind], ['k_atype', p.atype], ['k_tech', p.tech], ['k_band', p.freq], ['k_form', p.form],
+        ['k_mount', p.mount], ['k_conn', p.conn], ['k_cable', p.cable], ['k_ip', p.ip], ['k_dim', p.dim],
+        ['k_note', !p.status ? p.note : null], ['k_src', t(p.fromSelector ? 'srcSel' : 'srcJp')]])
+    : kv([['k_type', typeLabel(p.type)], ['k_ptype', p.ptype], ['k_form', p.form], ['k_atype', p.atype], ['k_qty', p.qty],
+        ['k_mount', p.mount], ['k_dim', p.dim], ['k_conn', p.conn],
+        ['k_cables', (p.cables || []).map((c) => [c.len, c.type].filter(Boolean).join(' ')).filter(Boolean)],
+        ['k_lna', p.lna], ['k_ip', p.ip], ['k_ik', p.ik], ['k_flame', p.flame], ['k_uv', p.uv],
+        ['k_env', p.env], ['k_temp', p.temp], ['k_evb', p.evb], ['k_evbDim', p.evbDim],
+        ['k_brochure', p.brochure], ['k_base', p.base], ['k_jp', p.jp ? t('jpYes') : null]]);
   const mods = isJp && p.modules?.length
-    ? `<section><h3>相容模組 (${p.modules.length})</h3><div class="mod-list">${p.modules.map((m) => `<span class="${m === state.module ? 'hit' : ''}">${esc(m)}</span>`).join('')}</div></section>` : '';
+    ? `<section><h3>${esc(t('compat', { n: p.modules.length }))}</h3><div class="mod-list">${p.modules.map((m) => `<span class="${m === state.module ? 'hit' : ''}">${esc(m)}</span>`).join('')}</div></section>` : '';
 
   $('detail').innerHTML = `
     <div class="d-head">
@@ -776,35 +1030,210 @@ function openDetail(oc) {
       <div>
         <h2 id="dTitle">${esc(p.oc)}</h2>
         <p>${esc(p.name || p.desc || '')}</p>
-        <div class="d-actions">
-          <button type="button" class="icon-btn" data-copy="${esc(p.oc)}">複製料號</button>${sheet}
-        </div>
+        <div class="d-actions"><button type="button" class="icon-btn" data-copy="${esc(p.oc)}">${esc(t('copyOc'))}</button>${sheet}</div>
       </div>
-      <div class="close-wrap"><button type="button" class="icon-btn" data-close aria-label="關閉">關閉</button></div>
+      <div class="close-wrap"><button type="button" class="icon-btn" data-close>${esc(t('close'))}</button></div>
     </div>
     <div class="d-body">
       ${notice}${replaceNote}
-      <section><h3>頻率覆蓋</h3>${strip(p)}<p class="freq-text" style="-webkit-line-clamp:unset">${esc(p.freq || '')}</p></section>
-      ${techRows ? `<section><h3>射頻效能</h3><div class="tbl-wrap"><table><thead><tr><th>技術</th><th>頻率</th><th>數量</th><th>效率</th><th>峰值增益</th><th>場型</th><th>極化</th></tr></thead><tbody>${techRows}</tbody></table></div></section>` : ''}
-      <section><h3>規格</h3>${general}</section>
+      <section><h3>${esc(t('freqCov'))}</h3>${strip(p)}<p class="freq-text" style="-webkit-line-clamp:unset">${esc(p.freq || '')}</p></section>
+      ${techRows ? `<section><h3>${esc(t('rfPerf'))}</h3><div class="tbl-wrap"><table><thead><tr>${['th_tech', 'th_freq', 'th_qty', 'th_eff', 'th_gain', 'th_pat', 'th_pol'].map((k) => `<th>${esc(t(k))}</th>`).join('')}</tr></thead><tbody>${techRows}</tbody></table></div></section>` : ''}
+      <section><h3>${esc(t('specs'))}</h3>${general}</section>
       ${mods}
     </div>`;
-  $('detail').showModal();
+  if (!$('detail').open) $('detail').showModal();
+}
+
+/* ==========================================================================
+   版本資訊 / 新版本偵測 / 強制更新
+   ========================================================================== */
+/** 比較語意化版本：a > b 回傳正數 */
+function cmpVer(a, b) {
+  const pa = String(a).split('.').map(Number), pb = String(b).split('.').map(Number);
+  for (let i = 0; i < 3; i++) if ((pa[i] || 0) !== (pb[i] || 0)) return (pa[i] || 0) - (pb[i] || 0);
+  return 0;
+}
+/** 讀取伺服器上的 version.json (不經快取)；失敗回傳 null */
+async function fetchLatest() {
+  try {
+    const r = await fetch('version.json?t=' + Date.now(), { cache: 'no-store' });
+    if (!r.ok) return null;
+    const j = await r.json();
+    return j.version ? j : null;
+  } catch { return null; }
+}
+async function checkForUpdate() {
+  const latest = await fetchLatest();
+  const has = !!latest && cmpVer(latest.version, APP_VERSION) > 0;
+  $('updateBtn').classList.toggle('has-update', has);
+  if (has) toast(t('newVersion', { v: latest.version }), 5000);
+  return latest;
+}
+async function openVersion() {
+  const swActive = !!navigator.serviceWorker?.controller;
+  const render = (latestTxt) => {
+    $('verDialog').innerHTML = `
+      <div class="d-simple-head"><h2 id="verTitle">${esc(t('verTitle'))}</h2>
+        <button type="button" class="icon-btn" data-close>${esc(t('close'))}</button></div>
+      <div class="d-body">
+        <dl class="ver-grid">
+          <dt>${esc(t('v_app'))}</dt><dd>v${esc(APP_VERSION)}</dd>
+          <dt>${esc(t('v_latest'))}</dt><dd id="verLatest">${latestTxt}</dd>
+          <dt>${esc(t('v_built'))}</dt><dd>${esc(DATA.built || '—')}</dd>
+          <dt>${esc(t('v_sw'))}</dt><dd>${esc(t(swActive ? 'swOn' : 'swOff'))}</dd>
+          <dt>${esc(t('v_mode'))}</dt><dd>${esc(t(isStandalone() ? 'modeApp' : 'modeBrowser'))}</dd>
+          <dt>${esc(t('v_storage'))}</dt><dd>${esc(t(persisted ? 'persistOn' : 'persistOff'))}</dd>
+          <dt>${esc(t('v_src'))}</dt><dd>${esc(DATA.builtFrom.global)}<br>${esc(DATA.builtFrom.jp)}</dd>
+          <dt>${esc(t('v_count'))}</dt><dd>${esc(t('v_countVal', { g: DATA.global.length, j: DATA.japan.length, m: DATA.jpModules.length }))}</dd>
+        </dl>
+        <section><h3>${esc(t('changelog'))}</h3><ul class="changelog">${CHANGELOG.map((c) =>
+          `<li><h4>v${esc(c.v)}</h4><ul>${c[lang].map((x) => `<li>${esc(x)}</li>`).join('')}</ul></li>`).join('')}</ul></section>
+        <button type="button" class="icon-btn" data-force>${esc(t('update'))}</button>
+      </div>`;
+  };
+  render(esc(t('checking')));
+  if (!$('verDialog').open) $('verDialog').showModal();
+  const latest = await checkForUpdate();
+  const el = $('verLatest');
+  if (!el) return;
+  if (!latest) el.textContent = t('cantCheck');
+  else if (cmpVer(latest.version, APP_VERSION) > 0) el.innerHTML = `<b class="ok">${esc(t('newer', { v: latest.version }))}</b>`;
+  else el.textContent = t('upToDate', { v: latest.version });
+}
+/**
+ * 強制更新：
+ * 1. 請等待中的新版 Service Worker 立即啟用
+ * 2. 解除註冊所有 Service Worker、刪除所有 Cache Storage
+ * 3. 以帶時間戳記的網址重新載入，繞過 HTTP 快取
+ */
+async function forceUpdate() {
+  // 離線或伺服器無回應時絕不清除快取，否則 App 將無法開啟
+  if (!navigator.onLine) { toast(t('offlineNoUpdate'), 3500); return; }
+  $('updateBtn').classList.add('spin');
+  const latest = await fetchLatest();
+  if (!latest && location.protocol !== 'file:') {
+    $('updateBtn').classList.remove('spin');
+    toast(t('serverUnreachable'), 3500);
+    return;
+  }
+  toast(t('updating'));
+  try {
+    if ('serviceWorker' in navigator) {
+      const regs = await navigator.serviceWorker.getRegistrations();
+      regs.forEach((r) => r.waiting?.postMessage('SKIP_WAITING'));
+      await Promise.all(regs.map((r) => r.unregister()));
+    }
+    if (window.caches) {
+      const keys = await caches.keys();
+      await Promise.all(keys.map((k) => caches.delete(k)));
+    }
+  } catch { /* 部分環境不允許存取，仍繼續重新載入 */ }
+  const url = new URL(location.href);
+  url.searchParams.set('v', Date.now());
+  setTimeout(() => location.replace(url.toString()), 400);
+}
+
+/* ==========================================================================
+   App 化：安裝、離線狀態、永久儲存
+   ========================================================================== */
+const isStandalone = () => matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+const platform = (() => {
+  const ua = navigator.userAgent;
+  if (/iPad|iPhone|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)) return 'ios';
+  if (/Android/i.test(ua)) return 'android';
+  return 'desktop';
+})();
+let deferredPrompt = null;   // Android / Windows Chrome、Edge 的安裝事件
+
+function refreshInstallBtn() {
+  // 已安裝則隱藏；iOS 沒有安裝事件，改顯示說明
+  $('installBtn').hidden = isStandalone() || (!deferredPrompt && platform !== 'ios' && !$('installBtn').dataset.manual);
+}
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  refreshInstallBtn();
+});
+window.addEventListener('appinstalled', () => {
+  deferredPrompt = null;
+  refreshInstallBtn();
+  toast(t('installed'), 3500);
+});
+$('installBtn').addEventListener('click', async () => {
+  if (deferredPrompt) {
+    deferredPrompt.prompt();
+    await deferredPrompt.userChoice.catch(() => null);
+    deferredPrompt = null;
+    refreshInstallBtn();
+    return;
+  }
+  openInstallHelp();
+});
+function openInstallHelp() {
+  const key = platform === 'ios' ? 'iosSteps' : platform === 'android' ? 'androidSteps' : 'desktopSteps';
+  // 步驟字串為內建常數 (含少量 HTML 標記)，非使用者輸入
+  $('installDialog').innerHTML = `
+    <div class="d-simple-head"><h2 id="installTitle">${esc(t('installTitle'))}</h2>
+      <button type="button" class="icon-btn" data-close>${esc(t('close'))}</button></div>
+    <div class="d-body">
+      <ol class="steps">${I18N[lang][key].map((x) => `<li>${x}</li>`).join('')}</ol>
+      <p class="notice">${esc(t('installNote'))}</p>
+    </div>`;
+  if (!$('installDialog').open) $('installDialog').showModal();
+}
+$('installDialog').addEventListener('click', (e) => {
+  if (e.target === $('installDialog') || e.target.closest('[data-close]')) $('installDialog').close();
+});
+
+/** 離線狀態：標示於頂部，並在恢復連線時檢查新版 */
+function setNet() {
+  document.documentElement.classList.toggle('offline', !navigator.onLine);
+}
+window.addEventListener('offline', setNet);
+window.addEventListener('online', () => { setNet(); toast(t('backOnline')); checkForUpdate(); });
+
+/** 申請永久儲存 (降低 iOS / Android 清除離線快取的機會) */
+let persisted = false;
+async function requestPersist() {
+  try {
+    if (navigator.storage?.persisted) persisted = await navigator.storage.persisted();
+    if (!persisted && navigator.storage?.persist) persisted = await navigator.storage.persist();
+  } catch { /* 不支援時忽略 */ }
+}
+
+/* ==========================================================================
+   主題 (深色 / 淺色)
+   ========================================================================== */
+const ICON_MOON = '<path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/>';
+const ICON_SUN = '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>';
+const isDark = () => (document.documentElement.dataset.theme
+  ? document.documentElement.dataset.theme === 'dark'
+  : matchMedia('(prefers-color-scheme: dark)').matches);
+function applyTheme(th) {
+  if (th) document.documentElement.dataset.theme = th; else delete document.documentElement.dataset.theme;
+  renderThemeBtn();
+}
+function renderThemeBtn() {
+  const dark = isDark();
+  // 按鈕顯示「切換目標」
+  $('themeIcon').innerHTML = dark ? ICON_SUN : ICON_MOON;
+  $('themeLbl').textContent = t(dark ? 'themeLight' : 'themeDark');
+  $('themeBtn').setAttribute('aria-label', t(dark ? 'themeAriaLight' : 'themeAriaDark'));
 }
 
 /* ==========================================================================
    事件
    ========================================================================== */
-function toast(msg) {
-  const t = $('toast');
-  t.textContent = msg; t.classList.add('show');
-  clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.remove('show'), 1800);
+function toast(msg, ms = 1800) {
+  const el = $('toast');
+  el.textContent = msg; el.classList.add('show');
+  clearTimeout(toast._t); toast._t = setTimeout(() => el.classList.remove('show'), ms);
 }
 async function copyText(txt, msg) {
   try { await navigator.clipboard.writeText(txt); toast(msg); }
   catch {
     const ta = document.createElement('textarea'); ta.value = txt; document.body.appendChild(ta); ta.select();
-    try { document.execCommand('copy'); toast(msg); } catch { toast('無法存取剪貼簿'); }
+    try { document.execCommand('copy'); toast(msg); } catch { toast(t('clipFail')); }
     ta.remove();
   }
 }
@@ -819,7 +1248,7 @@ $('lanes').addEventListener('click', (e) => {
 });
 $('cAdd').addEventListener('click', () => {
   let lo = parseFloat($('cLo').value), hi = parseFloat($('cHi').value);
-  if (!isFinite(lo) || !isFinite(hi) || lo <= 0 || hi <= 0) { toast('請輸入有效的頻率 (MHz)'); return; }
+  if (!isFinite(lo) || !isFinite(hi) || lo <= 0 || hi <= 0) { toast(t('invalidFreq')); return; }
   if (lo > hi) [lo, hi] = [hi, lo];
   state.custom.push({ lo, hi });
   $('cLo').value = ''; $('cHi').value = '';
@@ -827,18 +1256,23 @@ $('cAdd').addEventListener('click', () => {
 });
 [$('cLo'), $('cHi')].forEach((el) => el.addEventListener('keydown', (e) => { if (e.key === 'Enter') $('cAdd').click(); }));
 
+$('quick').addEventListener('change', (e) => {
+  const key = e.target.dataset.quick; if (!key) return;
+  if (key === '__module') state.module = e.target.value;
+  else state.sel[key] = e.target.value ? [e.target.value] : [];
+  update();
+});
+
 let qTimer;
 $('filterBody').addEventListener('input', (e) => {
-  if (e.target.id === 'q') {
-    state.q = e.target.value;
-    clearTimeout(qTimer); qTimer = setTimeout(update, 150);
-  }
+  if (e.target.id !== 'q') return;
+  state.q = e.target.value;
+  clearTimeout(qTimer); qTimer = setTimeout(update, 150);
 });
 $('filterBody').addEventListener('change', (e) => {
-  const t = e.target;
-  if (t.id === 'moduleSel') { state.module = t.value; update(); return; }
-  if (t.dataset.toggle) { state.toggles[t.dataset.toggle] = t.checked; update(); return; }
-  if (t.dataset.facet && t.type === 'checkbox') toggleSel(t.dataset.facet, t.dataset.val);
+  const el = e.target;
+  if (el.dataset.toggle) { state.toggles[el.dataset.toggle] = el.checked; update(); return; }
+  if (el.dataset.facet && el.type === 'checkbox') toggleSel(el.dataset.facet, el.dataset.val);
 });
 $('filterBody').addEventListener('click', (e) => {
   const c = e.target.closest('button.chip'); if (c) toggleSel(c.dataset.facet, c.dataset.val);
@@ -850,20 +1284,20 @@ function toggleSel(key, val) {
 }
 $('activeTags').addEventListener('click', (e) => {
   const b = e.target.closest('[data-tag]'); if (!b) return;
-  const t = JSON.parse(b.dataset.tag);
-  if (t.act === 'module') state.module = '';
-  if (t.act === 'facet') state.sel[t.f] = (state.sel[t.f] || []).filter((v) => v !== t.v);
-  if (t.act === 'band') state.bands = state.bands.filter((x) => x !== t.id);
-  if (t.act === 'custom') state.custom.splice(t.i, 1);
+  const x = JSON.parse(b.dataset.tag);
+  if (x.act === 'module') state.module = '';
+  if (x.act === 'facet') state.sel[x.f] = (state.sel[x.f] || []).filter((v) => v !== x.v);
+  if (x.act === 'band') state.bands = state.bands.filter((id) => id !== x.id);
+  if (x.act === 'custom') state.custom.splice(x.i, 1);
   update();
 });
-function resetAll() { state = freshState(page); update(); }
+function resetAll() { state = freshState(page); $('sortSel').value = state.sort; update(); }
 $('resetBtn').addEventListener('click', resetAll);
 $('sortSel').addEventListener('change', (e) => { state.sort = e.target.value; update(); });
 $('moreBtn').addEventListener('click', () => { shown += PAGE_SIZE; renderList(); });
 $('copyBtn').addEventListener('click', () => {
-  if (!lastResults.length) { toast('目前沒有結果可複製'); return; }
-  copyText(lastResults.map((p) => p.oc).join('\n'), `已複製 ${lastResults.length} 個料號`);
+  if (!lastResults.length) { toast(t('noResults')); return; }
+  copyText(lastResults.map((p) => p.oc).join('\n'), t('copiedN', { n: lastResults.length }));
 });
 $('list').addEventListener('click', (e) => {
   if (e.target.closest('[data-act="reset"]')) { resetAll(); return; }
@@ -871,14 +1305,34 @@ $('list').addEventListener('click', (e) => {
 });
 $('detail').addEventListener('click', (e) => {
   if (e.target === $('detail') || e.target.closest('[data-close]')) { $('detail').close(); return; }
-  const c = e.target.closest('[data-copy]'); if (c) { copyText(c.dataset.copy, '已複製料號 ' + c.dataset.copy); return; }
+  const c = e.target.closest('[data-copy]'); if (c) { copyText(c.dataset.copy, t('copied', { oc: c.dataset.copy })); return; }
   const g = e.target.closest('[data-goto]');
   if (g) {
     const oc = g.dataset.goto;
     if (PAGES[page].items().some((x) => x.oc === oc)) openDetail(oc);
-    else { $('detail').close(); state.q = oc; update(); toast('此料號不在本頁清單，已改用搜尋'); }
+    else { $('detail').close(); state.q = oc; update(); toast(t('notOnPage')); }
   }
 });
+$('verDialog').addEventListener('click', (e) => {
+  if (e.target === $('verDialog') || e.target.closest('[data-close]')) { $('verDialog').close(); return; }
+  if (e.target.closest('[data-force]')) forceUpdate();
+});
+
+/* 頂部工具列 */
+$('langBtn').addEventListener('click', () => {
+  lang = lang === 'zh' ? 'en' : 'zh';
+  store.set('lang', lang);
+  applyStaticI18n(); renderPageText(); renderAll();
+  if ($('verDialog').open) openVersion();
+  if ($('installDialog').open) openInstallHelp();
+});
+$('themeBtn').addEventListener('click', () => {
+  const next = isDark() ? 'light' : 'dark';
+  applyTheme(next); store.set('theme', next);
+});
+$('updateBtn').addEventListener('click', forceUpdate);
+$('verBtn').addEventListener('click', openVersion);
+matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change', renderThemeBtn);
 
 /* 手機版篩選抽屜 */
 let scrim;
@@ -890,48 +1344,56 @@ function setFilters(open) {
 $('openFilters').addEventListener('click', () => setFilters(true));
 $('closeFilters').addEventListener('click', () => setFilters(false));
 
-/* 主題切換 */
-function applyTheme(t) { if (t) document.documentElement.dataset.theme = t; else delete document.documentElement.dataset.theme; }
-try { applyTheme(localStorage.getItem('antsel:theme')); } catch { /* ignore */ }
-$('themeBtn').addEventListener('click', () => {
-  const dark = document.documentElement.dataset.theme
-    ? document.documentElement.dataset.theme === 'dark'
-    : matchMedia('(prefers-color-scheme: dark)').matches;
-  const next = dark ? 'light' : 'dark';
-  applyTheme(next);
-  try { localStorage.setItem('antsel:theme', next); } catch { /* ignore */ }
-});
-
 /* ==========================================================================
-   路由
+   路由與初始化
    ========================================================================== */
 function route() {
   const r = (location.hash.match(/^#\/(\w+)/) || [])[1];
   page = PAGES[r] ? r : 'global';
   document.documentElement.dataset.market = page;
-  document.querySelectorAll('[data-route]').forEach((a) => { if (a.dataset.route === page) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); });
+  document.querySelectorAll('[data-route]').forEach((a) => {
+    if (a.dataset.route === page) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current');
+  });
   const meta = document.querySelector('meta[name="theme-color"]');
   if (meta) meta.content = page === 'japan' ? '#B4233C' : '#0F766E';
-  $('specTitle').textContent = PAGES[page].title;
-  $('specSub').textContent = PAGES[page].sub;
-  document.title = `${PAGES[page].title} | Quectel`;
   state = Object.assign(freshState(page), store.load(page) || {});
   $('sortSel').value = state.sort;
-  $('footer').textContent = `資料來源：${DATA.builtFrom.global}、${DATA.builtFrom.jp}。頻段邊界為一般公開配置，最終選型請以 datasheet 與實測結果為準。`;
+  renderPageText();
   setFilters(false);
   update();
 }
+
+lang = store.get('lang') === 'en' ? 'en' : 'zh';
+const savedTheme = store.get('theme');
+applyTheme(savedTheme === 'dark' || savedTheme === 'light' ? savedTheme : null);
+applyStaticI18n();
+setNet();
+// iOS 不支援安裝事件：未安裝時直接顯示「安裝 App」按鈕 (開啟說明)
+if (platform === 'ios') $('installBtn').dataset.manual = '1';
+refreshInstallBtn();
 window.addEventListener('hashchange', route);
 route();
 
-/* ==========================================================================
-   Service Worker 註冊 (僅自架於 https / localhost 時生效；其他環境安靜略過)
-   ========================================================================== */
+/* Service Worker：僅在 https / localhost 註冊；偵測到新版即提示 */
 if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('sw.js').catch(() => { /* 無 sw.js 時忽略 */ });
+    navigator.serviceWorker.register('sw.js').then((reg) => {
+      requestPersist();
+      // 第一次安裝完成 (全部檔案已快取) 時提示可離線使用
+      if (!navigator.serviceWorker.controller) {
+        navigator.serviceWorker.addEventListener('controllerchange', () => toast(t('offlineReady'), 2500), { once: true });
+      }
+      reg.addEventListener('updatefound', () => {
+        const nw = reg.installing;
+        nw?.addEventListener('statechange', () => {
+          if (nw.state === 'installed' && navigator.serviceWorker.controller) $('updateBtn').classList.add('has-update');
+        });
+      });
+    }).catch(() => { /* 無 sw.js (例如預覽環境) 時忽略 */ });
   });
 }
+// 啟動後檢查 version.json (失敗時安靜略過)
+setTimeout(checkForUpdate, 1500);
 </script>
 </body>
 </html>

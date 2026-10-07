@@ -4,10 +4,17 @@ build_data.py — 將 Quectel 天線 Excel 選型表轉為 PWA 內嵌資料，�
 
 用法:
     python3 build_data.py \
+        --version     2.0.0 \
         --global-xlsx Quectel_Antenna_Product_Selector_V3_7_20260916.xlsx \
         --jp-xlsx     Quectel_Antenna_Product_for_JP_202604__-_update.xlsx \
         --template    template.html \
         --out         index.html
+
+輸出:
+    index.html    內嵌資料、版本號與建置時間的 App
+    version.json  供 App 檢查伺服器上是否有新版本
+    sw.js         自動將 CACHE_VERSION 改為 antenna-selector-v<版本號>，
+                  不需再手動修改
 
 資料來源對應:
     Global 頁  : Selector 檔的 "PRO" + "Non-PRO" 工作表
@@ -24,6 +31,7 @@ build_data.py — 將 Quectel 天線 Excel 選型表轉為 PWA 內嵌資料，�
 from __future__ import annotations
 
 import argparse
+import datetime as dt
 import base64
 import io
 import json
@@ -327,7 +335,12 @@ def main():
     ap.add_argument("--jp-xlsx", required=True, type=Path)
     ap.add_argument("--template", default=Path("template.html"), type=Path)
     ap.add_argument("--out", default=Path("index.html"), type=Path)
+    ap.add_argument("--version", required=True, help="App 版本號，例如 2.0.0")
+    ap.add_argument("--sw", default=Path("sw.js"), type=Path, help="要同步更新 CACHE_VERSION 的 sw.js")
     a = ap.parse_args()
+    if not re.fullmatch(r"\d+\.\d+\.\d+", a.version):
+        sys.exit("--version 格式需為 X.Y.Z，例如 2.0.0")
+    built = dt.datetime.now().astimezone().strftime("%Y-%m-%d %H:%M %z")
 
     images: dict[str, str] = {}
 
@@ -372,20 +385,52 @@ def main():
         if g:
             p["name"] = g.get("name")
             p["techs"] = g.get("techs")
+            p["atype"] = g.get("atype")   # Antenna Type (Monopole / Dipole / IFA ...)
         p["modules"] = sorted(p["modules"])
         jp_list.append({k: v for k, v in p.items() if v not in (None, [], "")})
 
     modules = sorted({m for p in jp_list for m in p.get("modules", [])})
     data = {
+        "version": a.version, "built": built,
         "builtFrom": {"global": a.global_xlsx.name, "jp": a.jp_xlsx.name},
         "global": glob, "japan": jp_list, "jpModules": modules, "images": images,
     }
     payload = json.dumps(data, ensure_ascii=False, separators=(",", ":"))
     tpl = a.template.read_text(encoding="utf8")
+
+    # 內嵌字型：fonts/ibm-plex-sans-latin-<weight>-normal.woff2 → @font-face data URI
+    # (App 不依賴任何外部網域，離線時字型仍一致)
+    font_css = []
+    font_dir = a.template.parent / "fonts"
+    for f in sorted(font_dir.glob("ibm-plex-sans-latin-*-normal.woff2")):
+        weight = re.search(r"-(\d{3})-normal", f.name).group(1)
+        b64 = base64.b64encode(f.read_bytes()).decode()
+        font_css.append(
+            "@font-face{font-family:'IBM Plex Sans';font-style:normal;font-display:swap;"
+            f"font-weight:{weight};src:url(data:font/woff2;base64,{b64}) format('woff2');"
+            "unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,"
+            "U+2000-206F,U+2074,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;}")
+    if not font_css:
+        print("警告：找不到 fonts/*.woff2，將使用系統字型", file=sys.stderr)
+    tpl = tpl.replace("/*__FONTS__*/", "\n".join(font_css))
     if "/*__DATA__*/null" not in tpl:
         sys.exit("template.html 缺少 /*__DATA__*/null 佔位符")
     a.out.write_text(tpl.replace("/*__DATA__*/null", payload.replace("</", "<\\/")), encoding="utf8")
 
+    # version.json：App 以 no-store 讀取，用來比對是否有新版本
+    a.out.with_name("version.json").write_text(
+        json.dumps({"version": a.version, "built": built}, ensure_ascii=False), encoding="utf8")
+
+    # sw.js：同步 CACHE_VERSION，讓已安裝的使用者取得新版
+    if a.sw.exists():
+        sw = a.sw.read_text(encoding="utf8")
+        sw2, n = re.subn(r"const CACHE_VERSION = '[^']*';",
+                         f"const CACHE_VERSION = 'antenna-selector-v{a.version}';", sw)
+        if n != 1:
+            sys.exit("sw.js 找不到 CACHE_VERSION 宣告")
+        a.sw.write_text(sw2, encoding="utf8")
+
+    print(f"版本: v{a.version}  建置時間: {built}")
     print(f"Global 產品: {len(glob)}  日本產品: {len(jp_list)}  JP 模組: {len(modules)}  圖片: {len(images)}")
     print(f"輸出: {a.out} ({a.out.stat().st_size/1024:.0f} KB)")
 
