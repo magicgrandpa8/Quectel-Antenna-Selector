@@ -94,31 +94,12 @@ img { max-width: 100%; }
 .icon-btn:hover { border-color: var(--muted); }
 
 /* ======================================================================
-   Spectrum ruler (hero)
+   Page heading
    ====================================================================== */
 .spectrum { max-width: 1360px; margin: 0 auto; padding: 20px 20px 8px; }
 .spectrum-head { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; margin-bottom: 10px; }
 .spectrum-head h1 { font-size: 22px; line-height: 1.25; margin: 0; font-weight: 600; letter-spacing: -0.01em; }
 .spectrum-head p { margin: 0; color: var(--muted); font-size: 13px; }
-.ruler-scroll { overflow-x: auto; padding-bottom: 4px; }
-.ruler { position: relative; min-width: 720px; margin: 0 18px; }
-.scroll-hint { display: none; font-size: 12px; color: var(--muted); margin: 2px 0 0; }
-.lanes { position: relative; }
-.band-btn {
-  position: absolute; height: 26px; border: 1px solid var(--rule); background: var(--surface);
-  border-radius: var(--r-sm); font-size: 12px; padding: 0 6px; cursor: pointer;
-  white-space: nowrap; overflow: hidden; text-overflow: clip; text-align: left; color: var(--ink);
-}
-.band-btn:hover { border-color: var(--accent); }
-.band-btn[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 600; }
-.band-btn.custom { border-style: dashed; }
-.axis { position: relative; height: 22px; border-top: 1px solid var(--ink); margin-top: 6px; }
-.axis span { position: absolute; top: 4px; transform: translateX(-50%); font-size: 11px; color: var(--muted); }
-.axis span::before { content: ""; position: absolute; left: 50%; top: -5px; height: 5px; border-left: 1px solid var(--ink); }
-.custom-range { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 8px; font-size: 13px; color: var(--muted); }
-.custom-range input { width: 88px; padding: 4px 8px; border: 1px solid var(--rule); border-radius: var(--r-sm); background: var(--surface); }
-.need-summary { font-size: 13px; color: var(--ink); }
-.need-summary b { color: var(--accent); }
 
 /* ======================================================================
    Layout
@@ -207,16 +188,15 @@ select.module {
 .badge.np { background: var(--band); color: var(--muted); }
 .badge.nrnd { background: var(--warn-soft); color: var(--warn); }
 .badge.eol { background: var(--danger-soft); color: var(--danger); }
-.strip { position: relative; height: 14px; background: var(--band); border-radius: 2px; }
-.strip i { position: absolute; top: 0; bottom: 0; background: var(--accent); border-radius: 1px; min-width: 2px; }
-.strip b { position: absolute; top: -3px; bottom: -3px; border: 1px solid var(--ink); border-radius: 2px; opacity: .55; }
 .freq-text { font-size: 12px; color: var(--muted); margin-top: 5px; line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .specs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2px 12px; font-size: 12px; }
 .specs dt { color: var(--muted); }
 .specs dd { margin: 0; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .specs div { min-width: 0; }
-.specs .dim { grid-column: 1 / -1; }
-.specs .dim dd { font-weight: 600; }
+.specs .wide { grid-column: 1 / -1; }
+.specs .wide dd { font-weight: 600; white-space: normal; }
+.specs .lna dd, .lna-line b { color: var(--accent); font-weight: 700; }
+.lna-line { margin: 8px 0 0; font-size: 14px; }
 .size-filter { display: flex; align-items: center; gap: 8px; font-size: 13px; }
 .size-filter input { width: 90px; padding: 6px 8px; border: 1px solid var(--rule); border-radius: var(--r-sm); background: var(--surface); }
 .size-filter input.active { border-color: var(--accent); background: var(--accent-soft); font-weight: 600; }
@@ -256,6 +236,9 @@ dialog.detail::backdrop { background: rgba(10, 18, 24, .5); }
 .kv dt { font-size: 12px; color: var(--muted); }
 .kv dd { margin: 0; font-weight: 500; white-space: pre-line; overflow-wrap: anywhere; }
 .tbl-wrap { overflow-x: auto; border: 1px solid var(--rule); border-radius: var(--r-md); }
+/* 表格保持可讀寬度，窄螢幕改為在框內左右捲動，避免文字被逐字拆開 */
+.tbl-wrap table { min-width: 560px; }
+.tbl-wrap th { white-space: nowrap; }
 table { border-collapse: collapse; width: 100%; font-size: 13px; }
 th, td { padding: 8px 10px; text-align: left; border-bottom: 1px solid var(--rule); vertical-align: top; white-space: pre-line; }
 th { color: var(--muted); font-weight: 500; background: var(--paper); }
@@ -299,7 +282,6 @@ footer { max-width: 1360px; margin: 0 auto; padding: 0 20px 32px; font-size: 12p
   .d-head .thumb { width: 96px; height: 96px; }
   .d-head .close-wrap { grid-column: 1 / -1; grid-row: 1; justify-self: end; }
   .spectrum-head h1 { font-size: 19px; }
-  .scroll-hint { display: block; }
 }
 
 /* ======================================================================
@@ -432,21 +414,6 @@ html.offline .net { display: inline-flex; }
     <h1 id="specTitle"></h1>
     <p id="specSub"></p>
   </div>
-  <div class="ruler-scroll">
-    <div class="ruler" id="ruler">
-      <div class="lanes" id="lanes"></div>
-      <div class="axis" id="axis" aria-hidden="true"></div>
-    </div>
-  </div>
-  <p class="scroll-hint" data-i18n="scrollHint"></p>
-  <div class="custom-range">
-    <label for="cLo" data-i18n="customBand"></label>
-    <input id="cLo" type="number" inputmode="decimal" min="1" data-i18n-ph="lo">
-    <span>–</span>
-    <input id="cHi" type="number" inputmode="decimal" min="1" data-i18n-ph="hi">
-    <button class="icon-btn" id="cAdd" type="button" data-i18n="addNeed"></button>
-    <span class="need-summary" id="needSummary" aria-live="polite"></span>
-  </div>
 </section>
 
 <main class="layout">
@@ -514,8 +481,6 @@ function appUrl() {
 
 
 const PAGE_SIZE = 60;
-const F_MIN = 400, F_MAX = 8000;           // 頻譜尺範圍 (MHz)，對數刻度
-const AXIS_TICKS = [400, 500, 700, 1000, 1500, 2000, 3000, 4000, 5000, 6000, 8000];
 
 /* 篩選值的特殊代號 (顯示時依語言翻譯) */
 const NA = '__na__', NONE = '__none__', OTHER = '__other__';
@@ -531,9 +496,8 @@ const I18N = {
     update: '強制更新', updateAria: '清除快取並重新載入最新版本', updating: '正在清除快取並重新載入…',
     newVersion: '伺服器有新版本 v{v}，按「強制更新」套用',
     verAria: '版本資訊',
-    mTitle: '天線選型與 TELEC 認證', mSub: '選擇模組查看已取得 TELEC 認證的天線，或點選頻段找出完整涵蓋的天線',
-    scrollHint: '左右滑動查看更多頻段', customBand: '自訂頻段', lo: '低 MHz', hi: '高 MHz', addNeed: '加入需求',
-    needN: '需涵蓋 <b>{n}</b> 個頻段', noNeed: '尚未指定頻段需求', bandTitle: '{l}：{lo}–{hi} MHz', bandRemove: '（再按一次移除）',
+    mTitle: '天線選型與 TELEC 認證', mSub: '選擇模組查看已取得 TELEC 認證的天線，再用下拉選單與篩選條件縮小範圍',
+   
     filters: '篩選條件', done: '完成', resetAll: '清除所有條件', search: '搜尋料號、名稱、頻率…', searchAria: '搜尋',
     countOf: '/ {n} 項天線', filterBtn: '篩選', sort: '排序',
     sortOc: '依料號排序', sortGain: '依峰值增益 (高→低)', sortSpan: '依頻寬覆蓋 (寬→窄)',
@@ -560,7 +524,7 @@ const I18N = {
     k_ik: 'IK 等級', k_flame: '阻燃', k_uv: '抗 UV', k_env: '環保', k_temp: '工作溫度', k_evb: 'EVB 料號', k_evbDim: 'EVB 尺寸 (mm)',
     k_brochure: '銷售區域', k_base: '基準料號', k_jp: '日本市場', jpYes: '相容', srcSel: 'Selector PRO-JP', srcJp: 'JP 天線表',
     copied: '已複製料號 {oc}', copiedN: '已複製 {n} 個料號', noResults: '目前沒有結果可複製', clipFail: '無法存取剪貼簿',
-    invalidFreq: '請輸入有效的頻率 (MHz)', notOnPage: '此料號不在本頁清單，已改用搜尋',
+    notOnPage: '此料號不在本頁清單，已改用搜尋',
     footer: '資料來源：{s}（{r}）。頻段邊界為一般公開配置，最終選型請以 datasheet 與實測結果為準。',
     verTitle: '版本資訊', v_app: 'App 版本', v_built: '資料建置時間', v_latest: '伺服器版本', v_sw: '離線快取',
     v_src: '資料來源', v_count: '資料數量', v_countVal: '天線 {a} 款；模組 {m} 款；認證組合 {c} 筆',
@@ -579,6 +543,8 @@ const I18N = {
     webHint: '若是在 LINE、Teams 等 App 內開啟，請先按「開啟網頁」或複製連結，改用 Safari / Chrome 開啟後再安裝。',
     s_dim: '尺寸 (mm)', sortSize: '依尺寸排序 (小→大)', f_size: '尺寸上限', sizeLbl: '最長邊 ≤', sizeUnit: 'mm',
     sizeHint: '以尺寸中最大的數值比較 (Φ 為直徑)', sizeTag: '最長邊 ≤ {n} mm',
+    s_lna: 'LNA 增益', s_cx: '連接器與線材', k_cx: '連接器與線材',
+    cxFull: '{c} 接頭＋{t} 線材（Φ{d} mm），線長 {l} mm',
     datasheet: 'Datasheet', dsAria: '開啟 {oc} 的 Datasheet', dsOffline: 'Datasheet 需要網路連線 (並登入公司帳號)',
   },
   en: {
@@ -588,9 +554,8 @@ const I18N = {
     update: 'Force update', updateAria: 'Clear cache and reload the latest version', updating: 'Clearing cache and reloading…',
     newVersion: 'Version v{v} is available. Press "Force update" to apply.',
     verAria: 'Version info',
-    mTitle: 'Antenna selection & TELEC certification', mSub: 'Pick a module to see antennas TELEC-certified with it, or tap bands to find antennas covering them.',
-    scrollHint: 'Swipe sideways for more bands', customBand: 'Custom band', lo: 'Low MHz', hi: 'High MHz', addNeed: 'Add',
-    needN: '<b>{n}</b> band(s) required', noNeed: 'No band requirement yet', bandTitle: '{l}: {lo}–{hi} MHz', bandRemove: ' (tap again to remove)',
+    mTitle: 'Antenna selection & TELEC certification', mSub: 'Pick a module to see antennas TELEC-certified with it, then narrow down with the menus and filters.',
+   
     filters: 'Filters', done: 'Done', resetAll: 'Clear all filters', search: 'Search part no., name, frequency…', searchAria: 'Search',
     countOf: '/ {n} antennas', filterBtn: 'Filters', sort: 'Sort',
     sortOc: 'Sort by part no.', sortGain: 'Sort by peak gain (high→low)', sortSpan: 'Sort by bandwidth (wide→narrow)',
@@ -617,7 +582,7 @@ const I18N = {
     k_ik: 'IK rating', k_flame: 'Flame rating', k_uv: 'UV resistant', k_env: 'Environmental', k_temp: 'Operating temp.', k_evb: 'EVB part no.', k_evbDim: 'EVB dimensions (mm)',
     k_brochure: 'Sales region', k_base: 'Base part no.', k_jp: 'Japan market', jpYes: 'Compatible', srcSel: 'Selector PRO-JP', srcJp: 'JP antenna list',
     copied: 'Copied {oc}', copiedN: 'Copied {n} part numbers', noResults: 'No results to copy', clipFail: 'Clipboard unavailable',
-    invalidFreq: 'Enter a valid frequency (MHz)', notOnPage: 'Not on this page; searching for it instead',
+    notOnPage: 'Not on this page; searching for it instead',
     footer: 'Source: {s} ({r}). Band edges follow common public allocations; confirm final selection with datasheets and measurements.',
     verTitle: 'Version info', v_app: 'App version', v_built: 'Data built', v_latest: 'Server version', v_sw: 'Offline cache',
     v_src: 'Data source', v_count: 'Records', v_countVal: '{a} antennas; {m} modules; {c} certifications',
@@ -636,6 +601,8 @@ const I18N = {
     webHint: 'If you opened this inside LINE, Teams or another app, open the web page (or paste the link) in Safari / Chrome first, then install.',
     s_dim: 'Dimensions (mm)', sortSize: 'Sort by size (small→large)', f_size: 'Max size', sizeLbl: 'Longest side ≤', sizeUnit: 'mm',
     sizeHint: 'Compared using the largest value in the dimensions (Φ = diameter)', sizeTag: 'Longest side ≤ {n} mm',
+    s_lna: 'LNA gain', s_cx: 'Connector & cable', k_cx: 'Connector & cable',
+    cxFull: '{c} connector + {t} cable (Φ{d} mm), {l} mm long',
     datasheet: 'Datasheet', dsAria: 'Open datasheet for {oc}', dsOffline: 'Datasheets need a network connection (and company sign-in)',
   },
   ja: {
@@ -644,9 +611,8 @@ const I18N = {
     update: '強制更新', updateAria: 'キャッシュを削除して最新版を再読み込み', updating: 'キャッシュを削除して再読み込みしています…',
     newVersion: '新しいバージョン v{v} があります。「強制更新」を押して適用してください。',
     verAria: 'バージョン情報',
-    mTitle: 'アンテナ選定と TELEC 認証', mSub: 'モジュールを選ぶと TELEC 認証済みのアンテナを表示します。周波数帯をタップすると、その帯域をカバーするアンテナに絞り込めます。',
-    scrollHint: '左右にスワイプしてほかの周波数帯を表示', customBand: 'カスタム帯域', lo: '下限 MHz', hi: '上限 MHz', addNeed: '追加',
-    needN: '<b>{n}</b> 帯域をカバー', noNeed: '周波数帯の条件はまだありません', bandTitle: '{l}：{lo}–{hi} MHz', bandRemove: '（もう一度押すと解除）',
+    mTitle: 'アンテナ選定と TELEC 認証', mSub: 'モジュールを選ぶと TELEC 認証済みのアンテナを表示します。メニューや絞り込み条件でさらに絞り込めます。',
+   
     filters: '絞り込み条件', done: '完了', resetAll: 'すべての条件をクリア', search: '品番・名称・周波数で検索…', searchAria: '検索',
     countOf: '/ {n} 件のアンテナ', filterBtn: '絞り込み', sort: '並べ替え',
     sortOc: '品番順', sortGain: 'ピークゲイン順（高→低）', sortSpan: '帯域幅順（広→狭）',
@@ -672,7 +638,7 @@ const I18N = {
     k_flame: '難燃性', k_uv: '耐 UV', k_env: '環境規制', k_temp: '動作温度', k_evb: 'EVB 品番', k_evbDim: 'EVB 寸法 (mm)',
     k_brochure: '販売地域', k_jp: '日本市場', jpYes: '対応',
     copied: '{oc} をコピーしました', copiedN: '{n} 件の品番をコピーしました', noResults: 'コピーする結果がありません', clipFail: 'クリップボードにアクセスできません',
-    invalidFreq: '有効な周波数（MHz）を入力してください', notOnPage: 'この一覧にない品番のため、検索に切り替えました',
+    notOnPage: 'この一覧にない品番のため、検索に切り替えました',
     footer: 'データ出典：{s}（{r}）。周波数帯の境界は一般的な公開割り当てに基づきます。最終的な選定はデータシートと実測結果で確認してください。',
     verTitle: 'バージョン情報', v_app: 'アプリのバージョン', v_built: 'データ作成日時', v_latest: 'サーバーのバージョン', v_sw: 'オフラインキャッシュ',
     v_src: 'データ出典', v_count: 'データ件数', v_countVal: 'アンテナ {a} 件、モジュール {m} 件、認証の組み合わせ {c} 件',
@@ -691,6 +657,8 @@ const I18N = {
     webHint: 'LINE や Teams などのアプリ内で開いている場合は、「Web ページを開く」またはリンクをコピーして Safari / Chrome で開いてからインストールしてください。',
     sortSize: 'サイズ順（小→大）', f_size: 'サイズ上限', sizeLbl: '最長辺 ≤', sizeUnit: 'mm',
     sizeHint: '寸法の最大値で比較します（Φ は直径）', sizeTag: '最長辺 ≤ {n} mm',
+    s_lna: 'LNA ゲイン', s_cx: 'コネクタとケーブル', k_cx: 'コネクタとケーブル',
+    cxFull: '{c} コネクタ＋{t} ケーブル（Φ{d} mm）、長さ {l} mm',
     datasheet: 'Datasheet', dsAria: '{oc} のデータシートを開く', dsOffline: 'データシートの表示にはネットワーク接続（と社内アカウントでのサインイン）が必要です',
   },
   ko: {
@@ -699,9 +667,8 @@ const I18N = {
     update: '강제 업데이트', updateAria: '캐시를 지우고 최신 버전을 다시 불러오기', updating: '캐시를 지우고 다시 불러오는 중…',
     newVersion: '새 버전 v{v}을(를) 사용할 수 있습니다. "강제 업데이트"를 눌러 적용하세요.',
     verAria: '버전 정보',
-    mTitle: '안테나 선정 및 TELEC 인증', mSub: '모듈을 선택하면 TELEC 인증을 받은 안테나를 보여 줍니다. 주파수 대역을 누르면 해당 대역을 지원하는 안테나만 표시합니다.',
-    scrollHint: '좌우로 밀어 다른 대역 보기', customBand: '사용자 지정 대역', lo: '하한 MHz', hi: '상한 MHz', addNeed: '추가',
-    needN: '<b>{n}</b>개 대역 지원 필요', noNeed: '아직 지정한 주파수 대역이 없습니다', bandTitle: '{l}: {lo}–{hi} MHz', bandRemove: ' (다시 누르면 해제)',
+    mTitle: '안테나 선정 및 TELEC 인증', mSub: '모듈을 선택하면 TELEC 인증을 받은 안테나를 보여 줍니다. 메뉴와 필터로 범위를 좁힐 수 있습니다.',
+   
     filters: '필터', done: '완료', resetAll: '모든 조건 지우기', search: '품번, 이름, 주파수로 검색…', searchAria: '검색',
     countOf: '/ {n}개 안테나', filterBtn: '필터', sort: '정렬',
     sortOc: '품번순', sortGain: '피크 이득순 (높음→낮음)', sortSpan: '대역폭순 (넓음→좁음)',
@@ -727,7 +694,7 @@ const I18N = {
     k_flame: '난연 등급', k_uv: '내 UV', k_env: '환경 규제', k_temp: '동작 온도', k_evb: 'EVB 품번', k_evbDim: 'EVB 크기 (mm)',
     k_brochure: '판매 지역', k_jp: '일본 시장', jpYes: '호환',
     copied: '{oc} 복사됨', copiedN: '품번 {n}개 복사됨', noResults: '복사할 결과가 없습니다', clipFail: '클립보드에 접근할 수 없습니다',
-    invalidFreq: '올바른 주파수(MHz)를 입력하세요', notOnPage: '이 목록에 없는 품번이라 검색으로 전환했습니다',
+    notOnPage: '이 목록에 없는 품번이라 검색으로 전환했습니다',
     footer: '데이터 출처: {s} ({r}). 주파수 대역 경계는 일반적으로 공개된 할당 기준입니다. 최종 선정은 데이터시트와 실측 결과로 확인하세요.',
     verTitle: '버전 정보', v_app: '앱 버전', v_built: '데이터 생성 시각', v_latest: '서버 버전', v_sw: '오프라인 캐시',
     v_src: '데이터 출처', v_count: '데이터 수', v_countVal: '안테나 {a}개, 모듈 {m}개, 인증 조합 {c}건',
@@ -746,6 +713,8 @@ const I18N = {
     webHint: 'LINE, Teams 등 앱 안에서 열었다면 "웹페이지 열기"를 누르거나 링크를 복사해 Safari / Chrome에서 연 뒤 설치하세요.',
     sortSize: '크기순 (작음→큼)', f_size: '최대 크기', sizeLbl: '가장 긴 변 ≤', sizeUnit: 'mm',
     sizeHint: '크기 값 중 가장 큰 값으로 비교합니다 (Φ는 지름)', sizeTag: '가장 긴 변 ≤ {n} mm',
+    s_lna: 'LNA 이득', s_cx: '커넥터 및 케이블', k_cx: '커넥터 및 케이블',
+    cxFull: '{c} 커넥터 + {t} 케이블 (Φ{d} mm), 길이 {l} mm',
     datasheet: 'Datasheet', dsAria: '{oc} 데이터시트 열기', dsOffline: '데이터시트를 보려면 네트워크 연결(및 회사 계정 로그인)이 필요합니다',
   },
 };
@@ -779,29 +748,6 @@ function applyStaticI18n() {
   renderThemeBtn();
 }
 
-/* ---------- 頻段預設 (MHz)。邊界為一般公開頻段配置，僅供選型參考 ---------- */
-const BANDS = {
-  main: [
-    { id: 'sub1g', label: 'Sub-1G 617–960', lo: 617, hi: 960 },
-    { id: 'b28', label: 'B28 700M', lo: 703, hi: 803 },
-    { id: 'b18', label: 'B18/19/26 800M', lo: 815, hi: 890 },
-    { id: 'b8', label: 'B8 900M', lo: 880, hi: 960 },
-    { id: 'lpwa920', label: '920M LPWA', lo: 920.5, hi: 928.1 },
-    { id: 'l5', label: 'GNSS L5', lo: 1164, hi: 1189 },
-    { id: 'b11', label: 'B11/21 1.5G', lo: 1427, hi: 1511 },
-    { id: 'l1', label: 'GNSS L1', lo: 1559, hi: 1610 },
-    { id: 'b3', label: 'B3 1.7G', lo: 1710, hi: 1880 },
-    { id: 'b1', label: 'B1 2.1G', lo: 1920, hi: 2170 },
-    { id: 'wifi24', label: 'Wi-Fi 2.4G', lo: 2400, hi: 2484 },
-    { id: 'b41', label: 'B41 2.5G', lo: 2496, hi: 2690 },
-    { id: 'b42', label: 'B42 3.5G', lo: 3400, hi: 3600 },
-    { id: 'n77', label: 'n77/n78 3.3–4.2G', lo: 3300, hi: 4200 },
-    { id: 'n79', label: 'n79 4.4–5.0G', lo: 4400, hi: 5000 },
-    { id: 'wifi5', label: 'Wi-Fi 5G', lo: 5150, hi: 5850 },
-    { id: 'wifi6', label: 'Wi-Fi 6E', lo: 5925, hi: 7125 },
-  ],
-};
-const bandLabel = (b) => (typeof b.label === 'string' ? b.label : b.label[lang] ?? b.label.en);
 
 /* ---------- 正規化工具 ---------- */
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -834,13 +780,6 @@ function firstNum(s) {
   return m ? parseFloat(m[0]) : null;
 }
 const spanOf = (p) => (p.ranges || []).reduce((a, [lo, hi]) => a + (hi - lo), 0);
-/** 產品頻率區間是否完整涵蓋需求頻段 */
-const covers = (ranges, lo, hi) => (ranges || []).some(([a, b]) => a <= lo + 0.01 && b >= hi - 0.01);
-/** 對數刻度：頻率 → 百分比位置 */
-function xPct(f) {
-  const c = Math.min(Math.max(f, F_MIN), F_MAX);
-  return ((Math.log(c) - Math.log(F_MIN)) / (Math.log(F_MAX) - Math.log(F_MIN))) * 100;
-}
 
 /* ==========================================================================
    各頁面設定
@@ -882,7 +821,7 @@ const store = {
   save(page, st) { this.set(page, JSON.stringify(st)); },
 };
 function freshState(pg) {
-  const st = { q: '', sel: {}, bands: [], custom: [], toggles: {}, sort: 'oc', module: '', maxL: null };
+  const st = { q: '', sel: {}, toggles: {}, sort: 'oc', module: '', maxL: null };
   PAGES[pg].toggles.forEach((x) => { st.toggles[x.key] = !!x.default; });
   return st;
 }
@@ -896,13 +835,11 @@ const $ = (id) => document.getElementById(id);
    篩選引擎
    ========================================================================== */
 const asArr = (v) => (Array.isArray(v) ? v : [v]);
-const allNeeds = () => BANDS[page].filter((b) => state.bands.includes(b.id)).concat(state.custom);
 
 /** 依目前條件篩選；skipKey 用於計算某面向的選項計數 (忽略自身) */
 function filterItems(skipKey) {
   const cfg = PAGES[page];
   const q = state.q.trim().toLowerCase();
-  const needs = allNeeds();
   return cfg.items().filter((p) => {
     if (cfg.module && skipKey !== '__module' && state.module && !(p.certs || []).includes(state.module)) return false;
     for (const x of cfg.toggles) if (state.toggles[x.key] && !x.test(p)) return false;
@@ -911,7 +848,6 @@ function filterItems(skipKey) {
       const sel = state.sel[f.key];
       if (sel && sel.length && !asArr(f.get(p)).some((v) => sel.includes(v))) return false;
     }
-    for (const n of needs) if (!covers(p.ranges, n.lo, n.hi)) return false;
     if (state.maxL && !(p.dimL != null && p.dimL <= state.maxL)) return false;
     if (q) {
       const hay = [p.oc, p.name, p.desc, p.freq, p.form, p.atype, p.dim, p.replace, (p.certs || []).join(' ')]
@@ -949,34 +885,6 @@ function allValues(facet) {
   if (facet.sort) return arr.sort(facet.sort);
   // 特殊代號 (未標示/無/其他) 排最後
   return arr.sort((a, b) => (a.startsWith('__') - b.startsWith('__')) || String(a).localeCompare(String(b)));
-}
-
-/* ==========================================================================
-   Render：頻譜尺
-   ========================================================================== */
-function renderRuler() {
-  const lanes = [];
-  const bands = BANDS[page].map((b) => ({ ...b, text: bandLabel(b), custom: false }))
-    .concat(state.custom.map((c, i) => ({ id: 'custom-' + i, text: `${c.lo}–${c.hi}`, lo: c.lo, hi: c.hi, custom: true })));
-  const MIN_W = 8.5;   // 按鈕最小寬度 (%)，以容納文字
-  const placed = bands.map((b) => {
-    const x1 = xPct(b.lo), x2 = Math.max(xPct(b.hi), x1 + MIN_W);
-    let lane = lanes.findIndex((right) => right <= x1 - 0.3);
-    if (lane === -1) { lane = lanes.length; lanes.push(0); }
-    lanes[lane] = x2;
-    return { ...b, x1, x2, lane };
-  });
-  const laneH = 30;
-  $('lanes').style.height = lanes.length * laneH + 'px';
-  $('lanes').innerHTML = placed.map((b) => {
-    const pressed = b.custom || state.bands.includes(b.id);
-    const title = t('bandTitle', { l: b.text, lo: b.lo, hi: b.hi }) + (b.custom ? t('bandRemove') : '');
-    return `<button type="button" class="band-btn${b.custom ? ' custom' : ''}" data-band="${b.id}" aria-pressed="${pressed}"
-      title="${esc(title)}" style="left:${b.x1}%;width:${b.x2 - b.x1}%;top:${b.lane * laneH}px">${esc(b.text)}</button>`;
-  }).join('');
-  $('axis').innerHTML = AXIS_TICKS.map((f) => `<span style="left:${xPct(f)}%">${f >= 1000 ? f / 1000 + 'G' : f + 'M'}</span>`).join('');
-  const n = allNeeds().length;
-  $('needSummary').innerHTML = n ? t('needN', { n }) : esc(t('noNeed'));
 }
 
 /* ==========================================================================
@@ -1078,23 +986,31 @@ function openDatasheet(oc) {
 }
 
 /* ==========================================================================
+   LNA 增益 (主動式 GNSS) 與 IPEX 連接器＋線材
+   ========================================================================== */
+/** LNA 增益：Excel 值多為「28 ±3」，未含單位時補上 dB。有值即代表主動式 GNSS 天線 */
+const fmtLna = (v) => (v ? (/db/i.test(v) ? v : `${v} dB`) : '');
+/**
+ * IPEX MHF 連接器與線材合併描述，例如「IPEX MHF1 接頭＋RF1.13 線材（Φ1.13 mm），線長 100 mm」。
+ * 線徑取自線材型號中的數字 (RF1.13 → 1.13 mm)；線長單位為 mm (Excel Cable Length 欄)。
+ * 非 IPEX 連接器回傳 null，維持原本分開顯示。
+ */
+function ipexInfo(p) {
+  const conn = (p.conn || []).find((c) => /mhf|ipex|u\.fl/i.test(c));
+  if (!conn) return null;
+  const cable = (p.cables || [])[0] || {};
+  const d = (String(cable.type || '').match(/\d+(?:\.\d+)?/) || [])[0];
+  if (cable.type && d && cable.len) return t('cxFull', { c: conn, t: cable.type, d, l: cable.len });
+  return [conn, cable.type, cable.len && `${cable.len} mm`].filter(Boolean).join(' / ');
+}
+
+/* ==========================================================================
    Render：結果清單
    ========================================================================== */
 const PLACEHOLDER = `<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M6.3 7.5a8 8 0 0 1 11.4 0M8.8 10a4.5 4.5 0 0 1 6.4 0"/><path d="M12 12v9"/></svg>`;
 function thumb(oc) {
   const src = DATA.images[oc];
   return `<div class="thumb">${src ? `<img src="${src}" alt="" loading="lazy" decoding="async">` : PLACEHOLDER}</div>`;
-}
-function strip(p) {
-  const ranges = (p.ranges || []).map(([lo, hi]) => {
-    const a = xPct(lo), b = xPct(hi);
-    return `<i style="left:${a}%;width:${Math.max(b - a, 0.4)}%"></i>`;
-  }).join('');
-  const needs = allNeeds().map((n) => {
-    const a = xPct(n.lo), b = xPct(n.hi);
-    return `<b style="left:${a}%;width:${Math.max(b - a, 0.6)}%"></b>`;
-  }).join('');
-  return `<div class="strip" aria-hidden="true">${ranges}${needs}</div>`;
 }
 function badges(p) {
   let b = '';
@@ -1104,9 +1020,15 @@ function badges(p) {
   return b;
 }
 function specCells(p) {
-  const cells = [['s_form', p.form], ['s_mount', p.mount], ['s_conn', (p.conn || []).join(', ')], ['s_gain', p.techs?.[0]?.gain]];
-  cells.push(['s_dim', p.dim]);
-  return `<dl class="specs">${cells.map(([k, v]) => `<div class="${k === 's_dim' ? 'dim' : ''}"><dt>${esc(t(k))}</dt><dd title="${esc(v || '')}">${esc(v || '—')}</dd></div>`).join('')}</dl>`;
+  const cx = ipexInfo(p);
+  // [標籤, 值, 樣式]：wide = 佔滿整列
+  const cells = [['s_form', p.form], ['s_mount', p.mount]];
+  if (!cx) cells.push(['s_conn', (p.conn || []).join(', ')]);
+  cells.push(['s_gain', p.techs?.[0]?.gain]);
+  if (p.lna) cells.push(['s_lna', fmtLna(p.lna), 'lna']);
+  if (cx) cells.push(['s_cx', cx, 'wide']);
+  cells.push(['s_dim', p.dim, 'wide']);
+  return `<dl class="specs">${cells.map(([k, v, cls]) => `<div class="${cls || ''}"><dt>${esc(t(k))}</dt><dd title="${esc(v || '')}">${esc(v || '—')}</dd></div>`).join('')}</dl>`;
 }
 
 let lastResults = [];
@@ -1126,7 +1048,7 @@ function renderList() {
     <div class="row" role="listitem" tabindex="0" data-oc="${esc(p.oc)}">
       ${thumb(p.oc)}
       <div><div class="oc">${esc(p.oc)} ${badges(p)} ${dsButton(p)}</div><div class="pname">${esc(p.name || [p.kind, p.tech].filter(Boolean).join(' '))}</div></div>
-      <div class="strip-cell">${strip(p)}<div class="freq-text">${esc(p.freq || '')}</div></div>
+      <div class="strip-cell"><div class="freq-text">${esc(p.freq || '')}</div></div>
       ${specCells(p)}
     </div>`).join('');
   $('moreBtn').hidden = res.length <= shown;
@@ -1138,8 +1060,6 @@ function renderActiveTags() {
   const cfg = PAGES[page];
   if (state.module) tags.push({ label: `${t('module')}${sep()}${state.module}`, act: 'module' });
   for (const f of cfg.facets) for (const v of state.sel[f.key] || []) tags.push({ label: `${facetTitle(f)}${sep()}${valLabel(v)}`, act: 'facet', f: f.key, v });
-  for (const b of BANDS[page]) if (state.bands.includes(b.id)) tags.push({ label: bandLabel(b), act: 'band', id: b.id });
-  state.custom.forEach((c, i) => tags.push({ label: `${c.lo}–${c.hi} MHz`, act: 'custom', i }));
   if (state.maxL) tags.push({ label: t('sizeTag', { n: state.maxL }), act: 'size' });
   $('activeTags').innerHTML = tags.map((x) =>
     `<button type="button" aria-label="${esc(t('removeTag', { x: x.label }))}" data-tag='${esc(JSON.stringify(x))}'>${esc(x.label)}</button>`).join('');
@@ -1154,7 +1074,6 @@ function renderPageText() {
   $('footer').textContent = t('footer', { s: DATA.source, r: DATA.revision?.rev || '—' }) + ` v${APP_VERSION}`;
 }
 function renderAll() {
-  renderRuler();
   renderQuick();
   renderFilters();
   renderActiveTags();
@@ -1178,11 +1097,13 @@ function openDetail(oc) {
   if (!p) return;
   const sheet = dsButton(p, true);
   const techRows = (p.techs || []).map((x) => `<tr><td>${esc(x.t)}</td><td>${esc(x.f || '')}</td><td>${esc(x.q || '')}</td><td>${esc(x.eff || '')}</td><td>${esc(x.gain || '')}</td><td>${esc(x.pat || '')}</td><td>${esc(x.pol || '')}</td></tr>`).join('');
+  const cx = ipexInfo(p);
   const replaceNote = p.replace ? `<div class="notice">${esc(t('replaces'))}${ocLink(p.replace)}</div>` : '';
   const general = kv([['k_type', typeLabel(p.type)], ['k_ptype', p.ptype], ['k_form', p.form], ['k_atype', p.atype], ['k_qty', p.qty],
-    ['k_mount', p.mount], ['k_dim', p.dim], ['k_conn', p.conn],
-    ['k_cables', (p.cables || []).map((c) => [c.len, c.type].filter(Boolean).join(' ')).filter(Boolean)],
-    ['k_lna', p.lna], ['k_ip', p.ip], ['k_ik', p.ik], ['k_flame', p.flame], ['k_uv', p.uv],
+    ['k_mount', p.mount], ['k_dim', p.dim],
+    ...(cx ? [['k_cx', cx]] : [['k_conn', p.conn],
+      ['k_cables', (p.cables || []).map((c) => [c.len, c.type].filter(Boolean).join(' ')).filter(Boolean)]]),
+    ['k_lna', fmtLna(p.lna)], ['k_ip', p.ip], ['k_ik', p.ik], ['k_flame', p.flame], ['k_uv', p.uv],
     ['k_env', p.env], ['k_temp', p.temp], ['k_evb', p.evb], ['k_evbDim', p.evbDim],
     ['k_brochure', p.brochure], ['k_jp', p.jp ? t('jpYes') : null]]);
   // TELEC 認證模組：依類別分組，附認證日期
@@ -1211,8 +1132,8 @@ function openDetail(oc) {
     <div class="d-body">
       ${replaceNote}
       ${mods}
-      <section><h3>${esc(t('freqCov'))}</h3>${strip(p)}<p class="freq-text" style="-webkit-line-clamp:unset">${esc(p.freq || '')}</p></section>
-      ${techRows ? `<section><h3>${esc(t('rfPerf'))}</h3><div class="tbl-wrap"><table><thead><tr>${['th_tech', 'th_freq', 'th_qty', 'th_eff', 'th_gain', 'th_pat', 'th_pol'].map((k) => `<th>${esc(t(k))}</th>`).join('')}</tr></thead><tbody>${techRows}</tbody></table></div></section>` : ''}
+      <section><h3>${esc(t('freqCov'))}</h3><p class="freq-text" style="-webkit-line-clamp:unset">${esc(p.freq || '')}</p></section>
+      ${techRows ? `<section><h3>${esc(t('rfPerf'))}</h3><div class="tbl-wrap"><table><thead><tr>${['th_tech', 'th_freq', 'th_qty', 'th_eff', 'th_gain', 'th_pat', 'th_pol'].map((k) => `<th>${esc(t(k))}</th>`).join('')}</tr></thead><tbody>${techRows}</tbody></table></div>${p.lna ? `<p class="lna-line"><b>${esc(t('s_lna'))}</b> ${esc(fmtLna(p.lna))}</p>` : ''}</section>` : ''}
       <section><h3>${esc(t('specs'))}</h3>${general}</section>
     </div>`;
   if (!$('detail').open) $('detail').showModal();
@@ -1425,22 +1346,6 @@ async function copyText(txt, msg) {
 }
 function update() { shown = PAGE_SIZE; renderAll(); }
 
-$('lanes').addEventListener('click', (e) => {
-  const b = e.target.closest('[data-band]'); if (!b) return;
-  const id = b.dataset.band;
-  if (id.startsWith('custom-')) state.custom.splice(+id.slice(7), 1);
-  else state.bands = state.bands.includes(id) ? state.bands.filter((x) => x !== id) : state.bands.concat(id);
-  update();
-});
-$('cAdd').addEventListener('click', () => {
-  let lo = parseFloat($('cLo').value), hi = parseFloat($('cHi').value);
-  if (!isFinite(lo) || !isFinite(hi) || lo <= 0 || hi <= 0) { toast(t('invalidFreq')); return; }
-  if (lo > hi) [lo, hi] = [hi, lo];
-  state.custom.push({ lo, hi });
-  $('cLo').value = ''; $('cHi').value = '';
-  update();
-});
-[$('cLo'), $('cHi')].forEach((el) => el.addEventListener('keydown', (e) => { if (e.key === 'Enter') $('cAdd').click(); }));
 
 $('quick').addEventListener('change', (e) => {
   const key = e.target.dataset.quick; if (!key) return;
@@ -1478,8 +1383,6 @@ $('activeTags').addEventListener('click', (e) => {
   const x = JSON.parse(b.dataset.tag);
   if (x.act === 'module') state.module = '';
   if (x.act === 'facet') state.sel[x.f] = (state.sel[x.f] || []).filter((v) => v !== x.v);
-  if (x.act === 'band') state.bands = state.bands.filter((id) => id !== x.id);
-  if (x.act === 'custom') state.custom.splice(x.i, 1);
   if (x.act === 'size') state.maxL = null;
   update();
 });
@@ -1556,6 +1459,7 @@ function route() {
   if (state.module && !DATA.modules.some((m) => m.name === state.module)) state.module = '';
   if (state.toggles?.jpOnly) { state.sel.jp = ['Yes']; }
   if (state.toggles) delete state.toggles.jpOnly;
+  delete state.bands; delete state.custom;   // v3.5 起移除頻段尺
   $('sortSel').value = state.sort;
   renderPageText();
   setFilters(false);
