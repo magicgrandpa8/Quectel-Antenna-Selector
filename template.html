@@ -511,7 +511,7 @@ const I18N = {
     modNone: '此模組目前沒有已認證的天線', noDate: '—',
     certOnly: '僅顯示有 TELEC 認證的天線', badgeCert: 'TELEC ×{n}', certTitle: 'TELEC 認證模組 ({n})', certNone: '尚無 TELEC 認證模組',
     v_rev: 'Excel 版次',
-    f_type: '技術類別 Type', f_ptype: '產品型態 Product Type', f_atype: '天線類型 Antenna Type',
+    f_type: '技術類別 Tech', f_ptype: '產品型態 Product Type', f_atype: '天線類型 Antenna Type',
     f_form: '外型', f_mount: '安裝方式', f_conn: '連接器', f_ip: '防護等級', f_qty: '天線埠數', f_brochure: '銷售區域',
     f_jp: '日本市場 Japan Market',
     [NA]: '未標示', [NONE]: '無', [OTHER]: '其他',
@@ -571,7 +571,7 @@ const I18N = {
     modNone: 'No antenna is certified with this module yet', noDate: '—',
     certOnly: 'TELEC-certified antennas only', badgeCert: 'TELEC ×{n}', certTitle: 'TELEC-certified modules ({n})', certNone: 'No TELEC-certified module yet',
     v_rev: 'Excel revision',
-    f_type: 'Type', f_ptype: 'Product Type', f_atype: 'Antenna Type',
+    f_type: 'Tech', f_ptype: 'Product Type', f_atype: 'Antenna Type',
     f_form: 'Form factor', f_mount: 'Mounting', f_conn: 'Connector', f_ip: 'IP rating', f_qty: 'Antenna ports', f_brochure: 'Sales region',
     f_jp: 'Japan Market',
     [NA]: 'Unspecified', [NONE]: 'None', [OTHER]: 'Other',
@@ -630,7 +630,7 @@ const I18N = {
     modNone: 'このモジュールで認証済みのアンテナはまだありません', noDate: '—',
     certOnly: 'TELEC 認証済みのアンテナのみ表示', badgeCert: 'TELEC ×{n}', certTitle: 'TELEC 認証モジュール（{n}）', certNone: 'TELEC 認証モジュールはまだありません',
     v_rev: 'Excel 版数',
-    f_type: '技術タイプ Type', f_ptype: '製品タイプ Product Type', f_atype: 'アンテナタイプ Antenna Type',
+    f_type: '技術タイプ Tech', f_ptype: '製品タイプ Product Type', f_atype: 'アンテナタイプ Antenna Type',
     f_form: '形状', f_mount: '取付方法', f_conn: 'コネクタ', f_ip: '防塵防水等級', f_qty: 'アンテナポート数', f_brochure: '販売地域',
     f_jp: '日本市場 Japan Market',
     [NA]: '未記載', [NONE]: 'なし', [OTHER]: 'その他',
@@ -688,7 +688,7 @@ const I18N = {
     modNone: '이 모듈로 인증된 안테나가 아직 없습니다', noDate: '—',
     certOnly: 'TELEC 인증 안테나만 표시', badgeCert: 'TELEC ×{n}', certTitle: 'TELEC 인증 모듈 ({n})', certNone: '아직 TELEC 인증 모듈이 없습니다',
     v_rev: 'Excel 개정판',
-    f_type: '기술 유형 Type', f_ptype: '제품 유형 Product Type', f_atype: '안테나 유형 Antenna Type',
+    f_type: '기술 유형 Tech', f_ptype: '제품 유형 Product Type', f_atype: '안테나 유형 Antenna Type',
     f_form: '형태', f_mount: '장착 방식', f_conn: '커넥터', f_ip: '방진·방수 등급', f_qty: '안테나 포트 수', f_brochure: '판매 지역',
     f_jp: '일본 시장 Japan Market',
     [NA]: '미기재', [NONE]: '없음', [OTHER]: '기타',
@@ -802,15 +802,16 @@ const PAGES = {
     items: () => DATA.items,
     module: true,
     facets: [
-      // 下拉選單順序：(TELEC 認證模組) → 日本市場 → 技術類別 → 產品型態 → [GNSS 天線類型]
+      // 下拉選單順序 (由上到下)：
+      //   Tech → Japan Market → [TELEC 認證模組：Japan Market = Yes 時] → [GNSS 天線類型：Tech = GNSS 時] → Product Type
+      { key: 'type', ui: 'select', get: (p) => typeLabel(p.type) },
       // Japan Market：取自 Excel「Compatible with Japan Market」欄 (YES → Yes，其餘 → No)
       { key: 'jp', ui: 'select', get: (p) => (p.jp ? 'Yes' : 'No'), sort: (a, b) => (b === 'Yes') - (a === 'Yes') },
-      { key: 'type', ui: 'select', get: (p) => typeLabel(p.type) },
-      { key: 'ptype', ui: 'select', get: (p) => p.ptype || OTHER },
-      // 天線類型只在技術類別選 GNSS 時出現 (Passive / Active / Dipole)
+      // 天線類型只在 Tech 選 GNSS 時出現 (Passive / Active / Dipole)
       { key: 'atype', ui: 'select', title: 'f_gnss', when: () => isGnss(), get: (p) => p.atype || NA,
         scope: (p) => p.type === 'GNSS',                       // 選項只取 GNSS 天線的值
         sort: (a, b) => ((GNSS_ORDER.indexOf(a) + 1) || 99) - ((GNSS_ORDER.indexOf(b) + 1) || 99) },
+      { key: 'ptype', ui: 'select', get: (p) => p.ptype || OTHER },
       { key: 'form', ui: 'checks', get: (p) => p.form || NA },
       { key: 'mount', ui: 'checks', get: (p) => p.mount || NA },
       { key: 'conn', ui: 'checks', get: (p) => (p.conn && p.conn.length ? p.conn.map(connFamily) : [NONE]) },
@@ -827,6 +828,8 @@ const facetTitle = (f) => t(f.title || 'f_' + f.key);
 /** 技術類別是否選了 GNSS (決定是否顯示 GNSS 天線類型選單) */
 /** GNSS 天線類型選項順序；其他值 (若 Excel 日後新增) 排在最後 */
 const GNSS_ORDER = ['Passive', 'Active', 'Dipole'];
+/** Japan Market 是否選 Yes (決定是否顯示 TELEC 認證模組選單) */
+const isJpYes = () => (state.sel.jp || []).includes('Yes');
 const isGnss = () => (state.sel.type || []).includes('GNSS');
 const toggleLabel = { certOnly: 'certOnly' };
 
@@ -860,7 +863,7 @@ function filterItems(skipKey) {
   const cfg = PAGES[page];
   const q = state.q.trim().toLowerCase();
   return cfg.items().filter((p) => {
-    if (cfg.module && skipKey !== '__module' && state.module && !(p.certs || []).includes(state.module)) return false;
+    if (cfg.module && skipKey !== '__module' && state.module && isJpYes() && !(p.certs || []).includes(state.module)) return false;
     for (const x of cfg.toggles) if (state.toggles[x.key] && !x.test(p)) return false;
     for (const f of cfg.facets) {
       if (f.key === skipKey || (f.when && !f.when())) continue;
@@ -912,22 +915,6 @@ function allValues(facet) {
 function renderQuick() {
   const cfg = PAGES[page];
   let html = '';
-  if (cfg.module) {
-    // 模組選項計數：忽略模組條件、套用其他條件；依 Name 工作表的類別分組
-    const pool = filterItems('__module');
-    const groups = new Map();
-    for (const m of DATA.modules) {
-      const n = pool.filter((p) => (p.certs || []).includes(m.name)).length;
-      const opt = `<option value="${esc(m.name)}"${m.name === state.module ? ' selected' : ''}>${esc(m.name)} (${n})</option>`;
-      if (!groups.has(m.cat)) groups.set(m.cat, []);
-      groups.get(m.cat).push(opt);
-    }
-    const opts = [...groups].map(([cat, list]) => `<optgroup label="${esc(cat)}">${list.join('')}</optgroup>`).join('');
-    html += `<label class="module" title="${esc(t('moduleHint'))}"><span class="mod-head">${esc(t('module'))}<small class="mod-opt">${esc(t('modOpt'))}</small></span>
-      <select data-quick="__module" class="${state.module ? 'active' : ''}"><option value="">${esc(t('allModules'))}</option>${opts}</select></label>`;
-    const m = DATA.modules.find((x) => x.name === state.module);
-    if (m) html += `<p class="module-info">${t('modInfo', { c: esc(m.cat), d: esc(m.date || t('noDate')), n: m.n })}</p>`;
-  }
   for (const f of cfg.facets.filter((x) => x.ui === 'select' && (!x.when || x.when()))) {
     const c = counts(f);
     const cur = (state.sel[f.key] || [])[0] || '';
@@ -938,8 +925,28 @@ function renderQuick() {
     }).join('');
     html += `<label>${esc(facetTitle(f))}
       <select data-quick="${f.key}" class="${cur ? 'active' : ''}"><option value="">${esc(t('all'))} (${total})</option>${opts}</select></label>`;
+    // TELEC 認證模組：緊接在 Japan Market 之後，且只在 Japan Market = Yes 時出現
+    if (f.key === 'jp' && cfg.module && isJpYes()) html += moduleSelectHtml();
   }
   $('quick').innerHTML = html;
+}
+
+/** TELEC 認證模組選單 (依 Name 工作表的類別分組；計數忽略模組條件、套用其他條件) */
+function moduleSelectHtml() {
+  const pool = filterItems('__module');
+  const groups = new Map();
+  for (const m of DATA.modules) {
+    const n = pool.filter((p) => (p.certs || []).includes(m.name)).length;
+    const opt = `<option value="${esc(m.name)}"${m.name === state.module ? ' selected' : ''}>${esc(m.name)} (${n})</option>`;
+    if (!groups.has(m.cat)) groups.set(m.cat, []);
+    groups.get(m.cat).push(opt);
+  }
+  const opts = [...groups].map(([cat, list]) => `<optgroup label="${esc(cat)}">${list.join('')}</optgroup>`).join('');
+  let html = `<label class="module" title="${esc(t('moduleHint'))}"><span class="mod-head">${esc(t('module'))}<small class="mod-opt">${esc(t('modOpt'))}</small></span>
+      <select data-quick="__module" class="${state.module ? 'active' : ''}"><option value="">${esc(t('allModules'))}</option>${opts}</select></label>`;
+  const m = DATA.modules.find((x) => x.name === state.module);
+  if (m) html += `<p class="module-info">${t('modInfo', { c: esc(m.cat), d: esc(m.date || t('noDate')), n: m.n })}</p>`;
+  return html;
 }
 
 /* ==========================================================================
@@ -1089,8 +1096,11 @@ function renderList() {
 function renderActiveTags() {
   const tags = [];
   const cfg = PAGES[page];
-  if (state.module) tags.push({ label: `${t('module')}${sep()}${state.module}`, act: 'module' });
-  for (const f of cfg.facets.filter((x) => !x.when || x.when())) for (const v of state.sel[f.key] || []) tags.push({ label: `${facetTitle(f)}${sep()}${valLabel(v)}`, act: 'facet', f: f.key, v });
+  // 標籤順序與下拉選單一致 (TELEC 模組緊接在 Japan Market 之後)
+  for (const f of cfg.facets.filter((x) => !x.when || x.when())) {
+    for (const v of state.sel[f.key] || []) tags.push({ label: `${facetTitle(f)}${sep()}${valLabel(v)}`, act: 'facet', f: f.key, v });
+    if (f.key === 'jp' && state.module && isJpYes()) tags.push({ label: `${t('module')}${sep()}${state.module}`, act: 'module' });
+  }
   if (state.maxL) tags.push({ label: t('sizeTag', { n: state.maxL }), act: 'size' });
   $('activeTags').innerHTML = tags.map((x) =>
     `<button type="button" aria-label="${esc(t('removeTag', { x: x.label }))}" data-tag='${esc(JSON.stringify(x))}'>${esc(x.label)}</button>`).join('');
@@ -1383,6 +1393,7 @@ $('quick').addEventListener('change', (e) => {
   if (key === '__module') state.module = e.target.value;
   else state.sel[key] = e.target.value ? [e.target.value] : [];
   if (key === 'type' && !isGnss()) state.sel.atype = [];
+  if (key === 'jp' && !isJpYes()) state.module = '';
   update();
 });
 
@@ -1493,6 +1504,9 @@ function route() {
   if (state.toggles) delete state.toggles.jpOnly;
   delete state.bands; delete state.custom;   // v3.5 起移除頻段尺
   if (!isGnss()) state.sel.atype = [];        // v3.6 起天線類型只用於 GNSS
+  // v3.7 起 TELEC 模組只在 Japan Market = Yes 時使用
+  if (state.module && !(state.sel.jp || []).length) state.sel.jp = ['Yes'];
+  if (!isJpYes()) state.module = '';
   $('sortSel').value = state.sort;
   renderPageText();
   setFilters(false);
