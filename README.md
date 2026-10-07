@@ -1,6 +1,6 @@
 # Quectel 天線選型 · TELEC 認證 PWA
 
-目前版本：**v3.1.0**
+目前版本：**v3.3.0**
 資料來源：`Quectel_Antenna_Product_and_TELEC_Certification_*.xlsx`（單一 Excel）
 
 ## 功能
@@ -10,7 +10,7 @@
 - 頻譜尺頻段篩選（預設頻段 + 自訂 MHz）
 - 快速選單：Type / Product Type / Antenna Type；側欄：外型、安裝、連接器、IP、埠數、銷售區域、尺寸上限
 - 篩選：僅顯示有 TELEC 認證、僅顯示日本市場相容
-- 介面語言：中文 / English / 日本語 / 한국어（首次開啟依裝置語言自動選擇，之後記住選擇）
+- 介面語言：中文 / English / 日本語 / 한국어（首次開啟預設為英文，之後記住使用者的選擇；預設值為 `template.html` 的 `DEFAULT_LANG`）
 - 深色 / 淺色、版本資訊、強制更新
 - 完全離線、可安裝為 App（iOS / Android / Windows / macOS）
 
@@ -36,9 +36,10 @@ Build 時會比對各模組認證數與 Excel 統計列，並警告矩陣中不�
 ## 發佈新版本（Excel 每季更新時）
 ```bash
 pip install openpyxl pillow
-python3 build_data.py --version 3.1.0 \
+python3 build_data.py --version 3.2.1 \
   --xlsx ../Quectel_Antenna_Product_and_TELEC_Certification_V3_x_xxxxxxxx_RevXX_Qx_for_CU.xlsx
 ```
+`--app-url` 可指定工具正式網址（預設為 GitHub Pages 網址），用於安裝說明的「開啟網頁 / 複製連結」。
 會同時產生 `index.html`、`version.json`，並自動更新 `sw.js` 的 `CACHE_VERSION`。
 接著 commit / push：`index.html`、`version.json`、`sw.js`（有修改時再加上 `template.html`）。
 App 內不顯示更新紀錄；版本變更請記錄在本 README 的「更新紀錄」。
@@ -60,6 +61,8 @@ App 內不顯示更新紀錄；版本變更請記錄在本 README 的「更新�
 - 頻段預設邊界為一般公開配置，僅供初篩。
 
 ## 更新紀錄
+- **v3.3.0**：首次開啟的預設語言改為英文（不再依裝置語言自動選擇）；韓文介面改為以詞為單位換行
+- **v3.2.0**：安裝說明新增「開啟網頁」「複製連結」按鈕；修正手機版頁尾長檔名造成頁面過寬、iOS 自動縮小的問題；修正手機版詳細資料視窗內容被截斷
 - **v3.1.0**：新增日文、韓文介面；版本資訊不再顯示更新紀錄
 - **v3.0.0**：改用 TELEC 認證 Excel 單一資料來源；移除 Global / 日本分頁；新增 TELEC 認證模組選單與認證資訊
 - **v2.3.0**：尺寸顯示、排序與篩選

@@ -303,7 +303,11 @@ def main():
     ap.add_argument("--template", default=Path("template.html"), type=Path)
     ap.add_argument("--out", default=Path("index.html"), type=Path)
     ap.add_argument("--sw", default=Path("sw.js"), type=Path)
+    ap.add_argument("--app-url", default="https://magicgrandpa8.github.io/Quectel-Antenna-Selector/",
+                    help="工具正式網址 (安裝說明中的「開啟網頁 / 複製連結」)；傳空字串則使用目前頁面網址")
     a = ap.parse_args()
+    if a.app_url and not a.app_url.startswith("https://"):
+        sys.exit("--app-url 必須是 https:// 開頭")
     if not re.fullmatch(r"\d+\.\d+\.\d+", a.version):
         sys.exit("--version 格式需為 X.Y.Z，例如 3.0.0")
     built = dt.datetime.now().astimezone().strftime("%Y-%m-%d %H:%M %z")
@@ -349,6 +353,8 @@ def main():
         print("警告：找不到 fonts/*.woff2，將使用系統字型", file=sys.stderr)
     html = tpl.replace("/*__FONTS__*/", "\n".join(font_css))
     html = html.replace("/*__DATA__*/null", payload.replace("</", "<\\/"))
+    if "/*__APP_URL__*/''" in html:
+        html = html.replace("/*__APP_URL__*/''", json.dumps(a.app_url))
     a.out.write_text(html, encoding="utf8")
 
     # ---- version.json / sw.js ----
@@ -363,6 +369,7 @@ def main():
 
     certified = sum(1 for p in products if p.get("certs"))
     print(f"版本: v{a.version}  建置時間: {built}  Excel 版次: {data['revision'].get('rev')}")
+    print(f"工具網址: {a.app_url or '(使用目前頁面網址)'}")
     print(f"天線: {len(products)}  (有 TELEC 認證: {certified})  模組: {len(modules)}  "
           f"認證組合 (☑): {sum(len(p.get('certs', [])) for p in products)}  圖片: {len(images)}")
     print(f"Datasheet 連結: {sum(1 for p in products if p.get('ds'))}/{len(products)}  "

@@ -249,7 +249,8 @@ dialog.detail::backdrop { background: rgba(10, 18, 24, .5); }
 .d-head h2 { margin: 0; font-size: 24px; letter-spacing: -.01em; }
 .d-head p { margin: 4px 0 0; color: var(--muted); }
 .d-actions { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
-.d-body { padding: 16px 20px 24px; display: grid; gap: 20px; }
+.d-body { padding: 16px 20px 24px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 20px; }
+.d-body > * { min-width: 0; }
 .d-body h3 { font-size: 14px; margin: 0 0 8px; }
 .kv { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px 20px; margin: 0; }
 .kv dt { font-size: 12px; color: var(--muted); }
@@ -271,7 +272,7 @@ tr:last-child td { border-bottom: 0; }
   opacity: 0; pointer-events: none; transition: opacity .2s; z-index: 50;
 }
 .toast.show { opacity: 1; }
-footer { max-width: 1360px; margin: 0 auto; padding: 0 20px 32px; font-size: 12px; color: var(--muted); }
+footer { max-width: 1360px; margin: 0 auto; padding: 0 20px 32px; font-size: 12px; color: var(--muted); overflow-wrap: anywhere; }
 
 /* ======================================================================
    Responsive
@@ -321,6 +322,8 @@ footer { max-width: 1360px; margin: 0 auto; padding: 0 20px 32px; font-size: 12p
 /* 日文 / 韓文：使用對應語系字型，避免漢字字形混用 */
 :root:lang(ja) { --font: "IBM Plex Sans", "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic UI", "Meiryo", "Noto Sans CJK JP", "Noto Sans JP", system-ui, sans-serif; }
 :root:lang(ko) { --font: "IBM Plex Sans", "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans CJK KR", "Noto Sans KR", system-ui, sans-serif; }
+/* 韓文以詞為單位換行，避免單字被拆開 */
+:root:lang(ko) body { word-break: keep-all; overflow-wrap: anywhere; }
 .tool-btn .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--danger); display: none; }
 .tool-btn.has-update .dot { display: inline-block; }
 .tool-btn.spin svg { animation: spin .8s linear infinite; }
@@ -354,6 +357,14 @@ html.offline .net { display: inline-flex; }
 .tool-btn.install { border-color: var(--accent); color: var(--accent); }
 .tool-btn[hidden] { display: none; }
 .steps { margin: 0; padding-left: 20px; display: grid; gap: 10px; font-size: 14px; }
+.web-link { border: 1px solid var(--rule); border-radius: var(--r-md); padding: 12px 14px; display: grid; gap: 10px; }
+.web-link .acts { display: flex; gap: 8px; flex-wrap: wrap; }
+.web-link .primary {
+  display: inline-flex; align-items: center; gap: 6px; background: var(--accent); color: var(--accent-ink);
+  border: 1px solid var(--accent); border-radius: var(--r-md); padding: 8px 14px; font-weight: 600; cursor: pointer;
+}
+.web-link .hint { margin: 0; font-size: 12px; color: var(--muted); }
+.web-link .addr { margin: 0; font-size: 12px; color: var(--muted); overflow-wrap: anywhere; -webkit-user-select: text; user-select: text; }
 .steps b { color: var(--accent); }
 .kbd { display: inline-block; padding: 0 6px; border: 1px solid var(--rule); border-radius: 4px; font-size: 13px; }
 /* 以 App 方式執行時：關閉文字選取放大、讓按鈕更像原生 */
@@ -491,6 +502,16 @@ const APP_VERSION = DATA.version || '0.0.0';
  */
 const DATASHEET_URL = '';
 
+/**
+ * 工具的正式網址 (build_data.py --app-url 注入)。
+ * 用於「安裝 App」說明中的「開啟網頁 / 複製連結」；未設定時改用目前頁面網址。
+ */
+const APP_URL = /*__APP_URL__*/'';
+function appUrl() {
+  if (APP_URL) return APP_URL;
+  return /^https?:$/.test(location.protocol) ? location.origin + location.pathname : '';
+}
+
 
 const PAGE_SIZE = 60;
 const F_MIN = 400, F_MAX = 8000;           // 頻譜尺範圍 (MHz)，對數刻度
@@ -554,6 +575,8 @@ const I18N = {
     androidSteps: ['用 <b>Chrome</b> 開啟此網頁', '點右上角 <b>⋮</b> 選單', '點 <b>安裝應用程式</b> (或「加到主畫面」)', '之後從主畫面或應用程式清單開啟'],
     desktopSteps: ['用 <b>Edge</b> 或 <b>Chrome</b> 開啟此網頁', '點網址列右側的 <b>安裝</b> 圖示 <span class="kbd">⊕</span>，或選單 → <b>應用程式</b> → <b>安裝此網站為應用程式</b>', '安裝後可從 <b>開始功能表</b> 開啟，也可釘選到工作列'],
     installNote: '安裝完成並開啟一次後，即可在沒有網路的環境使用。',
+    openWeb: '開啟網頁', copyLink: '複製連結', linkCopied: '已複製網頁連結',
+    webHint: '若是在 LINE、Teams 等 App 內開啟，請先按「開啟網頁」或複製連結，改用 Safari / Chrome 開啟後再安裝。',
     s_dim: '尺寸 (mm)', sortSize: '依尺寸排序 (小→大)', f_size: '尺寸上限', sizeLbl: '最長邊 ≤', sizeUnit: 'mm',
     sizeHint: '以尺寸中最大的數值比較 (Φ 為直徑)', sizeTag: '最長邊 ≤ {n} mm',
     datasheet: 'Datasheet', dsAria: '開啟 {oc} 的 Datasheet', dsOffline: 'Datasheet 需要網路連線 (並登入公司帳號)',
@@ -609,6 +632,8 @@ const I18N = {
     androidSteps: ['Open this page in <b>Chrome</b>', 'Tap the <b>⋮</b> menu', 'Tap <b>Install app</b> (or "Add to Home screen")', 'Launch it from the home screen or app drawer'],
     desktopSteps: ['Open this page in <b>Edge</b> or <b>Chrome</b>', 'Click the <b>Install</b> icon <span class="kbd">⊕</span> in the address bar, or menu → <b>Apps</b> → <b>Install this site as an app</b>', 'Launch it from the <b>Start menu</b> or pin it to the taskbar'],
     installNote: 'After installing and opening it once, it works without any network connection.',
+    openWeb: 'Open web page', copyLink: 'Copy link', linkCopied: 'Link copied',
+    webHint: 'If you opened this inside LINE, Teams or another app, open the web page (or paste the link) in Safari / Chrome first, then install.',
     s_dim: 'Dimensions (mm)', sortSize: 'Sort by size (small→large)', f_size: 'Max size', sizeLbl: 'Longest side ≤', sizeUnit: 'mm',
     sizeHint: 'Compared using the largest value in the dimensions (Φ = diameter)', sizeTag: 'Longest side ≤ {n} mm',
     datasheet: 'Datasheet', dsAria: 'Open datasheet for {oc}', dsOffline: 'Datasheets need a network connection (and company sign-in)',
@@ -662,6 +687,8 @@ const I18N = {
     androidSteps: ['<b>Chrome</b> でこのページを開きます', '<b>⋮</b> メニューをタップします', '<b>アプリをインストール</b>（または「ホーム画面に追加」）をタップします', 'ホーム画面またはアプリ一覧から開きます'],
     desktopSteps: ['<b>Edge</b> または <b>Chrome</b> でこのページを開きます', 'アドレスバー右側の <b>インストール</b> アイコン <span class="kbd">⊕</span>、またはメニュー → <b>アプリ</b> → <b>このサイトをアプリとしてインストール</b> をクリックします', '<b>スタートメニュー</b> から開けます。タスクバーにピン留めもできます'],
     installNote: 'インストール後に一度開くと、ネットワークがない環境でも使用できます。',
+    openWeb: 'Web ページを開く', copyLink: 'リンクをコピー', linkCopied: 'リンクをコピーしました',
+    webHint: 'LINE や Teams などのアプリ内で開いている場合は、「Web ページを開く」またはリンクをコピーして Safari / Chrome で開いてからインストールしてください。',
     sortSize: 'サイズ順（小→大）', f_size: 'サイズ上限', sizeLbl: '最長辺 ≤', sizeUnit: 'mm',
     sizeHint: '寸法の最大値で比較します（Φ は直径）', sizeTag: '最長辺 ≤ {n} mm',
     datasheet: 'Datasheet', dsAria: '{oc} のデータシートを開く', dsOffline: 'データシートの表示にはネットワーク接続（と社内アカウントでのサインイン）が必要です',
@@ -715,22 +742,18 @@ const I18N = {
     androidSteps: ['<b>Chrome</b>에서 이 페이지를 엽니다', '<b>⋮</b> 메뉴를 누릅니다', '<b>앱 설치</b>(또는 "홈 화면에 추가")를 누릅니다', '홈 화면이나 앱 목록에서 엽니다'],
     desktopSteps: ['<b>Edge</b> 또는 <b>Chrome</b>에서 이 페이지를 엽니다', '주소창 오른쪽의 <b>설치</b> 아이콘 <span class="kbd">⊕</span>을 누르거나, 메뉴 → <b>앱</b> → <b>이 사이트를 앱으로 설치</b>를 선택합니다', '<b>시작 메뉴</b>에서 열 수 있고, 작업 표시줄에 고정할 수도 있습니다'],
     installNote: '설치 후 한 번 열어 두면 네트워크가 없는 환경에서도 사용할 수 있습니다.',
+    openWeb: '웹페이지 열기', copyLink: '링크 복사', linkCopied: '링크를 복사했습니다',
+    webHint: 'LINE, Teams 등 앱 안에서 열었다면 "웹페이지 열기"를 누르거나 링크를 복사해 Safari / Chrome에서 연 뒤 설치하세요.',
     sortSize: '크기순 (작음→큼)', f_size: '최대 크기', sizeLbl: '가장 긴 변 ≤', sizeUnit: 'mm',
     sizeHint: '크기 값 중 가장 큰 값으로 비교합니다 (Φ는 지름)', sizeTag: '가장 긴 변 ≤ {n} mm',
     datasheet: 'Datasheet', dsAria: '{oc} 데이터시트 열기', dsOffline: '데이터시트를 보려면 네트워크 연결(및 회사 계정 로그인)이 필요합니다',
   },
 };
-let lang = 'zh';
+let lang = 'en';
 const LANGS = ['zh', 'en', 'ja', 'ko'];
 const LANG_TAG = { zh: 'zh-Hant-TW', en: 'en', ja: 'ja', ko: 'ko' };
-/** 首次開啟時依裝置語言選擇；不支援的語言預設中文 */
-function detectLang() {
-  for (const l of navigator.languages || [navigator.language || '']) {
-    const c = String(l).toLowerCase().slice(0, 2);
-    if (LANGS.includes(c)) return c;
-  }
-  return 'zh';
-}
+/** 首次開啟的預設語言 (之後以使用者的選擇為準，存於 localStorage) */
+const DEFAULT_LANG = 'en';
 /** 取翻譯字串並代入 {var} */
 function t(key, vars) {
   let s = I18N[lang]?.[key] ?? I18N.en[key] ?? I18N.zh[key] ?? key;
@@ -1320,18 +1343,31 @@ $('installBtn').addEventListener('click', async () => {
 });
 function openInstallHelp() {
   const key = platform === 'ios' ? 'iosSteps' : platform === 'android' ? 'androidSteps' : 'desktopSteps';
+  const url = appUrl();
   // 步驟字串為內建常數 (含少量 HTML 標記)，非使用者輸入
   $('installDialog').innerHTML = `
     <div class="d-simple-head"><h2 id="installTitle">${esc(t('installTitle'))}</h2>
       <button type="button" class="icon-btn" data-close>${esc(t('close'))}</button></div>
     <div class="d-body">
       <ol class="steps">${(I18N[lang]?.[key] ?? I18N.en[key]).map((x) => `<li>${x}</li>`).join('')}</ol>
+      ${url ? `<div class="web-link">
+        <div class="acts">
+          <button type="button" class="primary" data-open-web>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>${esc(t('openWeb'))}</button>
+          <button type="button" class="icon-btn" data-copy-link>${esc(t('copyLink'))}</button>
+        </div>
+        <p class="addr">${esc(url)}</p>
+        <p class="hint">${esc(t('webHint'))}</p>
+      </div>` : ''}
       <p class="notice">${esc(t('installNote'))}</p>
     </div>`;
   if (!$('installDialog').open) $('installDialog').showModal();
 }
 $('installDialog').addEventListener('click', (e) => {
-  if (e.target === $('installDialog') || e.target.closest('[data-close]')) $('installDialog').close();
+  if (e.target === $('installDialog') || e.target.closest('[data-close]')) { $('installDialog').close(); return; }
+  // 開啟網頁：另開分頁 (App 內建瀏覽器多半會交給系統瀏覽器)
+  if (e.target.closest('[data-open-web]')) { window.open(appUrl(), '_blank', 'noopener'); return; }
+  if (e.target.closest('[data-copy-link]')) copyText(appUrl(), t('linkCopied'));
 });
 
 /** 離線狀態：標示於頂部，並在恢復連線時檢查新版 */
@@ -1484,7 +1520,7 @@ $('verDialog').addEventListener('click', (e) => {
 
 /* 頂部工具列 */
 $('langSel').addEventListener('change', (e) => {
-  lang = LANGS.includes(e.target.value) ? e.target.value : 'zh';
+  lang = LANGS.includes(e.target.value) ? e.target.value : DEFAULT_LANG;
   store.set('lang', lang);
   applyStaticI18n(); renderPageText(); renderAll();
   if ($('verDialog').open) openVersion();
@@ -1524,7 +1560,7 @@ function route() {
 }
 
 const savedLang = store.get('lang');
-lang = LANGS.includes(savedLang) ? savedLang : detectLang();
+lang = LANGS.includes(savedLang) ? savedLang : DEFAULT_LANG;
 const savedTheme = store.get('theme');
 applyTheme(savedTheme === 'dark' || savedTheme === 'light' ? savedTheme : null);
 applyStaticI18n();
