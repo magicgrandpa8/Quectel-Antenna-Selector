@@ -1,6 +1,6 @@
 # Quectel 天線選型 · TELEC 認證 PWA
 
-目前版本：**v3.7.0**
+目前版本：**v3.8.0**
 資料來源：`Quectel_Antenna_Product_and_TELEC_Certification_*.xlsx`（單一 Excel）
 
 ## 功能
@@ -8,7 +8,7 @@
 - 清單每列顯示「TELEC ×N」已認證模組數、JP 相容標示、尺寸、Datasheet 按鈕
 - 主動式 GNSS 天線顯示 LNA 增益；IPEX MHF 與 RG174 / RG174LL 線材：連接器、線材型號、線長（IPEX 另含線徑）合併描述
 - 詳細資料列出所有認證模組（依類別、附認證日期）、射頻效能、完整規格
-- 快速選單（由上到下）：Tech → Japan Market（Yes / No）→ TELEC 認證模組（僅 Japan Market = Yes 時出現，選填）→ GNSS 天線類型（僅 Tech = GNSS 時出現：Passive / Active / Dipole）→ Product Type；側欄：外型、安裝、連接器、IP、埠數、銷售區域、尺寸上限
+- 快速選單（由上到下）：Tech → Japan Market（Yes / No）→ TELEC 認證模組（僅 Japan Market = Yes 時出現）→ GNSS 天線類型（僅 Tech = GNSS 時出現：Passive / Active / Dipole）→ Product Type；側欄：外型、安裝、連接器、IP、埠數、銷售區域、尺寸上限
 - 篩選：僅顯示有 TELEC 認證；日本市場相容改由 Japan Market 下拉選單篩選
 - 介面語言：中文 / English / 日本語 / 한국어（首次開啟預設為英文，之後記住使用者的選擇；預設值為 `template.html` 的 `DEFAULT_LANG`）
 - 深色 / 淺色、版本資訊、強制更新
@@ -61,6 +61,7 @@ App 內不顯示更新紀錄；版本變更請記錄在本 README 的「更新�
 - 頻段預設邊界為一般公開配置，僅供初篩。
 
 ## 更新紀錄
+- **v3.8.0**：下拉選單改為單欄由上往下排列；移除 TELEC 認證模組的「選填」說明（顯示條件不變）
 - **v3.7.0**：Type 改名為 Tech 並移到最上方；TELEC 認證模組改為僅在 Japan Market = Yes 時出現；Product Type 移到最下方
 - **v3.6.0**：RG174 線材的連接器與線長合併描述；TELEC 認證模組加註「選填」；下拉選單順序調整；天線類型改為僅在 Type = GNSS 時出現
 - **v3.5.0**：移除頻段尺、自訂頻段與頻譜條；主動式 GNSS 天線顯示 LNA 增益；IPEX MHF 連接器與線材（線徑、線長）合併描述；手機版射頻效能表格改為左右捲動

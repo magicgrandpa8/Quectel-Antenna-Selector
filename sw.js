@@ -13,7 +13,7 @@
  * CACHE_VERSION 由 build_data.py --version 自動改寫，請勿手動修改。
  * App 的「強制更新」會先確認伺服器可連線，才清除快取並重新載入。
  */
-const CACHE_VERSION = 'antenna-selector-v3.7.0';
+const CACHE_VERSION = 'antenna-selector-v3.8.0';
 
 const APP_SHELL = [
   './',
