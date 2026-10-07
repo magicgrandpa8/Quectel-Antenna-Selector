@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Quectel 天線選型工具</title>
 <meta name="theme-color" content="#0F766E">
-<meta name="description" content="Quectel 天線產品選型：Global 與日本市場，可離線使用">
+<meta name="description" content="Quectel 天線產品選型與 TELEC 認證查詢，可離線使用">
 <link rel="manifest" href="manifest.webmanifest">
 <!-- iOS：加入主畫面後以全螢幕 App 方式開啟 -->
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -46,7 +46,6 @@
   padding-bottom: env(safe-area-inset-bottom, 0px);
   color-scheme: light;
 }
-:root[data-market="japan"] { --accent: #B4233C; --accent-soft: #F6DADF; }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
@@ -55,7 +54,6 @@
     --warn: #E8B15A; --warn-soft: #3A2C14; --danger: #F07A8E; --danger-soft: #3D1A21;
     color-scheme: dark;
   }
-  :root:not([data-theme="light"])[data-market="japan"] { --accent: #F06A80; --accent-soft: #42202A; }
 }
 :root[data-theme="dark"] {
   --paper: #12191E; --surface: #1A2329; --ink: #E4EAED; --muted: #94A3AC;
@@ -63,7 +61,6 @@
   --warn: #E8B15A; --warn-soft: #3A2C14; --danger: #F07A8E; --danger-soft: #3D1A21;
   color-scheme: dark;
 }
-:root[data-theme="dark"][data-market="japan"] { --accent: #F06A80; --accent-soft: #42202A; }
 
 *, *::before, *::after { box-sizing: inherit; }
 html { scroll-padding-top: env(safe-area-inset-top, 0px); -webkit-text-size-adjust: 100%; }
@@ -90,11 +87,6 @@ img { max-width: 100%; }
 }
 .brand { font-weight: 700; font-size: 17px; letter-spacing: -0.01em; margin-right: auto; display: flex; gap: 10px; align-items: center; }
 .brand svg { color: var(--accent); flex: none; }
-.market-switch { display: inline-flex; border: 1px solid var(--rule); border-radius: 999px; padding: 3px; background: var(--surface); }
-.market-switch a {
-  text-decoration: none; color: var(--muted); padding: 6px 16px; border-radius: 999px; font-weight: 500; font-size: 14px;
-}
-.market-switch a[aria-current="page"] { background: var(--accent); color: var(--accent-ink); }
 .icon-btn {
   border: 1px solid var(--rule); background: var(--surface); border-radius: var(--r-md);
   padding: 6px 10px; cursor: pointer; font-size: 14px;
@@ -204,6 +196,14 @@ select.module {
 .pname { color: var(--muted); font-size: 13px; margin-top: 2px; line-height: 1.4; }
 .badge { font-size: 11px; font-weight: 600; padding: 1px 6px; border-radius: var(--r-sm); background: var(--band); color: var(--ink); }
 .badge.jp { background: var(--danger-soft); color: var(--danger); }
+.badge.cert { background: var(--accent); color: var(--accent-ink); }
+.badge.cert.hit { outline: 2px solid var(--ink); outline-offset: 1px; }
+.module-info { grid-column: 1 / -1; font-size: 12px; color: var(--muted); margin: -2px 0 0; }
+.module-info b { color: var(--ink); }
+.cert-group { display: grid; gap: 6px; }
+.cert-group + .cert-group { margin-top: 10px; }
+.cert-group h4 { margin: 0; font-size: 12px; color: var(--muted); font-weight: 600; }
+.mod-list span small { opacity: .75; margin-left: 4px; }
 .badge.np { background: var(--band); color: var(--muted); }
 .badge.nrnd { background: var(--warn-soft); color: var(--warn); }
 .badge.eol { background: var(--danger-soft); color: var(--danger); }
@@ -375,10 +375,6 @@ html.offline .net { display: inline-flex; }
       </svg>
       <span data-i18n="brand"></span>
     </div>
-    <nav class="market-switch" data-i18n-aria="market">
-      <a href="#/global" data-route="global" data-i18n="global"></a>
-      <a href="#/japan" data-route="japan" data-i18n="japan"></a>
-    </nav>
     <div class="tools">
       <span class="net" id="netBadge" role="status" data-i18n="offline"></span>
       <!-- 安裝 App (已安裝或不支援時隱藏) -->
@@ -469,8 +465,8 @@ html.offline .net { display: inline-flex; }
 <script>
 "use strict";
 /* ==========================================================================
-   Quectel 天線選型 PWA  v2
-   - 兩個頁面 (hash 路由)：#/global、#/japan
+   Quectel 天線選型 & TELEC 認證 PWA  v3
+   - 單一資料來源：Antenna Product and TELEC Certification Excel
    - 資料、版本號、建置時間由 build_data.py 內嵌於 DATA
    ========================================================================== */
 
@@ -486,6 +482,8 @@ const DATASHEET_URL = '';
 
 /** 更新紀錄 (新版本請加在最上方) */
 const CHANGELOG = [
+  { v: '3.0.0', zh: ['改用「Antenna Product and TELEC Certification」單一 Excel 為資料來源', '移除 Global / 日本市場分頁，整合為單一頁面', '新增 TELEC 認證模組選單 (依類別分組、顯示認證日期與天線數)', '清單顯示每款天線已認證的模組數，詳細資料列出所有認證模組', '新增「僅顯示有 TELEC 認證」篩選'],
+    en: ['Single data source: "Antenna Product and TELEC Certification" Excel', 'Global / Japan tabs merged into one page', 'TELEC-certified module menu (grouped by category, with cert date and antenna count)', 'Each row shows its certified-module count; detail view lists every certified module', '"TELEC-certified only" filter'] },
   { v: '2.3.0', zh: ['清單每一列顯示尺寸 Dimensions (mm)', '新增「依尺寸排序 (小→大)」', '新增尺寸上限篩選 (最長邊 ≤ X mm)', '尺寸格式統一 (×、Φ、去除 mm)'],
     en: ['Dimensions (mm) shown on every row', 'Sort by size (small→large)', 'Max-size filter (longest side ≤ X mm)', 'Normalized dimension format (×, Φ, no "mm")'] },
   { v: '2.2.0', zh: ['新增 Datasheet 按鈕 (清單與詳細規格皆可開啟，不顯示網址)', '連結來源：Selector「PRO」與 JP 天線表，互相補齊缺漏'],
@@ -509,14 +507,13 @@ const NA = '__na__', NONE = '__none__', OTHER = '__other__';
    ========================================================================== */
 const I18N = {
   zh: {
-    brand: 'Quectel 天線選型', market: '市場', global: 'Global', japan: '日本市場',
+    brand: 'Quectel 天線選型 · TELEC',
     langLbl: 'EN', langAria: 'Switch to English',
     themeDark: '深色', themeLight: '淺色', themeAriaDark: '切換為深色模式', themeAriaLight: '切換為淺色模式',
     update: '強制更新', updateAria: '清除快取並重新載入最新版本', updating: '正在清除快取並重新載入…',
     newVersion: '伺服器有新版本 v{v}，按「強制更新」套用',
     verAria: '版本資訊',
-    gTitle: 'Global 天線選型', gSub: '點選頻段標示需求，只列出完整涵蓋所有已選頻段的天線',
-    jTitle: '日本市場天線選型', jSub: '先選 Quectel 模組，再以頻段與外型縮小範圍',
+    mTitle: '天線選型與 TELEC 認證', mSub: '選擇模組查看已取得 TELEC 認證的天線，或點選頻段找出完整涵蓋的天線',
     scrollHint: '左右滑動查看更多頻段', customBand: '自訂頻段', lo: '低 MHz', hi: '高 MHz', addNeed: '加入需求',
     needN: '需涵蓋 <b>{n}</b> 個頻段', noNeed: '尚未指定頻段需求', bandTitle: '{l}：{lo}–{hi} MHz', bandRemove: '（再按一次移除）',
     filters: '篩選條件', done: '完成', resetAll: '清除所有條件', search: '搜尋料號、名稱、頻率…', searchAria: '搜尋',
@@ -524,8 +521,11 @@ const I18N = {
     sortOc: '依料號排序', sortGain: '依峰值增益 (高→低)', sortSpan: '依頻寬覆蓋 (寬→窄)',
     copyList: '複製料號清單', more: '顯示更多 (尚有 {n} 項)',
     emptyT: '沒有符合所有條件的天線', emptyD: '移除部分頻段需求或篩選條件後再試一次。',
-    all: '全部', module: 'Quectel 模組', allModules: '全部模組',
-    moduleHint: '相容性取 JP 天線表與 Selector「PRO-JP」勾選的聯集',
+    all: '全部', module: 'TELEC 認證模組', allModules: '全部模組',
+    moduleHint: '只列出與此模組一起取得 TELEC 認證的天線', modInfo: '類別 <b>{c}</b>　認證日期 <b>{d}</b>　認證天線 <b>{n}</b> 款',
+    modNone: '此模組目前沒有已認證的天線', noDate: '—',
+    certOnly: '僅顯示有 TELEC 認證的天線', badgeCert: 'TELEC ×{n}', certTitle: 'TELEC 認證模組 ({n})', certNone: '尚無 TELEC 認證模組',
+    v_rev: 'Excel 版次',
     f_type: '技術類別 Type', f_ptype: '產品型態 Product Type', f_atype: '天線類型 Antenna Type',
     f_form: '外型', f_mount: '安裝方式', f_conn: '連接器', f_ip: '防護等級', f_qty: '天線埠數', f_brochure: '銷售區域',
     jpOnly: '僅顯示日本市場相容', hideNonPro: '隱藏 Non-PRO (客製/配件)', hideEol: '隱藏 NRND / EOL 料號',
@@ -543,9 +543,9 @@ const I18N = {
     k_brochure: '銷售區域', k_base: '基準料號', k_jp: '日本市場', jpYes: '相容', srcSel: 'Selector PRO-JP', srcJp: 'JP 天線表',
     copied: '已複製料號 {oc}', copiedN: '已複製 {n} 個料號', noResults: '目前沒有結果可複製', clipFail: '無法存取剪貼簿',
     invalidFreq: '請輸入有效的頻率 (MHz)', notOnPage: '此料號不在本頁清單，已改用搜尋',
-    footer: '資料來源：{g}、{j}。頻段邊界為一般公開配置，最終選型請以 datasheet 與實測結果為準。',
+    footer: '資料來源：{s}（{r}）。頻段邊界為一般公開配置，最終選型請以 datasheet 與實測結果為準。',
     verTitle: '版本資訊', v_app: 'App 版本', v_built: '資料建置時間', v_latest: '伺服器版本', v_sw: '離線快取',
-    v_src: '資料來源', v_count: '產品數量', v_countVal: 'Global {g} 項；日本 {j} 項；JP 模組 {m} 款',
+    v_src: '資料來源', v_count: '資料數量', v_countVal: '天線 {a} 款；模組 {m} 款；認證組合 {c} 筆',
     checking: '檢查中…', upToDate: 'v{v}（已是最新）', newer: 'v{v}（可更新）', cantCheck: '無法檢查（離線或預覽環境）',
     swOn: '已啟用，可離線使用', swOff: '未啟用（需部署於 HTTPS）', changelog: '更新紀錄',
     offline: '離線模式', backOnline: '已恢復連線', offlineReady: '已可離線使用',
@@ -562,14 +562,13 @@ const I18N = {
     datasheet: 'Datasheet', dsAria: '開啟 {oc} 的 Datasheet', dsOffline: 'Datasheet 需要網路連線 (並登入公司帳號)',
   },
   en: {
-    brand: 'Quectel Antenna Selector', market: 'Market', global: 'Global', japan: 'Japan',
+    brand: 'Quectel Antenna Selector · TELEC',
     langLbl: '中文', langAria: '切換為中文',
     themeDark: 'Dark', themeLight: 'Light', themeAriaDark: 'Switch to dark mode', themeAriaLight: 'Switch to light mode',
     update: 'Force update', updateAria: 'Clear cache and reload the latest version', updating: 'Clearing cache and reloading…',
     newVersion: 'Version v{v} is available. Press "Force update" to apply.',
     verAria: 'Version info',
-    gTitle: 'Global antenna selection', gSub: 'Tap bands to set requirements. Only antennas covering every selected band are listed.',
-    jTitle: 'Japan market antenna selection', jSub: 'Pick a Quectel module first, then narrow down by band and form factor.',
+    mTitle: 'Antenna selection & TELEC certification', mSub: 'Pick a module to see antennas TELEC-certified with it, or tap bands to find antennas covering them.',
     scrollHint: 'Swipe sideways for more bands', customBand: 'Custom band', lo: 'Low MHz', hi: 'High MHz', addNeed: 'Add',
     needN: '<b>{n}</b> band(s) required', noNeed: 'No band requirement yet', bandTitle: '{l}: {lo}–{hi} MHz', bandRemove: ' (tap again to remove)',
     filters: 'Filters', done: 'Done', resetAll: 'Clear all filters', search: 'Search part no., name, frequency…', searchAria: 'Search',
@@ -577,8 +576,11 @@ const I18N = {
     sortOc: 'Sort by part no.', sortGain: 'Sort by peak gain (high→low)', sortSpan: 'Sort by bandwidth (wide→narrow)',
     copyList: 'Copy part numbers', more: 'Show more ({n} left)',
     emptyT: 'No antenna matches all conditions', emptyD: 'Remove some band requirements or filters and try again.',
-    all: 'All', module: 'Quectel module', allModules: 'All modules',
-    moduleHint: 'Compatibility merges the JP antenna list and the Selector "PRO-JP" ticks',
+    all: 'All', module: 'TELEC-certified module', allModules: 'All modules',
+    moduleHint: 'Only antennas TELEC-certified together with this module', modInfo: 'Category <b>{c}</b>   Cert date <b>{d}</b>   Certified antennas <b>{n}</b>',
+    modNone: 'No antenna is certified with this module yet', noDate: '—',
+    certOnly: 'TELEC-certified antennas only', badgeCert: 'TELEC ×{n}', certTitle: 'TELEC-certified modules ({n})', certNone: 'No TELEC-certified module yet',
+    v_rev: 'Excel revision',
     f_type: 'Type', f_ptype: 'Product Type', f_atype: 'Antenna Type',
     f_form: 'Form factor', f_mount: 'Mounting', f_conn: 'Connector', f_ip: 'IP rating', f_qty: 'Antenna ports', f_brochure: 'Sales region',
     jpOnly: 'Japan-compatible only', hideNonPro: 'Hide Non-PRO (custom / accessories)', hideEol: 'Hide NRND / EOL parts',
@@ -596,9 +598,9 @@ const I18N = {
     k_brochure: 'Sales region', k_base: 'Base part no.', k_jp: 'Japan market', jpYes: 'Compatible', srcSel: 'Selector PRO-JP', srcJp: 'JP antenna list',
     copied: 'Copied {oc}', copiedN: 'Copied {n} part numbers', noResults: 'No results to copy', clipFail: 'Clipboard unavailable',
     invalidFreq: 'Enter a valid frequency (MHz)', notOnPage: 'Not on this page; searching for it instead',
-    footer: 'Sources: {g}, {j}. Band edges follow common public allocations; confirm final selection with datasheets and measurements.',
+    footer: 'Source: {s} ({r}). Band edges follow common public allocations; confirm final selection with datasheets and measurements.',
     verTitle: 'Version info', v_app: 'App version', v_built: 'Data built', v_latest: 'Server version', v_sw: 'Offline cache',
-    v_src: 'Data sources', v_count: 'Products', v_countVal: 'Global {g}; Japan {j}; JP modules {m}',
+    v_src: 'Data source', v_count: 'Records', v_countVal: '{a} antennas; {m} modules; {c} certifications',
     checking: 'Checking…', upToDate: 'v{v} (up to date)', newer: 'v{v} (update available)', cantCheck: 'Unavailable (offline or preview)',
     swOn: 'Active, works offline', swOff: 'Inactive (requires HTTPS deployment)', changelog: 'Changelog',
     offline: 'Offline', backOnline: 'Back online', offlineReady: 'Ready to work offline',
@@ -643,25 +645,13 @@ function applyStaticI18n() {
 
 /* ---------- 頻段預設 (MHz)。邊界為一般公開頻段配置，僅供選型參考 ---------- */
 const BANDS = {
-  global: [
-    { id: 'lte-low', label: 'Sub-1G 617–960', lo: 617, hi: 960 },
-    { id: 'ism868', label: 'ISM 868', lo: 863, hi: 870 },
-    { id: 'ism915', label: 'ISM 915', lo: 902, hi: 928 },
-    { id: 'l5', label: 'GNSS L5', lo: 1164, hi: 1189 },
-    { id: 'l1', label: 'GNSS L1', lo: 1559, hi: 1610 },
-    { id: 'lband', label: 'L-band 1427–1518', lo: 1427, hi: 1518 },
-    { id: 'lte-mid', label: { zh: '中高頻 1710–2690', en: 'Mid/High 1710–2690' }, lo: 1710, hi: 2690 },
-    { id: 'wifi24', label: 'Wi-Fi 2.4G', lo: 2400, hi: 2500 },
-    { id: 'n77', label: 'n77/n78 3.3–4.2G', lo: 3300, hi: 4200 },
-    { id: 'n79', label: 'n79 4.4–5.0G', lo: 4400, hi: 5000 },
-    { id: 'wifi5', label: 'Wi-Fi 5G', lo: 5150, hi: 5850 },
-    { id: 'wifi6', label: 'Wi-Fi 6E', lo: 5925, hi: 7125 },
-  ],
-  japan: [
+  main: [
+    { id: 'sub1g', label: 'Sub-1G 617–960', lo: 617, hi: 960 },
     { id: 'b28', label: 'B28 700M', lo: 703, hi: 803 },
     { id: 'b18', label: 'B18/19/26 800M', lo: 815, hi: 890 },
     { id: 'b8', label: 'B8 900M', lo: 880, hi: 960 },
     { id: 'lpwa920', label: '920M LPWA', lo: 920.5, hi: 928.1 },
+    { id: 'l5', label: 'GNSS L5', lo: 1164, hi: 1189 },
     { id: 'b11', label: 'B11/21 1.5G', lo: 1427, hi: 1511 },
     { id: 'l1', label: 'GNSS L1', lo: 1559, hi: 1610 },
     { id: 'b3', label: 'B3 1.7G', lo: 1710, hi: 1880 },
@@ -669,10 +659,10 @@ const BANDS = {
     { id: 'wifi24', label: 'Wi-Fi 2.4G', lo: 2400, hi: 2484 },
     { id: 'b41', label: 'B41 2.5G', lo: 2496, hi: 2690 },
     { id: 'b42', label: 'B42 3.5G', lo: 3400, hi: 3600 },
-    { id: 'n77', label: 'n77/n78 3.7G', lo: 3600, hi: 4100 },
-    { id: 'n79', label: 'n79 4.5G', lo: 4500, hi: 4600 },
-    { id: 'wifi5', label: 'W52–W56', lo: 5150, hi: 5730 },
-    { id: 'wifi6', label: '6G LPI', lo: 5925, hi: 6425 },
+    { id: 'n77', label: 'n77/n78 3.3–4.2G', lo: 3300, hi: 4200 },
+    { id: 'n79', label: 'n79 4.4–5.0G', lo: 4400, hi: 5000 },
+    { id: 'wifi5', label: 'Wi-Fi 5G', lo: 5150, hi: 5850 },
+    { id: 'wifi6', label: 'Wi-Fi 6E', lo: 5925, hi: 7125 },
   ],
 };
 const bandLabel = (b) => (typeof b.label === 'string' ? b.label : b.label[lang]);
@@ -721,9 +711,10 @@ function xPct(f) {
    facet.ui: 'select' = 快速下拉選單 (單選)；'chips' / 'checks' = 側欄 (多選)
    ========================================================================== */
 const PAGES = {
-  global: {
-    title: 'gTitle', sub: 'gSub',
-    items: () => DATA.global,
+  main: {
+    title: 'mTitle', sub: 'mSub',
+    items: () => DATA.items,
+    module: true,
     facets: [
       { key: 'type', ui: 'select', get: (p) => typeLabel(p.type) },
       { key: 'ptype', ui: 'select', get: (p) => p.ptype || OTHER },
@@ -736,29 +727,13 @@ const PAGES = {
       { key: 'brochure', ui: 'chips', get: (p) => p.brochure || NA },
     ],
     toggles: [
+      { key: 'certOnly', test: (p) => (p.certs || []).length > 0 },
       { key: 'jpOnly', test: (p) => p.jp },
-      { key: 'hideNonPro', test: (p) => p.src !== 'Non-PRO', default: false },
-    ],
-  },
-  japan: {
-    title: 'jTitle', sub: 'jSub',
-    items: () => DATA.japan,
-    module: true,
-    facets: [
-      { key: 'type', ui: 'select', get: (p) => p.cats || [OTHER] },
-      { key: 'ptype', ui: 'select', get: (p) => p.kind || OTHER },
-      { key: 'atype', ui: 'select', get: (p) => p.atype || NA },
-      { key: 'form', ui: 'checks', get: (p) => p.form || NA },
-      { key: 'mount', ui: 'checks', get: (p) => mountNorm(p.mount) },
-      { key: 'conn', ui: 'checks', get: (p) => connFamily(p.conn) },
-    ],
-    toggles: [
-      { key: 'hideEol', test: (p) => !p.status, default: true },
     ],
   },
 };
 const facetTitle = (f) => t('f_' + f.key);
-const toggleLabel = { jpOnly: 'jpOnly', hideNonPro: 'hideNonPro', hideEol: 'hideEol' };
+const toggleLabel = { certOnly: 'certOnly', jpOnly: 'jpOnly' };
 
 /* ==========================================================================
    狀態 (每頁獨立，存在 localStorage)
@@ -775,8 +750,8 @@ function freshState(pg) {
   return st;
 }
 
-let page = 'global';
-let state = freshState('global');
+let page = 'main';
+let state = freshState('main');
 let shown = PAGE_SIZE;
 const $ = (id) => document.getElementById(id);
 
@@ -792,7 +767,7 @@ function filterItems(skipKey) {
   const q = state.q.trim().toLowerCase();
   const needs = allNeeds();
   return cfg.items().filter((p) => {
-    if (cfg.module && skipKey !== '__module' && state.module && !(p.modules || []).includes(state.module)) return false;
+    if (cfg.module && skipKey !== '__module' && state.module && !(p.certs || []).includes(state.module)) return false;
     for (const x of cfg.toggles) if (state.toggles[x.key] && !x.test(p)) return false;
     for (const f of cfg.facets) {
       if (f.key === skipKey) continue;
@@ -802,7 +777,7 @@ function filterItems(skipKey) {
     for (const n of needs) if (!covers(p.ranges, n.lo, n.hi)) return false;
     if (state.maxL && !(p.dimL != null && p.dimL <= state.maxL)) return false;
     if (q) {
-      const hay = [p.oc, p.name, p.desc, p.freq, p.form, p.atype, p.dim, p.note, p.replace, p.suggest, (p.modules || []).join(' ')]
+      const hay = [p.oc, p.name, p.desc, p.freq, p.form, p.atype, p.dim, p.replace, (p.certs || []).join(' ')]
         .join(' ').toLowerCase();
       if (!q.split(/\s+/).every((w) => hay.includes(w))) return false;
     }
@@ -821,9 +796,9 @@ function sorted(list) {
   } else {
     arr.sort((a, b) => a.oc.localeCompare(b.oc));
   }
-  // 穩定排序：NRND / EOL 與 Non-PRO 一律排在後面
-  const rank = (p) => (p.status ? 2 : 0) + (p.src === 'Non-PRO' ? 1 : 0);
-  return arr.sort((a, b) => rank(a) - rank(b));
+  // 選定模組時，已認證的天線本來就全部符合；未選模組時有 TELEC 認證者排前面 (穩定排序)
+  if (!state.module) arr.sort((a, b) => ((b.certs || []).length > 0) - ((a.certs || []).length > 0));
+  return arr;
 }
 function counts(facet) {
   const m = new Map();
@@ -846,7 +821,7 @@ function renderRuler() {
   const lanes = [];
   const bands = BANDS[page].map((b) => ({ ...b, text: bandLabel(b), custom: false }))
     .concat(state.custom.map((c, i) => ({ id: 'custom-' + i, text: `${c.lo}–${c.hi}`, lo: c.lo, hi: c.hi, custom: true })));
-  const MIN_W = 9.5;   // 按鈕最小寬度 (%)，以容納文字
+  const MIN_W = 8.5;   // 按鈕最小寬度 (%)，以容納文字
   const placed = bands.map((b) => {
     const x1 = xPct(b.lo), x2 = Math.max(xPct(b.hi), x1 + MIN_W);
     let lane = lanes.findIndex((right) => right <= x1 - 0.3);
@@ -874,14 +849,20 @@ function renderQuick() {
   const cfg = PAGES[page];
   let html = '';
   if (cfg.module) {
-    // 模組選項計數：忽略模組條件、套用其他條件
+    // 模組選項計數：忽略模組條件、套用其他條件；依 Name 工作表的類別分組
     const pool = filterItems('__module');
-    const opts = DATA.jpModules.map((m) => {
-      const n = pool.filter((p) => (p.modules || []).includes(m)).length;
-      return `<option value="${esc(m)}"${m === state.module ? ' selected' : ''}${!n && m !== state.module ? ' disabled' : ''}>${esc(m)} (${n})</option>`;
-    }).join('');
+    const groups = new Map();
+    for (const m of DATA.modules) {
+      const n = pool.filter((p) => (p.certs || []).includes(m.name)).length;
+      const opt = `<option value="${esc(m.name)}"${m.name === state.module ? ' selected' : ''}>${esc(m.name)} (${n})</option>`;
+      if (!groups.has(m.cat)) groups.set(m.cat, []);
+      groups.get(m.cat).push(opt);
+    }
+    const opts = [...groups].map(([cat, list]) => `<optgroup label="${esc(cat)}">${list.join('')}</optgroup>`).join('');
     html += `<label class="module" title="${esc(t('moduleHint'))}">${esc(t('module'))}
       <select data-quick="__module" class="${state.module ? 'active' : ''}"><option value="">${esc(t('allModules'))}</option>${opts}</select></label>`;
+    const m = DATA.modules.find((x) => x.name === state.module);
+    if (m) html += `<p class="module-info">${t('modInfo', { c: esc(m.cat), d: esc(m.date || t('noDate')), n: m.n })}</p>`;
   }
   for (const f of cfg.facets.filter((x) => x.ui === 'select')) {
     const c = counts(f);
@@ -980,19 +961,13 @@ function strip(p) {
 }
 function badges(p) {
   let b = '';
-  if (page === 'global') {
-    if (p.jp) b += `<span class="badge jp">${esc(t('badgeJp'))}</span>`;
-    if (p.src === 'Non-PRO') b += `<span class="badge np">Non-PRO</span>`;
-  } else {
-    if (p.status === 'NRND') b += `<span class="badge nrnd">NRND</span>`;
-    if (p.status === 'EOL') b += `<span class="badge eol">EOL</span>`;
-  }
+  const n = (p.certs || []).length;
+  if (n) b += `<span class="badge cert${state.module && p.certs.includes(state.module) ? ' hit' : ''}">${esc(t('badgeCert', { n }))}</span>`;
+  if (p.jp) b += `<span class="badge jp">${esc(t('badgeJp'))}</span>`;
   return b;
 }
 function specCells(p) {
-  const cells = page === 'global'
-    ? [['s_form', p.form], ['s_mount', p.mount], ['s_conn', (p.conn || []).join(', ')], ['s_gain', p.techs?.[0]?.gain]]
-    : [['s_form', p.form], ['s_mount', p.mount], ['s_conn', p.conn], ['s_cable', p.cable]];
+  const cells = [['s_form', p.form], ['s_mount', p.mount], ['s_conn', (p.conn || []).join(', ')], ['s_gain', p.techs?.[0]?.gain]];
   cells.push(['s_dim', p.dim]);
   return `<dl class="specs">${cells.map(([k, v]) => `<div class="${k === 's_dim' ? 'dim' : ''}"><dt>${esc(t(k))}</dt><dd title="${esc(v || '')}">${esc(v || '—')}</dd></div>`).join('')}</dl>`;
 }
@@ -1004,7 +979,8 @@ function renderList() {
   $('count').textContent = res.length;
   $('countOf').textContent = t('countOf', { n: PAGES[page].items().length });
   if (!res.length) {
-    $('list').innerHTML = `<div class="empty"><strong>${esc(t('emptyT'))}</strong>${esc(t('emptyD'))}<br>
+    const modEmpty = state.module && !DATA.items.some((p) => (p.certs || []).includes(state.module));
+    $('list').innerHTML = `<div class="empty"><strong>${esc(t(modEmpty ? 'modNone' : 'emptyT'))}</strong>${modEmpty ? '' : esc(t('emptyD'))}<br>
       <button type="button" class="icon-btn" style="margin-top:12px" data-act="reset">${esc(t('resetAll'))}</button></div>`;
     $('moreBtn').hidden = true;
     return;
@@ -1038,7 +1014,7 @@ function renderPageText() {
   $('specTitle').textContent = t(PAGES[page].title);
   $('specSub').textContent = t(PAGES[page].sub);
   document.title = `${t(PAGES[page].title)} | Quectel`;
-  $('footer').textContent = t('footer', { g: DATA.builtFrom.global, j: DATA.builtFrom.jp }) + ` v${APP_VERSION}`;
+  $('footer').textContent = t('footer', { s: DATA.source, r: DATA.revision?.rev || '—' }) + ` v${APP_VERSION}`;
 }
 function renderAll() {
   renderRuler();
@@ -1063,24 +1039,27 @@ function ocLink(oc) {
 function openDetail(oc) {
   const p = PAGES[page].items().find((x) => x.oc === oc);
   if (!p) return;
-  const isJp = page === 'japan';
   const sheet = dsButton(p, true);
   const techRows = (p.techs || []).map((x) => `<tr><td>${esc(x.t)}</td><td>${esc(x.f || '')}</td><td>${esc(x.q || '')}</td><td>${esc(x.eff || '')}</td><td>${esc(x.gain || '')}</td><td>${esc(x.pat || '')}</td><td>${esc(x.pol || '')}</td></tr>`).join('');
-  const notice = isJp && p.status
-    ? `<div class="notice"><b>${p.status}</b>${sep()}${esc(p.note)}${p.suggest ? `<br>${esc(t('suggest'))}${ocLink(p.suggest)}` : ''}</div>` : '';
-  const replaceNote = !isJp && p.replace ? `<div class="notice">${esc(t('replaces'))}${ocLink(p.replace)}</div>` : '';
-  const general = isJp
-    ? kv([['k_cats', p.cats], ['k_kind', p.kind], ['k_atype', p.atype], ['k_tech', p.tech], ['k_band', p.freq], ['k_form', p.form],
-        ['k_mount', p.mount], ['k_conn', p.conn], ['k_cable', p.cable], ['k_ip', p.ip], ['k_dim', p.dim],
-        ['k_note', !p.status ? p.note : null], ['k_src', t(p.fromSelector ? 'srcSel' : 'srcJp')]])
-    : kv([['k_type', typeLabel(p.type)], ['k_ptype', p.ptype], ['k_form', p.form], ['k_atype', p.atype], ['k_qty', p.qty],
-        ['k_mount', p.mount], ['k_dim', p.dim], ['k_conn', p.conn],
-        ['k_cables', (p.cables || []).map((c) => [c.len, c.type].filter(Boolean).join(' ')).filter(Boolean)],
-        ['k_lna', p.lna], ['k_ip', p.ip], ['k_ik', p.ik], ['k_flame', p.flame], ['k_uv', p.uv],
-        ['k_env', p.env], ['k_temp', p.temp], ['k_evb', p.evb], ['k_evbDim', p.evbDim],
-        ['k_brochure', p.brochure], ['k_base', p.base], ['k_jp', p.jp ? t('jpYes') : null]]);
-  const mods = isJp && p.modules?.length
-    ? `<section><h3>${esc(t('compat', { n: p.modules.length }))}</h3><div class="mod-list">${p.modules.map((m) => `<span class="${m === state.module ? 'hit' : ''}">${esc(m)}</span>`).join('')}</div></section>` : '';
+  const replaceNote = p.replace ? `<div class="notice">${esc(t('replaces'))}${ocLink(p.replace)}</div>` : '';
+  const general = kv([['k_type', typeLabel(p.type)], ['k_ptype', p.ptype], ['k_form', p.form], ['k_atype', p.atype], ['k_qty', p.qty],
+    ['k_mount', p.mount], ['k_dim', p.dim], ['k_conn', p.conn],
+    ['k_cables', (p.cables || []).map((c) => [c.len, c.type].filter(Boolean).join(' ')).filter(Boolean)],
+    ['k_lna', p.lna], ['k_ip', p.ip], ['k_ik', p.ik], ['k_flame', p.flame], ['k_uv', p.uv],
+    ['k_env', p.env], ['k_temp', p.temp], ['k_evb', p.evb], ['k_evbDim', p.evbDim],
+    ['k_brochure', p.brochure], ['k_jp', p.jp ? t('jpYes') : null]]);
+  // TELEC 認證模組：依類別分組，附認證日期
+  const certs = p.certs || [];
+  const byCat = new Map();
+  for (const m of DATA.modules) if (certs.includes(m.name)) {
+    if (!byCat.has(m.cat)) byCat.set(m.cat, []);
+    byCat.get(m.cat).push(m);
+  }
+  const certHtml = certs.length
+    ? [...byCat].map(([cat, list]) => `<div class="cert-group"><h4>${esc(cat)}</h4><div class="mod-list">${list.map((m) =>
+        `<span class="${m.name === state.module ? 'hit' : ''}">${esc(m.name)}${m.date ? `<small>${esc(m.date)}</small>` : ''}</span>`).join('')}</div></div>`).join('')
+    : `<p class="module-hint">${esc(t('certNone'))}</p>`;
+  const mods = `<section><h3>${esc(t('certTitle', { n: certs.length }))}</h3>${certHtml}</section>`;
 
   $('detail').innerHTML = `
     <div class="d-head">
@@ -1093,11 +1072,11 @@ function openDetail(oc) {
       <div class="close-wrap"><button type="button" class="icon-btn" data-close>${esc(t('close'))}</button></div>
     </div>
     <div class="d-body">
-      ${notice}${replaceNote}
+      ${replaceNote}
+      ${mods}
       <section><h3>${esc(t('freqCov'))}</h3>${strip(p)}<p class="freq-text" style="-webkit-line-clamp:unset">${esc(p.freq || '')}</p></section>
       ${techRows ? `<section><h3>${esc(t('rfPerf'))}</h3><div class="tbl-wrap"><table><thead><tr>${['th_tech', 'th_freq', 'th_qty', 'th_eff', 'th_gain', 'th_pat', 'th_pol'].map((k) => `<th>${esc(t(k))}</th>`).join('')}</tr></thead><tbody>${techRows}</tbody></table></div></section>` : ''}
       <section><h3>${esc(t('specs'))}</h3>${general}</section>
-      ${mods}
     </div>`;
   if (!$('detail').open) $('detail').showModal();
 }
@@ -1141,8 +1120,9 @@ async function openVersion() {
           <dt>${esc(t('v_sw'))}</dt><dd>${esc(t(swActive ? 'swOn' : 'swOff'))}</dd>
           <dt>${esc(t('v_mode'))}</dt><dd>${esc(t(isStandalone() ? 'modeApp' : 'modeBrowser'))}</dd>
           <dt>${esc(t('v_storage'))}</dt><dd>${esc(t(persisted ? 'persistOn' : 'persistOff'))}</dd>
-          <dt>${esc(t('v_src'))}</dt><dd>${esc(DATA.builtFrom.global)}<br>${esc(DATA.builtFrom.jp)}</dd>
-          <dt>${esc(t('v_count'))}</dt><dd>${esc(t('v_countVal', { g: DATA.global.length, j: DATA.japan.length, m: DATA.jpModules.length }))}</dd>
+          <dt>${esc(t('v_src'))}</dt><dd>${esc(DATA.source)}</dd>
+          <dt>${esc(t('v_rev'))}</dt><dd>${esc([DATA.revision?.rev, DATA.revision?.date].filter(Boolean).join(' · ') || '—')}</dd>
+          <dt>${esc(t('v_count'))}</dt><dd>${esc(t('v_countVal', { a: DATA.items.length, m: DATA.modules.length, c: DATA.items.reduce((n, p) => n + (p.certs || []).length, 0) }))}</dd>
         </dl>
         <section><h3>${esc(t('changelog'))}</h3><ul class="changelog">${CHANGELOG.map((c) =>
           `<li><h4>v${esc(c.v)}</h4><ul>${c[lang].map((x) => `<li>${esc(x)}</li>`).join('')}</ul></li>`).join('')}</ul></section>
@@ -1421,15 +1401,11 @@ $('closeFilters').addEventListener('click', () => setFilters(false));
    路由與初始化
    ========================================================================== */
 function route() {
-  const r = (location.hash.match(/^#\/(\w+)/) || [])[1];
-  page = PAGES[r] ? r : 'global';
-  document.documentElement.dataset.market = page;
-  document.querySelectorAll('[data-route]').forEach((a) => {
-    if (a.dataset.route === page) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current');
-  });
-  const meta = document.querySelector('meta[name="theme-color"]');
-  if (meta) meta.content = page === 'japan' ? '#B4233C' : '#0F766E';
+  // v3 起為單一頁面；舊連結 (#/global、#/japan) 一律導向主畫面
+  page = 'main';
+  if (location.hash) history.replaceState(null, '', location.pathname + location.search);
   state = Object.assign(freshState(page), store.load(page) || {});
+  if (state.module && !DATA.modules.some((m) => m.name === state.module)) state.module = '';
   $('sortSel').value = state.sort;
   renderPageText();
   setFilters(false);
@@ -1444,7 +1420,6 @@ setNet();
 // iOS 不支援安裝事件：未安裝時直接顯示「安裝 App」按鈕 (開啟說明)
 if (platform === 'ios') $('installBtn').dataset.manual = '1';
 refreshInstallBtn();
-window.addEventListener('hashchange', route);
 route();
 
 /* Service Worker：僅在 https / localhost 註冊；偵測到新版即提示 */

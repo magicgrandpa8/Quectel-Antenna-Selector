@@ -1,48 +1,38 @@
 #!/usr/bin/env python3
 """
-build_data.py — 將 Quectel 天線 Excel 選型表轉為 PWA 內嵌資料，並產生 index.html
+build_data.py — 將「Quectel Antenna Product and TELEC Certification」Excel
+轉為 PWA 內嵌資料，並產生 index.html / version.json，同步 sw.js 快取版本。
 
 用法:
-    python3 build_data.py \
-        --version     2.0.0 \
-        --global-xlsx Quectel_Antenna_Product_Selector_V3_7_20260916.xlsx \
-        --jp-xlsx     Quectel_Antenna_Product_for_JP_202604__-_update.xlsx \
-        --template    template.html \
-        --out         index.html
+    python3 build_data.py --version 3.0.0 \
+        --xlsx Quectel_Antenna_Product_and_TELEC_Certification_V3_7_20260916_Rev26_Q3_for_CU.xlsx
+
+資料來源 (僅使用可見工作表):
+    "Antenna vs Cert" : 天線規格 + 模組 TELEC 認證矩陣 (☑)
+    "Name"            : 模組清單、認證日期、類別 (類別欄為合併儲存格，向下填補)
+    "Histories"       : 版次資訊 (取最新一筆的 Version 與 Updated Date)
+
+刻意不使用:
+    - veryHidden 的各模組原始認證工作表 (內部資料)
+    - "Histories" 的更新人員姓名
 
 輸出:
-    index.html    內嵌資料、版本號與建置時間的 App
-    version.json  供 App 檢查伺服器上是否有新版本
-    sw.js         自動將 CACHE_VERSION 改為 antenna-selector-v<版本號>，
-                  不需再手動修改
-
-資料來源對應:
-    Global 頁  : Selector 檔的 "PRO" + "Non-PRO" 工作表
-    日本市場頁 : JP 檔的 "5G" / "LTE (4G)" / "Wi-Fi & BT" 工作表
-                 + Selector 檔 "PRO-JP" 工作表中有勾選模組相容(√)的料號
-                 模組相容性取兩份來源的聯集。
-
-刻意排除的欄位 (內部資訊，不放入可分享的工具):
-    - "Buy&Sell/Self-Production(only PDMs know)"
-
-Datasheet 連結 (欄位 "ds"):
-    - Global 料號：Selector「PRO」的 "Datasheet link"；沒有時改用 JP 表的連結
-    - 日本料號  ：JP 表的 "Datasheet Link" / "Datasheet"；沒有時改用 PRO 的連結
-    - 只接受 https:// 開頭的網址
+    index.html    內嵌資料、圖片、字型、版本號的 App
+    version.json  供 App 偵測伺服器新版本
+    sw.js         CACHE_VERSION 自動改為 antenna-selector-v<版本號>
 
 相依套件: openpyxl, Pillow (含 WebP 支援)
 """
 from __future__ import annotations
 
 import argparse
-import datetime as dt
 import base64
+import datetime as dt
 import io
 import json
 import re
 import sys
 import zipfile
-from collections import defaultdict
 from pathlib import Path
 
 from openpyxl import load_workbook
@@ -50,17 +40,14 @@ from PIL import Image
 
 THUMB_PX = 160          # 縮圖最長邊 (px)
 THUMB_QUALITY = 72      # WebP 品質
+MAIN_SHEET = "Antenna vs Cert"
+MODULE_SHEET = "Name"
+HISTORY_SHEET = "Histories"
+CERT_MARKS = {"☑", "√", "✓", "✔", "V", "v", "Y", "YES"}
+# 規格欄最後一欄；其後皆為模組認證矩陣
+LAST_SPEC_COL = "Compatible with Japan Market"
 
 EMPTY = {None, "", "None", "N/A", "n/a", "NA", "-"}
-
-
-def clean_url(v):
-    """只接受 https 網址；其餘 (空白、說明文字、公式殘留) 回傳 None。"""
-    s = clean(v)
-    if not s:
-        return None
-    s = s.split()[0]
-    return s if s.lower().startswith("https://") else None
 
 
 # --------------------------------------------------------------------------- #
@@ -77,10 +64,19 @@ def clean(v):
     return None if s in EMPTY else s
 
 
-def norm_module(name: str) -> str:
-    """模組名稱正規化：不換行連字號→一般連字號、去除換行與多餘空白。"""
-    s = str(name).replace("\u2011", "-").replace("\n", " ")
-    return re.sub(r"\s+", " ", s).strip()
+def clean_url(v):
+    """只接受 https 網址；其餘回傳 None。"""
+    s = clean(v)
+    if not s:
+        return None
+    s = s.split()[0]
+    return s if s.lower().startswith("https://") else None
+
+
+def fmt_date(v):
+    if isinstance(v, (dt.datetime, dt.date)):
+        return v.strftime("%Y-%m-%d")
+    return clean(v)
 
 
 _RANGE_RE = re.compile(
@@ -92,8 +88,7 @@ _SINGLE_RE = re.compile(r"(\d{3,5}(?:\.\d+)?)\s*(GHz|MHz)?", re.I)
 
 def parse_ranges(text: str | None) -> list[list[float]]:
     """
-    從頻率描述文字解析出 [low, high] (MHz) 區間清單並合併重疊。
-    支援 '617–960 MHz'、'5.15-5.85GHz'、'DC~6GHz'、'1575.42 MHz' 等寫法。
+    從頻率描述文字解析出 [low, high] (MHz) 區間並合併重疊。
     假設：未標單位的數值視為 MHz；數值 < 10 且未標單位則視為 GHz。
     """
     if not text:
@@ -106,12 +101,11 @@ def parse_ranges(text: str | None) -> list[list[float]]:
         lo = 0.0 if lo_s.upper() == "DC" else float(lo_s)
         hi = float(hi_s)
         mul_hi = 1000 if unit == "ghz" or (not unit and hi < 10) else 1
-        mul_lo = 1000 if (u1 or "").lower() == "ghz" or (not u1 and unit == "ghz") or (not unit and lo < 10 and lo > 0) else 1
+        mul_lo = 1000 if (u1 or "").lower() == "ghz" or (not u1 and unit == "ghz") or (not unit and 0 < lo < 10) else 1
         lo, hi = lo * mul_lo, hi * mul_hi
         if hi > lo:
             out.append([round(lo, 2), round(hi, 2)])
             consumed.append(m.span())
-    # 單點頻率 (例如 GNSS 1575.42 MHz) 以 ±1 MHz 表示
     masked = list(text)
     for a, b in consumed:
         for i in range(a, b):
@@ -133,9 +127,7 @@ def parse_ranges(text: str | None) -> list[list[float]]:
 def norm_dim(text: str | None):
     """
     尺寸正規化，回傳 (顯示字串, 最長邊 mm)。
-    - 去除 'mm'、統一乘號為 ' × '、Ф/Ø → Φ
-    - 最長邊取括號前主要外形尺寸中的最大數值 (疊層 patch 如 '25×25×4+18×18×4' 取 25)
-    假設：所有數值單位皆為 mm。
+    最長邊取括號前主要外形中的最大數值 (疊層 patch 取最大那層)。假設單位皆為 mm。
     """
     if not text:
         return None, None
@@ -145,8 +137,7 @@ def norm_dim(text: str | None):
     t = re.sub(r"Φ\s*", "Φ ", t)
     t = re.sub(r"\s*\+\s*", " + ", t)
     t = re.sub(r"\s+", " ", t).strip(" ,;")
-    main = t.split("(")[0]
-    nums = [float(n) for n in re.findall(r"\d+(?:\.\d+)?", main)]
+    nums = [float(n) for n in re.findall(r"\d+(?:\.\d+)?", t.split("(")[0])]
     return t, (max(nums) if nums else None)
 
 
@@ -160,8 +151,7 @@ class SheetImages:
         rels = self._rels("xl/_rels/workbook.xml.rels")
         self.sheet_file = {}
         for name, rid in re.findall(r'<sheet [^>]*?name="([^"]+)"[^>]*?r:id="([^"]+)"', wb_xml):
-            name = name.replace("&amp;", "&")
-            self.sheet_file[name] = "xl/" + rels[rid].lstrip("/").replace("xl/", "")
+            self.sheet_file[name.replace("&amp;", "&")] = "xl/" + rels[rid].lstrip("/").replace("xl/", "")
 
     def _rels(self, path):
         try:
@@ -170,9 +160,7 @@ class SheetImages:
             return {}
         res = {}
         for tag in re.findall(r"<Relationship [^>]+>", xml):
-            rid = re.search(r'Id="([^"]+)"', tag).group(1)
-            tgt = re.search(r'Target="([^"]+)"', tag).group(1)
-            res[rid] = tgt
+            res[re.search(r'Id="([^"]+)"', tag).group(1)] = re.search(r'Target="([^"]+)"', tag).group(1)
         return res
 
     def row_images(self, sheet: str) -> dict[int, bytes]:
@@ -181,8 +169,7 @@ class SheetImages:
         if not sf:
             return {}
         base = sf.rsplit("/", 1)
-        srels = self._rels(f"{base[0]}/_rels/{base[1]}.rels")
-        drawing = next((t for t in srels.values() if "drawings/" in t), None)
+        drawing = next((t for t in self._rels(f"{base[0]}/_rels/{base[1]}.rels").values() if "drawings/" in t), None)
         if not drawing:
             return {}
         dpath = "xl/drawings/" + drawing.split("drawings/")[-1]
@@ -198,24 +185,19 @@ class SheetImages:
             r = int(row.group(1))
             if r in result:
                 continue
-            media = "xl/media/" + drels[emb.group(1)].split("media/")[-1]
             try:
-                result[r] = self.z.read(media)
+                result[r] = self.z.read("xl/media/" + drels[emb.group(1)].split("media/")[-1])
             except KeyError:
                 pass
         return result
 
 
 def to_thumb(raw: bytes) -> str | None:
-    """轉為 WebP 縮圖 data URI；失敗回傳 None。"""
+    """轉為 WebP 縮圖 data URI (裁白邊)；失敗回傳 None。"""
     try:
-        im = Image.open(io.BytesIO(raw))
-        im = im.convert("RGBA")
-        # 裁掉白邊/透明邊，讓產品主體更大
-        bg = Image.new("RGBA", im.size, (255, 255, 255, 255))
-        flat = Image.alpha_composite(bg, im).convert("RGB")
-        inv = Image.eval(flat, lambda p: 255 - p)
-        bbox = inv.point(lambda p: 255 if p > 12 else 0).getbbox()
+        im = Image.open(io.BytesIO(raw)).convert("RGBA")
+        flat = Image.alpha_composite(Image.new("RGBA", im.size, (255, 255, 255, 255)), im).convert("RGB")
+        bbox = Image.eval(flat, lambda p: 255 - p).point(lambda p: 255 if p > 12 else 0).getbbox()
         if bbox:
             flat = flat.crop(bbox)
         flat.thumbnail((THUMB_PX, THUMB_PX), Image.LANCZOS)
@@ -227,258 +209,165 @@ def to_thumb(raw: bytes) -> str | None:
 
 
 # --------------------------------------------------------------------------- #
-# Global 選型表
+# 讀取工作表
 # --------------------------------------------------------------------------- #
-def read_selector_sheet(ws, imgs: dict[int, bytes], source: str, images: dict):
-    rows = list(ws.iter_rows(values_only=True))
+def read_modules(wb) -> list[dict]:
+    """Name 工作表：模組名稱、認證日期、類別 (合併儲存格向下填補)。"""
+    rows = list(wb[MODULE_SHEET].iter_rows(values_only=True))
+    hdr_i = next(i for i, r in enumerate(rows) if r and "Module Name" in [clean(c) for c in r])
+    hdr = [clean(c) for c in rows[hdr_i]]
+    ci = {h: i for i, h in enumerate(hdr) if h}
+    out, cat = [], None
+    for r in rows[hdr_i + 1:]:
+        name = clean(r[ci["Module Name"]]) if ci["Module Name"] < len(r) else None
+        if not name:
+            continue
+        cat = clean(r[ci["Category"]]) or cat
+        out.append({"name": name, "date": fmt_date(r[ci["Cert Date"]]), "cat": cat or "Other"})
+    return out
+
+
+def read_revision(wb) -> dict:
+    """Histories：取最上方 (最新) 一筆的版次與日期；不讀取人員姓名。"""
+    rows = list(wb[HISTORY_SHEET].iter_rows(values_only=True))
+    hdr_i = next(i for i, r in enumerate(rows) if r and "Version" in [clean(c) for c in r])
+    hdr = [clean(c) for c in rows[hdr_i]]
+    ci = {h: i for i, h in enumerate(hdr) if h}
+    for r in rows[hdr_i + 1:]:
+        ver = clean(r[ci["Version"]])
+        if ver:
+            return {"rev": ver, "date": fmt_date(r[ci.get("Updated Date")]) if "Updated Date" in ci else None,
+                    "remark": clean(r[ci["Remark"]]) if "Remark" in ci else None}
+    return {}
+
+
+def read_products(wb, imgs: dict[int, bytes], images: dict, module_names: list[str]):
+    rows = list(wb[MAIN_SHEET].iter_rows(values_only=True))
     hdr = [clean(h) for h in rows[0]]
     idx = {h: i for i, h in enumerate(hdr) if h}
-    oc_col = idx.get("OC", 0)
-    section = None
+    first_mod = idx[LAST_SPEC_COL] + 1
+    mod_cols = {i: hdr[i] for i in range(first_mod, len(hdr)) if hdr[i]}
+    unknown = [m for m in mod_cols.values() if m not in module_names]
+    if unknown:
+        print(f"警告：矩陣中的模組不在 Name 工作表：{unknown}", file=sys.stderr)
+
     products = []
+    # rows[1] 為各欄統計列，資料自 rows[2] 起
     for rnum, r in enumerate(rows[2:], start=2):
         get = lambda k: clean(r[idx[k]]) if k in idx and idx[k] < len(r) else None
-        oc = clean(r[oc_col])
-        name = get("Product Name")
-        if oc and not name:
-            section = oc          # Non-PRO 的分段標題列 (5G / 4G / WIFI ...)
-            continue
+        oc, name = get("OC"), get("Product Name")
         if not oc or not name:
             continue
         techs = []
         for n in range(1, 5):
             t = get(f"Technology{n}")
-            if not t:
-                continue
-            techs.append({
-                "t": t, "f": get(f"Frequency Range{n}"), "q": get(f"Quantity{n}"),
-                "eff": get(f"Efficiency{n}"), "gain": get(f"Peak Gain{n}"),
-                "pat": get(f"Radiation Pattern{n}"), "pol": get(f"Polarization{n}"),
-            })
+            if t:
+                techs.append({"t": t, "f": get(f"Frequency Range{n}"), "q": get(f"Quantity{n}"),
+                              "eff": get(f"Efficiency{n}"), "gain": get(f"Peak Gain{n}"),
+                              "pat": get(f"Radiation Pattern{n}"), "pol": get(f"Polarization{n}")})
         freq_text = get("Frequency Range") or "\n".join(t["f"] or "" for t in techs)
-        cables = [c for c in (
-            {"len": get("Cable Length1"), "type": get("Cable Type1")},
-            {"len": get("Cable Length2"), "type": get("Cable Type2")},
-        ) if c["len"] or c["type"]]
+        dim, dim_l = norm_dim(get("Dimensions(mm)"))
+        certs = [m for i, m in mod_cols.items() if i < len(r) and (clean(r[i]) or "") in CERT_MARKS]
         p = {
-            "oc": oc, "src": source,
-            "type": get("Type") or section,
-            "brochure": get("Brochure Type"),
+            "oc": oc, "type": get("Type"), "brochure": get("Brochure Type"),
             "name": name, "desc": get("Detailed Description"),
             "ptype": get("Product Type"), "form": get("Form Factor"),
             "qty": get("Antenna Quantity"), "mount": get("Mounting Type"),
-            "dim": norm_dim(get("Dimensions(mm)"))[0], "dimL": norm_dim(get("Dimensions(mm)"))[1],
-            "atype": get("Antenna Type"),
+            "dim": dim, "dimL": dim_l, "atype": get("Antenna Type"),
             "freq": freq_text, "ranges": parse_ranges(freq_text),
-            "techs": techs, "lna": get("LNA Gain(dB)"), "cables": cables,
+            "techs": techs, "lna": get("LNA Gain(dB)"),
+            "cables": [c for c in ({"len": get("Cable Length1"), "type": get("Cable Type1")},
+                                   {"len": get("Cable Length2"), "type": get("Cable Type2")}) if c["len"] or c["type"]],
             "conn": [c for c in (get("Connector Type1"), get("Connector Type2")) if c],
-            "evb": get("SMD EVB OC"), "evbDim": get("EVB Dimensions(mm)"),
+            "evb": get("SMD EVB OC"), "evbDim": norm_dim(get("EVB Dimensions(mm)"))[0],
             "ip": get("IP Rating"), "ik": get("IK Rating"), "flame": get("Flame Rating"),
-            "uv": get("UV Resistant"), "env": get("Environmental"),
-            "temp": get("Operation Temperature"),
-            "jp": (get("Compatible with Japan Market") or "").upper() == "YES",
+            "uv": get("UV Resistant"), "env": get("Environmental"), "temp": get("Operation Temperature"),
+            "jp": (get(LAST_SPEC_COL) or "").upper() == "YES",
             "replace": get("To Replace"),
-            "base": get("Based Standard OC"),
             "ds": clean_url(r[idx["Datasheet link"]]) if "Datasheet link" in idx else None,
+            "certs": certs,
         }
         if rnum in imgs and oc not in images:
             t = to_thumb(imgs[rnum])
             if t:
                 images[oc] = t
         products.append({k: v for k, v in p.items() if v not in (None, [], "")})
-    return products
-
-
-def read_pro_jp_modules(ws) -> dict[str, set[str]]:
-    """PRO-JP：回傳 {OC: {相容模組}}，模組欄位為 'Compatible with Japan Market' 之後的欄。"""
-    rows = list(ws.iter_rows(values_only=True))
-    hdr = list(rows[0])
-    oc_i = hdr.index("OC")
-    start = hdr.index("Compatible with Japan Market") + 1
-    mods = {i: norm_module(hdr[i]) for i in range(start, len(hdr)) if clean(hdr[i])}
-    out = defaultdict(set)
-    for r in rows[2:]:
-        oc = clean(r[oc_i])
-        if not oc:
-            continue
-        for i, m in mods.items():
-            if i < len(r) and clean(r[i]) == "√":
-                out[oc].add(m)
-    return out
-
-
-# --------------------------------------------------------------------------- #
-# 日本市場表
-# --------------------------------------------------------------------------- #
-JP_SHEETS = {"5G": "5G", "LTE (4G)": "LTE", "Wi-Fi & BT": "Wi-Fi/BT"}
-JP_FIXED = ["External/Patch/Embedded", "Quectel OC", "Frequency Band (MHz)", "Technology",
-            "Form Factor", "Cable Length", "IP Rating", "Connector Type", "Mounting Type",
-            "Dimension (mm)", "Datasheet", "Datasheet Link", "Image", "Note"]
-
-
-def parse_status(note: str | None):
-    """從 Note 欄判斷 NRND / EOL 與建議替代料號。"""
-    if not note:
-        return None, None
-    status = "EOL" if "EOL" in note.upper() else "NRND" if "NRND" in note.upper() else None
-    m = re.search(r"(?:suggested|replaced with)\s+([A-Z0-9/\-]+)", note, re.I)
-    return status, (m.group(1) if m else None)
-
-
-def read_jp(wb, imgs_by_sheet, images):
-    products: dict[str, dict] = {}
-    for sheet, cat in JP_SHEETS.items():
-        rows = list(wb[sheet].iter_rows(values_only=True))
-        hdr = [clean(h) for h in rows[0]]
-        idx = {h: i for i, h in enumerate(hdr) if h}
-        mod_cols = {i: norm_module(h) for i, h in enumerate(hdr) if h and h not in JP_FIXED}
-        imgs = imgs_by_sheet.get(sheet, {})
-        for rnum, r in enumerate(rows[1:], start=1):
-            get = lambda k: clean(r[idx[k]]) if k in idx and idx[k] < len(r) else None
-            oc = get("Quectel OC")
-            if not oc:
-                continue
-            note = get("Note")
-            status, suggest = parse_status(note)
-            freq = get("Frequency Band (MHz)")
-            # 未標單位的 JP 頻段視為 MHz
-            p = products.setdefault(oc, {"oc": oc, "cats": [], "modules": set()})
-            if cat not in p["cats"]:
-                p["cats"].append(cat)
-            p.update({k: v for k, v in {
-                "kind": get("External/Patch/Embedded"), "freq": freq,
-                "ranges": parse_ranges(freq), "tech": get("Technology"),
-                "form": get("Form Factor"), "cable": get("Cable Length"),
-                "ip": get("IP Rating"), "conn": get("Connector Type"),
-                "mount": get("Mounting Type"), "dim": norm_dim(get("Dimension (mm)"))[0],
-                "dimL": norm_dim(get("Dimension (mm)"))[1],
-                "note": note, "status": status, "suggest": suggest,
-                "ds": clean_url(get("Datasheet Link") or get("Datasheet")),
-            }.items() if v is not None and k not in p})
-            for i, m in mod_cols.items():
-                if i < len(r) and clean(r[i]) == "√":
-                    p["modules"].add(m)
-            if rnum in imgs and oc not in images:
-                t = to_thumb(imgs[rnum])
-                if t:
-                    images[oc] = t
-    return products
+    return products, list(mod_cols.values())
 
 
 # --------------------------------------------------------------------------- #
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--global-xlsx", required=True, type=Path)
-    ap.add_argument("--jp-xlsx", required=True, type=Path)
+    ap.add_argument("--xlsx", required=True, type=Path, help="Antenna Product and TELEC Certification Excel")
+    ap.add_argument("--version", required=True, help="App 版本號，例如 3.0.0")
     ap.add_argument("--template", default=Path("template.html"), type=Path)
     ap.add_argument("--out", default=Path("index.html"), type=Path)
-    ap.add_argument("--version", required=True, help="App 版本號，例如 2.0.0")
-    ap.add_argument("--sw", default=Path("sw.js"), type=Path, help="要同步更新 CACHE_VERSION 的 sw.js")
+    ap.add_argument("--sw", default=Path("sw.js"), type=Path)
     a = ap.parse_args()
     if not re.fullmatch(r"\d+\.\d+\.\d+", a.version):
-        sys.exit("--version 格式需為 X.Y.Z，例如 2.0.0")
+        sys.exit("--version 格式需為 X.Y.Z，例如 3.0.0")
     built = dt.datetime.now().astimezone().strftime("%Y-%m-%d %H:%M %z")
 
+    wb = load_workbook(a.xlsx, read_only=True, data_only=True)
+    for s in (MAIN_SHEET, MODULE_SHEET, HISTORY_SHEET):
+        if s not in wb.sheetnames:
+            sys.exit(f"Excel 缺少工作表：{s}")
+
+    modules = read_modules(wb)
     images: dict[str, str] = {}
+    products, matrix_mods = read_products(
+        wb, SheetImages(a.xlsx).row_images(MAIN_SHEET), images, [m["name"] for m in modules])
 
-    # ---- Global ----
-    gwb = load_workbook(a.global_xlsx, read_only=True, data_only=True)
-    gimg = SheetImages(a.global_xlsx)
-    glob = []
-    for sheet, src in (("PRO", "PRO"), ("Non-PRO", "Non-PRO")):
-        glob += read_selector_sheet(gwb[sheet], gimg.row_images(sheet), src, images)
-    by_oc = {p["oc"]: p for p in glob}
-    pro_jp_mods = read_pro_jp_modules(gwb["PRO-JP"])
+    # 模組清單以 Name 工作表順序為準，附上認證天線數
+    for m in modules:
+        m["n"] = sum(1 for p in products if m["name"] in p.get("certs", []))
+    for name in matrix_mods:
+        if name not in {m["name"] for m in modules}:
+            modules.append({"name": name, "date": None, "cat": "Other",
+                            "n": sum(1 for p in products if name in p.get("certs", []))})
 
-    # ---- Japan ----
-    jwb = load_workbook(a.jp_xlsx, read_only=True, data_only=True)
-    jimg = SheetImages(a.jp_xlsx)
-    jp = read_jp(jwb, {s: jimg.row_images(s) for s in JP_SHEETS}, images)
-
-    # 合併 PRO-JP 模組相容性 (聯集)；補入 JP 檔沒有、但 PRO-JP 有勾選的料號
-    tech_to_cat = {"5G": "5G", "4G": "LTE", "WIFI": "Wi-Fi/BT"}
-    for oc, mods in pro_jp_mods.items():
-        if not mods:
-            continue
-        if oc in jp:
-            jp[oc]["modules"] |= mods
-            continue
-        g = by_oc.get(oc)
-        if not g:
-            continue
-        jp[oc] = {
-            "oc": oc, "cats": [tech_to_cat.get(g.get("type"), g.get("type") or "Other")],
-            "modules": set(mods), "kind": "External" if g.get("ptype", "").startswith("External") else "Embedded",
-            "freq": g.get("freq"), "ranges": g.get("ranges", []), "tech": g.get("type"),
-            "form": g.get("form"), "ip": g.get("ip"), "conn": ", ".join(g.get("conn", [])) or None,
-            "mount": g.get("mount"), "dim": g.get("dim"), "dimL": g.get("dimL"),
-            "cable": ", ".join(filter(None, (c.get("len") for c in g.get("cables", [])))) or None,
-            "fromSelector": True, "ds": g.get("ds"),
-        }
-    # 以 Global 規格補充日本料號 (產品名稱、效率、增益)
-    jp_list = []
-    for p in jp.values():
-        g = by_oc.get(p["oc"])
-        if g:
-            p["name"] = g.get("name")
-            p["techs"] = g.get("techs")
-            p["atype"] = g.get("atype")   # Antenna Type (Monopole / Dipole / IFA ...)
-            if not p.get("ds") and g.get("ds"):
-                p["ds"] = g["ds"]
-            elif p.get("ds") and not g.get("ds"):
-                g["ds"] = p["ds"]           # Global 缺連結時以 JP 連結補上
-        p["modules"] = sorted(p["modules"])
-        jp_list.append({k: v for k, v in p.items() if v not in (None, [], "")})
-
-    modules = sorted({m for p in jp_list for m in p.get("modules", [])})
-    ds_g = sum(1 for p in glob if p.get("ds"))
-    ds_j = sum(1 for p in jp_list if p.get("ds"))
     data = {
-        "version": a.version, "built": built,
-        "builtFrom": {"global": a.global_xlsx.name, "jp": a.jp_xlsx.name},
-        "global": glob, "japan": jp_list, "jpModules": modules, "images": images,
+        "version": a.version, "built": built, "source": a.xlsx.name,
+        "revision": read_revision(wb),
+        "items": products, "modules": modules, "images": images,
     }
     payload = json.dumps(data, ensure_ascii=False, separators=(",", ":"))
-    tpl = a.template.read_text(encoding="utf8")
 
-    # 內嵌字型：fonts/ibm-plex-sans-latin-<weight>-normal.woff2 → @font-face data URI
-    # (App 不依賴任何外部網域，離線時字型仍一致)
+    # ---- 模板：資料 + 內嵌字型 ----
+    tpl = a.template.read_text(encoding="utf8")
+    if "/*__DATA__*/null" not in tpl:
+        sys.exit("template.html 缺少 /*__DATA__*/null 佔位符")
     font_css = []
-    font_dir = a.template.parent / "fonts"
-    for f in sorted(font_dir.glob("ibm-plex-sans-latin-*-normal.woff2")):
+    for f in sorted((a.template.parent / "fonts").glob("ibm-plex-sans-latin-*-normal.woff2")):
         weight = re.search(r"-(\d{3})-normal", f.name).group(1)
-        b64 = base64.b64encode(f.read_bytes()).decode()
         font_css.append(
             "@font-face{font-family:'IBM Plex Sans';font-style:normal;font-display:swap;"
-            f"font-weight:{weight};src:url(data:font/woff2;base64,{b64}) format('woff2');"
+            f"font-weight:{weight};src:url(data:font/woff2;base64,{base64.b64encode(f.read_bytes()).decode()}) format('woff2');"
             "unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,"
             "U+2000-206F,U+2074,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;}")
     if not font_css:
         print("警告：找不到 fonts/*.woff2，將使用系統字型", file=sys.stderr)
-    tpl = tpl.replace("/*__FONTS__*/", "\n".join(font_css))
-    if "/*__DATA__*/null" not in tpl:
-        sys.exit("template.html 缺少 /*__DATA__*/null 佔位符")
-    a.out.write_text(tpl.replace("/*__DATA__*/null", payload.replace("</", "<\\/")), encoding="utf8")
+    html = tpl.replace("/*__FONTS__*/", "\n".join(font_css))
+    html = html.replace("/*__DATA__*/null", payload.replace("</", "<\\/"))
+    a.out.write_text(html, encoding="utf8")
 
-    # version.json：App 以 no-store 讀取，用來比對是否有新版本
+    # ---- version.json / sw.js ----
     a.out.with_name("version.json").write_text(
         json.dumps({"version": a.version, "built": built}, ensure_ascii=False), encoding="utf8")
-
-    # sw.js：同步 CACHE_VERSION，讓已安裝的使用者取得新版
     if a.sw.exists():
-        sw = a.sw.read_text(encoding="utf8")
-        sw2, n = re.subn(r"const CACHE_VERSION = '[^']*';",
-                         f"const CACHE_VERSION = 'antenna-selector-v{a.version}';", sw)
+        sw, n = re.subn(r"const CACHE_VERSION = '[^']*';",
+                        f"const CACHE_VERSION = 'antenna-selector-v{a.version}';", a.sw.read_text(encoding="utf8"))
         if n != 1:
             sys.exit("sw.js 找不到 CACHE_VERSION 宣告")
-        a.sw.write_text(sw2, encoding="utf8")
+        a.sw.write_text(sw, encoding="utf8")
 
-    print(f"版本: v{a.version}  建置時間: {built}")
-    print(f"Global 產品: {len(glob)}  日本產品: {len(jp_list)}  JP 模組: {len(modules)}  圖片: {len(images)}")
-    print(f"Datasheet 連結: Global {ds_g}/{len(glob)}  日本 {ds_j}/{len(jp_list)}")
-    print(f"尺寸可解析: Global {sum(1 for p in glob if p.get('dimL'))}/{len(glob)}  "
-          f"日本 {sum(1 for p in jp_list if p.get('dimL'))}/{len(jp_list)}")
-    print(f"輸出: {a.out} ({a.out.stat().st_size/1024:.0f} KB)")
+    certified = sum(1 for p in products if p.get("certs"))
+    print(f"版本: v{a.version}  建置時間: {built}  Excel 版次: {data['revision'].get('rev')}")
+    print(f"天線: {len(products)}  (有 TELEC 認證: {certified})  模組: {len(modules)}  "
+          f"認證組合 (☑): {sum(len(p.get('certs', [])) for p in products)}  圖片: {len(images)}")
+    print(f"Datasheet 連結: {sum(1 for p in products if p.get('ds'))}/{len(products)}  "
+          f"尺寸可解析: {sum(1 for p in products if p.get('dimL'))}/{len(products)}")
+    print(f"輸出: {a.out} ({a.out.stat().st_size / 1024:.0f} KB)")
 
 
 if __name__ == "__main__":
