@@ -24,7 +24,11 @@ build_data.py — 將 Quectel 天線 Excel 選型表轉為 PWA 內嵌資料，�
 
 刻意排除的欄位 (內部資訊，不放入可分享的工具):
     - "Buy&Sell/Self-Production(only PDMs know)"
-    - Datasheet 內部 SharePoint / OneDrive 連結 (前端可另設 DATASHEET_URL 樣板)
+
+Datasheet 連結 (欄位 "ds"):
+    - Global 料號：Selector「PRO」的 "Datasheet link"；沒有時改用 JP 表的連結
+    - 日本料號  ：JP 表的 "Datasheet Link" / "Datasheet"；沒有時改用 PRO 的連結
+    - 只接受 https:// 開頭的網址
 
 相依套件: openpyxl, Pillow (含 WebP 支援)
 """
@@ -48,6 +52,15 @@ THUMB_PX = 160          # 縮圖最長邊 (px)
 THUMB_QUALITY = 72      # WebP 品質
 
 EMPTY = {None, "", "None", "N/A", "n/a", "NA", "-"}
+
+
+def clean_url(v):
+    """只接受 https 網址；其餘 (空白、說明文字、公式殘留) 回傳 None。"""
+    s = clean(v)
+    if not s:
+        return None
+    s = s.split()[0]
+    return s if s.lower().startswith("https://") else None
 
 
 # --------------------------------------------------------------------------- #
@@ -115,6 +128,26 @@ def parse_ranges(text: str | None) -> list[list[float]]:
         else:
             merged.append([lo, hi])
     return merged
+
+
+def norm_dim(text: str | None):
+    """
+    尺寸正規化，回傳 (顯示字串, 最長邊 mm)。
+    - 去除 'mm'、統一乘號為 ' × '、Ф/Ø → Φ
+    - 最長邊取括號前主要外形尺寸中的最大數值 (疊層 patch 如 '25×25×4+18×18×4' 取 25)
+    假設：所有數值單位皆為 mm。
+    """
+    if not text:
+        return None, None
+    t = re.sub(r"\s*mm\b", "", text, flags=re.I)
+    t = t.replace("Ф", "Φ").replace("Ø", "Φ").replace("φ", "Φ")
+    t = re.sub(r"\s*[×xX*]\s*", " × ", t)
+    t = re.sub(r"Φ\s*", "Φ ", t)
+    t = re.sub(r"\s*\+\s*", " + ", t)
+    t = re.sub(r"\s+", " ", t).strip(" ,;")
+    main = t.split("(")[0]
+    nums = [float(n) for n in re.findall(r"\d+(?:\.\d+)?", main)]
+    return t, (max(nums) if nums else None)
 
 
 # --------------------------------------------------------------------------- #
@@ -234,7 +267,8 @@ def read_selector_sheet(ws, imgs: dict[int, bytes], source: str, images: dict):
             "name": name, "desc": get("Detailed Description"),
             "ptype": get("Product Type"), "form": get("Form Factor"),
             "qty": get("Antenna Quantity"), "mount": get("Mounting Type"),
-            "dim": get("Dimensions(mm)"), "atype": get("Antenna Type"),
+            "dim": norm_dim(get("Dimensions(mm)"))[0], "dimL": norm_dim(get("Dimensions(mm)"))[1],
+            "atype": get("Antenna Type"),
             "freq": freq_text, "ranges": parse_ranges(freq_text),
             "techs": techs, "lna": get("LNA Gain(dB)"), "cables": cables,
             "conn": [c for c in (get("Connector Type1"), get("Connector Type2")) if c],
@@ -245,6 +279,7 @@ def read_selector_sheet(ws, imgs: dict[int, bytes], source: str, images: dict):
             "jp": (get("Compatible with Japan Market") or "").upper() == "YES",
             "replace": get("To Replace"),
             "base": get("Based Standard OC"),
+            "ds": clean_url(r[idx["Datasheet link"]]) if "Datasheet link" in idx else None,
         }
         if rnum in imgs and oc not in images:
             t = to_thumb(imgs[rnum])
@@ -315,8 +350,10 @@ def read_jp(wb, imgs_by_sheet, images):
                 "ranges": parse_ranges(freq), "tech": get("Technology"),
                 "form": get("Form Factor"), "cable": get("Cable Length"),
                 "ip": get("IP Rating"), "conn": get("Connector Type"),
-                "mount": get("Mounting Type"), "dim": get("Dimension (mm)"),
+                "mount": get("Mounting Type"), "dim": norm_dim(get("Dimension (mm)"))[0],
+                "dimL": norm_dim(get("Dimension (mm)"))[1],
                 "note": note, "status": status, "suggest": suggest,
+                "ds": clean_url(get("Datasheet Link") or get("Datasheet")),
             }.items() if v is not None and k not in p})
             for i, m in mod_cols.items():
                 if i < len(r) and clean(r[i]) == "√":
@@ -374,9 +411,9 @@ def main():
             "modules": set(mods), "kind": "External" if g.get("ptype", "").startswith("External") else "Embedded",
             "freq": g.get("freq"), "ranges": g.get("ranges", []), "tech": g.get("type"),
             "form": g.get("form"), "ip": g.get("ip"), "conn": ", ".join(g.get("conn", [])) or None,
-            "mount": g.get("mount"), "dim": g.get("dim"),
+            "mount": g.get("mount"), "dim": g.get("dim"), "dimL": g.get("dimL"),
             "cable": ", ".join(filter(None, (c.get("len") for c in g.get("cables", [])))) or None,
-            "fromSelector": True,
+            "fromSelector": True, "ds": g.get("ds"),
         }
     # 以 Global 規格補充日本料號 (產品名稱、效率、增益)
     jp_list = []
@@ -386,10 +423,16 @@ def main():
             p["name"] = g.get("name")
             p["techs"] = g.get("techs")
             p["atype"] = g.get("atype")   # Antenna Type (Monopole / Dipole / IFA ...)
+            if not p.get("ds") and g.get("ds"):
+                p["ds"] = g["ds"]
+            elif p.get("ds") and not g.get("ds"):
+                g["ds"] = p["ds"]           # Global 缺連結時以 JP 連結補上
         p["modules"] = sorted(p["modules"])
         jp_list.append({k: v for k, v in p.items() if v not in (None, [], "")})
 
     modules = sorted({m for p in jp_list for m in p.get("modules", [])})
+    ds_g = sum(1 for p in glob if p.get("ds"))
+    ds_j = sum(1 for p in jp_list if p.get("ds"))
     data = {
         "version": a.version, "built": built,
         "builtFrom": {"global": a.global_xlsx.name, "jp": a.jp_xlsx.name},
@@ -432,6 +475,9 @@ def main():
 
     print(f"版本: v{a.version}  建置時間: {built}")
     print(f"Global 產品: {len(glob)}  日本產品: {len(jp_list)}  JP 模組: {len(modules)}  圖片: {len(images)}")
+    print(f"Datasheet 連結: Global {ds_g}/{len(glob)}  日本 {ds_j}/{len(jp_list)}")
+    print(f"尺寸可解析: Global {sum(1 for p in glob if p.get('dimL'))}/{len(glob)}  "
+          f"日本 {sum(1 for p in jp_list if p.get('dimL'))}/{len(jp_list)}")
     print(f"輸出: {a.out} ({a.out.stat().st_size/1024:.0f} KB)")
 
 

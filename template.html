@@ -215,11 +215,26 @@ select.module {
 .specs dt { color: var(--muted); }
 .specs dd { margin: 0; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .specs div { min-width: 0; }
+.specs .dim { grid-column: 1 / -1; }
+.specs .dim dd { font-weight: 600; }
+.size-filter { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+.size-filter input { width: 90px; padding: 6px 8px; border: 1px solid var(--rule); border-radius: var(--r-sm); background: var(--surface); }
+.size-filter input.active { border-color: var(--accent); background: var(--accent-soft); font-weight: 600; }
+.size-hint { font-size: 12px; color: var(--muted); margin: 6px 0 0; }
 
 .empty { padding: 48px 24px; text-align: center; color: var(--muted); }
 .empty strong { display: block; color: var(--ink); font-size: 16px; margin-bottom: 6px; }
 .more { display: block; margin: 12px auto 0; }
 .more[hidden] { display: none; }
+/* Datasheet 按鈕 (不顯示網址) */
+.ds-btn {
+  display: inline-flex; align-items: center; gap: 4px; border: 1px solid var(--accent); color: var(--accent);
+  background: var(--surface); border-radius: var(--r-sm); padding: 2px 8px; font-size: 12px; font-weight: 600; cursor: pointer;
+}
+.ds-btn:hover { background: var(--accent); color: var(--accent-ink); }
+.ds-btn.lg { padding: 6px 12px; font-size: 14px; border-radius: var(--r-md); }
+html.offline .ds-btn { opacity: .5; }
+.row:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
 
 /* ======================================================================
    Detail dialog
@@ -434,6 +449,7 @@ html.offline .net { display: inline-flex; }
         <option value="oc" data-i18n="sortOc"></option>
         <option value="gain" data-i18n="sortGain"></option>
         <option value="span" data-i18n="sortSpan"></option>
+        <option value="size" data-i18n="sortSize"></option>
       </select>
       <button class="icon-btn" id="copyBtn" type="button" data-i18n="copyList"></button>
     </div>
@@ -463,13 +479,17 @@ const DATA = /*__DATA__*/null;
 const APP_VERSION = DATA.version || '0.0.0';
 
 /**
- * Datasheet 連結樣板：填入含 {oc} 的網址即會顯示 datasheet 按鈕。
- * 例如 'https://intranet.example.com/datasheet?q={oc}_Datasheet'。預設留空。
+ * Datasheet 連結：優先使用 Excel 內的連結 (資料欄位 ds)。
+ * 若某料號沒有連結且此樣板有值 (含 {oc})，改用樣板產生連結；預設留空。
  */
 const DATASHEET_URL = '';
 
 /** 更新紀錄 (新版本請加在最上方) */
 const CHANGELOG = [
+  { v: '2.3.0', zh: ['清單每一列顯示尺寸 Dimensions (mm)', '新增「依尺寸排序 (小→大)」', '新增尺寸上限篩選 (最長邊 ≤ X mm)', '尺寸格式統一 (×、Φ、去除 mm)'],
+    en: ['Dimensions (mm) shown on every row', 'Sort by size (small→large)', 'Max-size filter (longest side ≤ X mm)', 'Normalized dimension format (×, Φ, no "mm")'] },
+  { v: '2.2.0', zh: ['新增 Datasheet 按鈕 (清單與詳細規格皆可開啟，不顯示網址)', '連結來源：Selector「PRO」與 JP 天線表，互相補齊缺漏'],
+    en: ['Datasheet button in the list and detail view (URL hidden)', 'Links come from the Selector "PRO" sheet and the JP list, each filling gaps in the other'] },
   { v: '2.1.0', zh: ['完全離線：移除所有外部資源，字型內嵌，首次開啟即快取全部檔案', '新增「安裝 App」按鈕與 iOS / Android / Windows 安裝說明', '新增離線狀態標示', '強制更新會先確認伺服器可連線，離線時不會清除快取', '申請永久儲存，降低離線資料被系統清除的機會'],
     en: ['Fully offline: no external resources, embedded fonts, all files cached on first launch', 'Install button with iOS / Android / Windows instructions', 'Offline status indicator', 'Force update checks the server first and never clears the cache while offline', 'Requests persistent storage so offline data is less likely to be evicted'] },
   { v: '2.0.0', zh: ['新增強制更新按鈕，並自動偵測伺服器新版本', '新增深色 / 淺色模式切換按鈕', '新增中文 / English 介面切換', '新增版本資訊視窗', '新增 Type、Product Type、Antenna Type 下拉選單（日本頁另含模組選單）'],
@@ -537,6 +557,9 @@ const I18N = {
     androidSteps: ['用 <b>Chrome</b> 開啟此網頁', '點右上角 <b>⋮</b> 選單', '點 <b>安裝應用程式</b> (或「加到主畫面」)', '之後從主畫面或應用程式清單開啟'],
     desktopSteps: ['用 <b>Edge</b> 或 <b>Chrome</b> 開啟此網頁', '點網址列右側的 <b>安裝</b> 圖示 <span class="kbd">⊕</span>，或選單 → <b>應用程式</b> → <b>安裝此網站為應用程式</b>', '安裝後可從 <b>開始功能表</b> 開啟，也可釘選到工作列'],
     installNote: '安裝完成並開啟一次後，即可在沒有網路的環境使用。',
+    s_dim: '尺寸 (mm)', sortSize: '依尺寸排序 (小→大)', f_size: '尺寸上限', sizeLbl: '最長邊 ≤', sizeUnit: 'mm',
+    sizeHint: '以尺寸中最大的數值比較 (Φ 為直徑)', sizeTag: '最長邊 ≤ {n} mm',
+    datasheet: 'Datasheet', dsAria: '開啟 {oc} 的 Datasheet', dsOffline: 'Datasheet 需要網路連線 (並登入公司帳號)',
   },
   en: {
     brand: 'Quectel Antenna Selector', market: 'Market', global: 'Global', japan: 'Japan',
@@ -587,6 +610,9 @@ const I18N = {
     androidSteps: ['Open this page in <b>Chrome</b>', 'Tap the <b>⋮</b> menu', 'Tap <b>Install app</b> (or "Add to Home screen")', 'Launch it from the home screen or app drawer'],
     desktopSteps: ['Open this page in <b>Edge</b> or <b>Chrome</b>', 'Click the <b>Install</b> icon <span class="kbd">⊕</span> in the address bar, or menu → <b>Apps</b> → <b>Install this site as an app</b>', 'Launch it from the <b>Start menu</b> or pin it to the taskbar'],
     installNote: 'After installing and opening it once, it works without any network connection.',
+    s_dim: 'Dimensions (mm)', sortSize: 'Sort by size (small→large)', f_size: 'Max size', sizeLbl: 'Longest side ≤', sizeUnit: 'mm',
+    sizeHint: 'Compared using the largest value in the dimensions (Φ = diameter)', sizeTag: 'Longest side ≤ {n} mm',
+    datasheet: 'Datasheet', dsAria: 'Open datasheet for {oc}', dsOffline: 'Datasheets need a network connection (and company sign-in)',
   },
 };
 let lang = 'zh';
@@ -744,7 +770,7 @@ const store = {
   save(page, st) { this.set(page, JSON.stringify(st)); },
 };
 function freshState(pg) {
-  const st = { q: '', sel: {}, bands: [], custom: [], toggles: {}, sort: 'oc', module: '' };
+  const st = { q: '', sel: {}, bands: [], custom: [], toggles: {}, sort: 'oc', module: '', maxL: null };
   PAGES[pg].toggles.forEach((x) => { st.toggles[x.key] = !!x.default; });
   return st;
 }
@@ -774,8 +800,9 @@ function filterItems(skipKey) {
       if (sel && sel.length && !asArr(f.get(p)).some((v) => sel.includes(v))) return false;
     }
     for (const n of needs) if (!covers(p.ranges, n.lo, n.hi)) return false;
+    if (state.maxL && !(p.dimL != null && p.dimL <= state.maxL)) return false;
     if (q) {
-      const hay = [p.oc, p.name, p.desc, p.freq, p.form, p.atype, p.note, p.replace, p.suggest, (p.modules || []).join(' ')]
+      const hay = [p.oc, p.name, p.desc, p.freq, p.form, p.atype, p.dim, p.note, p.replace, p.suggest, (p.modules || []).join(' ')]
         .join(' ').toLowerCase();
       if (!q.split(/\s+/).every((w) => hay.includes(w))) return false;
     }
@@ -789,6 +816,8 @@ function sorted(list) {
     arr.sort((a, b) => g(b) - g(a));
   } else if (state.sort === 'span') {
     arr.sort((a, b) => spanOf(b) - spanOf(a));
+  } else if (state.sort === 'size') {
+    arr.sort((a, b) => (a.dimL ?? Infinity) - (b.dimL ?? Infinity));
   } else {
     arr.sort((a, b) => a.oc.localeCompare(b.oc));
   }
@@ -875,6 +904,11 @@ function renderFilters() {
   const cfg = PAGES[page];
   let html = `<div class="fgroup"><label class="sr-only" for="q">${esc(t('searchAria'))}</label>
     <input class="search" id="q" type="search" placeholder="${esc(t('search'))}" value="${esc(state.q)}"></div>`;
+  html += `<div class="fgroup"><p class="ftitle"><label for="maxL">${esc(t('f_size'))}</label></p>
+    <div class="size-filter"><span>${esc(t('sizeLbl'))}</span>
+      <input id="maxL" type="number" inputmode="decimal" min="0" step="any" value="${state.maxL ?? ''}" class="${state.maxL ? 'active' : ''}" placeholder="—">
+      <span>${esc(t('sizeUnit'))}</span></div>
+    <p class="size-hint">${esc(t('sizeHint'))}</p></div>`;
   for (const f of cfg.facets.filter((x) => x.ui !== 'select')) {
     const c = counts(f);
     const sel = state.sel[f.key] || [];
@@ -897,10 +931,32 @@ function renderFilters() {
     `<label class="toggle"><input type="checkbox" data-toggle="${x.key}"${state.toggles[x.key] ? ' checked' : ''}> ${esc(t(toggleLabel[x.key]))}</label>`).join('') + `</div>`;
 
   // 重繪時保留搜尋框焦點與游標位置
-  const focused = document.activeElement?.id === 'q';
-  const caret = focused ? $('q').selectionStart : null;
+  const fid = document.activeElement?.id;
+  const caret = fid === 'q' ? $('q').selectionStart : null;
   $('filterBody').innerHTML = html;
-  if (focused) { const el = $('q'); el.focus(); el.setSelectionRange(caret, caret); }
+  if (fid === 'q') { const el = $('q'); el.focus(); el.setSelectionRange(caret, caret); }
+  if (fid === 'maxL') { const el = $('maxL'); el.focus(); }
+}
+
+/* ==========================================================================
+   Datasheet：以 JS 開啟，畫面與滑鼠懸停皆不顯示網址
+   ========================================================================== */
+function dsUrl(p) {
+  if (p?.ds) return p.ds;
+  return DATASHEET_URL ? DATASHEET_URL.replace('{oc}', encodeURIComponent(p.oc)) : null;
+}
+function dsButton(p, large) {
+  if (!dsUrl(p)) return '';
+  return `<button type="button" class="ds-btn${large ? ' lg' : ''}" data-ds="${esc(p.oc)}" aria-label="${esc(t('dsAria', { oc: p.oc }))}">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6M9 13h6M9 17h6"/></svg>${esc(t('datasheet'))}</button>`;
+}
+function openDatasheet(oc) {
+  const p = PAGES[page].items().find((x) => x.oc === oc);
+  const url = dsUrl(p);
+  if (!url) return;
+  if (!navigator.onLine) { toast(t('dsOffline'), 3000); return; }
+  // noopener / noreferrer：新分頁無法回頭存取本 App，也不帶來源網址
+  window.open(url, '_blank', 'noopener,noreferrer');
 }
 
 /* ==========================================================================
@@ -937,7 +993,8 @@ function specCells(p) {
   const cells = page === 'global'
     ? [['s_form', p.form], ['s_mount', p.mount], ['s_conn', (p.conn || []).join(', ')], ['s_gain', p.techs?.[0]?.gain]]
     : [['s_form', p.form], ['s_mount', p.mount], ['s_conn', p.conn], ['s_cable', p.cable]];
-  return `<dl class="specs">${cells.map(([k, v]) => `<div><dt>${esc(t(k))}</dt><dd title="${esc(v || '')}">${esc(v || '—')}</dd></div>`).join('')}</dl>`;
+  cells.push(['s_dim', p.dim]);
+  return `<dl class="specs">${cells.map(([k, v]) => `<div class="${k === 's_dim' ? 'dim' : ''}"><dt>${esc(t(k))}</dt><dd title="${esc(v || '')}">${esc(v || '—')}</dd></div>`).join('')}</dl>`;
 }
 
 let lastResults = [];
@@ -953,12 +1010,12 @@ function renderList() {
     return;
   }
   $('list').innerHTML = res.slice(0, shown).map((p) => `
-    <button type="button" class="row" role="listitem" data-oc="${esc(p.oc)}">
+    <div class="row" role="listitem" tabindex="0" data-oc="${esc(p.oc)}">
       ${thumb(p.oc)}
-      <div><div class="oc">${esc(p.oc)} ${badges(p)}</div><div class="pname">${esc(p.name || [p.kind, p.tech].filter(Boolean).join(' '))}</div></div>
+      <div><div class="oc">${esc(p.oc)} ${badges(p)} ${dsButton(p)}</div><div class="pname">${esc(p.name || [p.kind, p.tech].filter(Boolean).join(' '))}</div></div>
       <div class="strip-cell">${strip(p)}<div class="freq-text">${esc(p.freq || '')}</div></div>
       ${specCells(p)}
-    </button>`).join('');
+    </div>`).join('');
   $('moreBtn').hidden = res.length <= shown;
   $('moreBtn').textContent = t('more', { n: res.length - shown });
 }
@@ -970,6 +1027,7 @@ function renderActiveTags() {
   for (const f of cfg.facets) for (const v of state.sel[f.key] || []) tags.push({ label: `${facetTitle(f)}${sep()}${valLabel(v)}`, act: 'facet', f: f.key, v });
   for (const b of BANDS[page]) if (state.bands.includes(b.id)) tags.push({ label: bandLabel(b), act: 'band', id: b.id });
   state.custom.forEach((c, i) => tags.push({ label: `${c.lo}–${c.hi} MHz`, act: 'custom', i }));
+  if (state.maxL) tags.push({ label: t('sizeTag', { n: state.maxL }), act: 'size' });
   $('activeTags').innerHTML = tags.map((x) =>
     `<button type="button" aria-label="${esc(t('removeTag', { x: x.label }))}" data-tag='${esc(JSON.stringify(x))}'>${esc(x.label)}</button>`).join('');
   const n = tags.length + (state.q ? 1 : 0);
@@ -1006,7 +1064,7 @@ function openDetail(oc) {
   const p = PAGES[page].items().find((x) => x.oc === oc);
   if (!p) return;
   const isJp = page === 'japan';
-  const sheet = DATASHEET_URL ? `<a class="icon-btn" href="${esc(DATASHEET_URL.replace('{oc}', encodeURIComponent(p.oc)))}" target="_blank" rel="noopener">${esc(t('openSheet'))}</a>` : '';
+  const sheet = dsButton(p, true);
   const techRows = (p.techs || []).map((x) => `<tr><td>${esc(x.t)}</td><td>${esc(x.f || '')}</td><td>${esc(x.q || '')}</td><td>${esc(x.eff || '')}</td><td>${esc(x.gain || '')}</td><td>${esc(x.pat || '')}</td><td>${esc(x.pol || '')}</td></tr>`).join('');
   const notice = isJp && p.status
     ? `<div class="notice"><b>${p.status}</b>${sep()}${esc(p.note)}${p.suggest ? `<br>${esc(t('suggest'))}${ocLink(p.suggest)}` : ''}</div>` : '';
@@ -1265,9 +1323,14 @@ $('quick').addEventListener('change', (e) => {
 
 let qTimer;
 $('filterBody').addEventListener('input', (e) => {
-  if (e.target.id !== 'q') return;
-  state.q = e.target.value;
-  clearTimeout(qTimer); qTimer = setTimeout(update, 150);
+  if (e.target.id === 'q') {
+    state.q = e.target.value;
+    clearTimeout(qTimer); qTimer = setTimeout(update, 150);
+  } else if (e.target.id === 'maxL') {
+    const v = parseFloat(e.target.value);
+    state.maxL = isFinite(v) && v > 0 ? v : null;
+    clearTimeout(qTimer); qTimer = setTimeout(update, 250);
+  }
 });
 $('filterBody').addEventListener('change', (e) => {
   const el = e.target;
@@ -1289,6 +1352,7 @@ $('activeTags').addEventListener('click', (e) => {
   if (x.act === 'facet') state.sel[x.f] = (state.sel[x.f] || []).filter((v) => v !== x.v);
   if (x.act === 'band') state.bands = state.bands.filter((id) => id !== x.id);
   if (x.act === 'custom') state.custom.splice(x.i, 1);
+  if (x.act === 'size') state.maxL = null;
   update();
 });
 function resetAll() { state = freshState(page); $('sortSel').value = state.sort; update(); }
@@ -1301,11 +1365,20 @@ $('copyBtn').addEventListener('click', () => {
 });
 $('list').addEventListener('click', (e) => {
   if (e.target.closest('[data-act="reset"]')) { resetAll(); return; }
+  const ds = e.target.closest('[data-ds]');
+  if (ds) { e.stopPropagation(); openDatasheet(ds.dataset.ds); return; }
   const r = e.target.closest('[data-oc]'); if (r) openDetail(r.dataset.oc);
+});
+// 鍵盤：在列上按 Enter / 空白鍵開啟詳細規格
+$('list').addEventListener('keydown', (e) => {
+  if ((e.key === 'Enter' || e.key === ' ') && e.target.classList.contains('row')) {
+    e.preventDefault(); openDetail(e.target.dataset.oc);
+  }
 });
 $('detail').addEventListener('click', (e) => {
   if (e.target === $('detail') || e.target.closest('[data-close]')) { $('detail').close(); return; }
   const c = e.target.closest('[data-copy]'); if (c) { copyText(c.dataset.copy, t('copied', { oc: c.dataset.copy })); return; }
+  const ds = e.target.closest('[data-ds]'); if (ds) { openDatasheet(ds.dataset.ds); return; }
   const g = e.target.closest('[data-goto]');
   if (g) {
     const oc = g.dataset.goto;
