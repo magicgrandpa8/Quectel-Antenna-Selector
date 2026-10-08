@@ -97,7 +97,14 @@ img { max-width: 100%; }
    Page heading
    ====================================================================== */
 .spectrum { max-width: 1360px; margin: 0 auto; padding: 20px 20px 8px; }
-.spectrum-head { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; margin-bottom: 10px; }
+.spectrum-head { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 10px; }
+.agent-btn {
+  display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: 999px;
+  border: 1.5px solid var(--accent); color: var(--accent); background: var(--surface);
+  font-size: 13.5px; font-weight: 600; text-decoration: none; white-space: nowrap;
+}
+.agent-btn:hover { background: var(--accent); color: var(--accent-ink); }
+html.offline .agent-btn { opacity: .55; }
 .spectrum-head h1 { font-size: 22px; line-height: 1.25; margin: 0; font-weight: 600; letter-spacing: -0.01em; }
 .spectrum-head p { margin: 0; color: var(--muted); font-size: 13px; }
 
@@ -426,6 +433,11 @@ html.offline .net { display: inline-flex; }
 <section class="spectrum" aria-labelledby="specTitle">
   <div class="spectrum-head">
     <h1 id="specTitle"></h1>
+    <!-- 移遠天線 Agent (外部網站，需要網路) -->
+    <a class="agent-btn" id="agentBtn" target="_blank" rel="noopener noreferrer">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/><path d="M8.5 11h.01M12 11h.01M15.5 11h.01"/></svg>
+      <span data-i18n="agent"></span>
+    </a>
     <p id="specSub"></p>
   </div>
 </section>
@@ -505,6 +517,9 @@ const DATASHEET_URL = '';
  * 用於「安裝 App」說明中的「開啟網頁 / 複製連結」；未設定時改用目前頁面網址。
  */
 const APP_URL = /*__APP_URL__*/'';
+
+/** 移遠天線 Agent (飛書應用連結；手機上若已安裝飛書會直接開啟 App) */
+const AGENT_URL = 'https://applink.feishu.cn/T9ao3zlnY4j5';
 function appUrl() {
   if (APP_URL) return APP_URL;
   return /^https?:$/.test(location.protocol) ? location.origin + location.pathname : '';
@@ -579,6 +594,7 @@ const I18N = {
     cxLen: '{c} 接頭＋{t} 線材，線長 {l} mm', cxSep: '；',
     f_gnss: 'GNSS 天線類型',
     guide: '使用說明', guidePrint: '列印 / 存成 PDF',
+    agent: '移遠天線Agent', agentOffline: '移遠天線Agent 需要網路連線',
     datasheet: 'Datasheet', dsAria: '開啟 {oc} 的 Datasheet', dsOffline: 'Datasheet 需要網路連線 (並登入公司帳號)',
   },
   en: {
@@ -640,6 +656,7 @@ const I18N = {
     cxLen: '{c} connector + {t} cable, {l} mm long', cxSep: '; ',
     f_gnss: 'GNSS antenna type',
     guide: 'User guide', guidePrint: 'Print / Save as PDF',
+    agent: 'Quectel Antenna Agent', agentOffline: 'Quectel Antenna Agent needs a network connection',
     datasheet: 'Datasheet', dsAria: 'Open datasheet for {oc}', dsOffline: 'Datasheets need a network connection (and company sign-in)',
   },
   ja: {
@@ -699,6 +716,7 @@ const I18N = {
     cxLen: '{c} コネクタ＋{t} ケーブル、長さ {l} mm', cxSep: '；',
     f_gnss: 'GNSS アンテナタイプ',
     guide: 'ユーザーガイド', guidePrint: '印刷 / PDF に保存',
+    agent: 'Quectel アンテナ Agent', agentOffline: 'Quectel アンテナ Agent の利用にはネットワーク接続が必要です',
     datasheet: 'Datasheet', dsAria: '{oc} のデータシートを開く', dsOffline: 'データシートの表示にはネットワーク接続（と社内アカウントでのサインイン）が必要です',
   },
   ko: {
@@ -758,6 +776,7 @@ const I18N = {
     cxLen: '{c} 커넥터 + {t} 케이블, 길이 {l} mm', cxSep: '; ',
     f_gnss: 'GNSS 안테나 유형',
     guide: '사용자 가이드', guidePrint: '인쇄 / PDF로 저장',
+    agent: 'Quectel 안테나 Agent', agentOffline: 'Quectel 안테나 Agent를 사용하려면 네트워크 연결이 필요합니다',
     datasheet: 'Datasheet', dsAria: '{oc} 데이터시트 열기', dsOffline: '데이터시트를 보려면 네트워크 연결(및 회사 계정 로그인)이 필요합니다',
   },
 };
@@ -788,6 +807,8 @@ function applyStaticI18n() {
   $('updateBtn').title = t('updateAria');
   $('verLbl').textContent = 'v' + APP_VERSION;
   $('guideBtn').setAttribute('aria-label', t('guide'));
+  $('agentBtn').href = AGENT_URL;
+  $('agentBtn').title = t('agent');
   $('guideBtn').title = t('guide');
   $('verBtn').setAttribute('aria-label', t('verAria') + ' v' + APP_VERSION);
   renderThemeBtn();
@@ -1537,6 +1558,7 @@ $('closeFilters').addEventListener('click', () => setFilters(false));
    ========================================================================== */
 const GUIDE = {
  "zh": {
+  "agent": "<b>{agent}</b>：頁面標題「{title}」右側的按鈕，會開啟移遠天線 Agent 網站（需要網路）。",
   "title": "Quectel 天線選型 · TELEC 認證",
   "sub": "使用說明",
   "meta": [
@@ -1616,6 +1638,7 @@ const GUIDE = {
   "footer": "Quectel 天線選型 · TELEC 認證 — 使用說明"
  },
  "en": {
+  "agent": "<b>{agent}</b>: the button to the right of the page title \"{title}\" opens the Quectel Antenna Agent website (network required).",
   "title": "Quectel Antenna Selector · TELEC Certification",
   "sub": "User Guide",
   "meta": [
@@ -1695,6 +1718,7 @@ const GUIDE = {
   "footer": "Quectel Antenna Selector · TELEC Certification — User Guide"
  },
  "ja": {
+  "agent": "<b>{agent}</b>：ページタイトル「{title}」の右側にあるボタンから、Quectel アンテナ Agent のサイトを開けます（ネットワーク接続が必要）。",
   "title": "Quectel アンテナ選定 · TELEC 認証",
   "sub": "ユーザーガイド",
   "meta": [
@@ -1774,6 +1798,7 @@ const GUIDE = {
   "footer": "Quectel アンテナ選定 · TELEC 認証 — ユーザーガイド"
  },
  "ko": {
+  "agent": "<b>{agent}</b>: 페이지 제목 \"{title}\" 오른쪽의 버튼을 누르면 Quectel 안테나 Agent 사이트가 열립니다 (네트워크 연결 필요).",
   "title": "Quectel 안테나 선정 · TELEC 인증",
   "sub": "사용자 가이드",
   "meta": [
@@ -1962,6 +1987,7 @@ function renderGuide() {
       <div class="g-meta">${esc(fill(g.meta[0], { v: APP_VERSION }))}<br>${esc(fill(g.meta[1], { r: rev.rev || '—', d: rev.date || '—' }))}<br>${esc(built)}</div></div>
     <p class="g-lead">${fill(g.lead, { a: DATA.items.length, m: DATA.modules.length })}</p>
     <div class="g-url"><b>${g.url}</b><code>${esc(appUrl() || location.href.split('?')[0])}</code></div>
+    <p class="g-agent">${fill(g.agent, { agent: esc(t('agent')), title: esc(t('mTitle')) })}</p>
     <section><h2><span class="g-no">01</span>${g.h01}</h2>
       <div class="g-pair">${phone('menusA', g.S1)}${phone('menusB', g.S2)}</div>
       ${legend(g.M, 'g-cols3')}<p class="g-tip">${g.tip}</p></section>
@@ -2024,6 +2050,7 @@ const GUIDE_CSS = `
   .g-lead { font-size: 13.5px; margin: 0 0 10px; }
   .g-url { display: flex; gap: 10px; align-items: center; padding: 8px 12px; border-radius: 8px; background: var(--accent-soft); margin-bottom: 16px; font-size: 12.5px; }
   .g-url b { white-space: nowrap; }
+  .g-agent { margin: -8px 0 14px; font-size: 12.3px; color: var(--ink); }
   .g-url code { font-size: 12px; overflow-wrap: anywhere; }
   h2 { font-size: 17px; padding-bottom: 5px; margin-bottom: 12px; border-bottom: 1.5px solid var(--accent); display: flex; gap: 9px; align-items: baseline; }
   .g-no { color: var(--accent); font-size: 14px; }
@@ -2076,7 +2103,7 @@ const GUIDE_CSS = `
     body.g-body-root { background: #fff; }
     .g-page { width: auto; min-height: 0; margin: 0; padding: 0; box-shadow: none; page-break-after: always; break-after: page; }
     .g-foot { display: none; }   /* 列印時頁尾交給瀏覽器 / 匯出腳本 (含頁碼) */
-    .g-lead { font-size: 12.6px; margin-bottom: 8px; } .g-url { margin-bottom: 12px; }
+    .g-lead { font-size: 12.6px; margin-bottom: 8px; } .g-url { margin-bottom: 12px; } .g-agent { margin: -4px 0 10px; font-size: 11.6px; }
     .g-legend { margin-top: 10px; gap: 5px 24px; } .g-legend li, .g-tip { font-size: 11.6px; }
     .g-tip { margin-top: 10px; padding: 7px 11px; } .g-hero { margin-bottom: 10px; }
     .g-page:last-child { page-break-after: auto; break-after: auto; }
@@ -2099,6 +2126,8 @@ function closeGuide() {
   $('guideFrame').src = 'about:blank';   // 釋放記憶體
 }
 if (MODE === 'app') {
+  // 移遠天線 Agent：離線時不開啟空白頁，改為提示
+  $('agentBtn').addEventListener('click', (e) => { if (!navigator.onLine) { e.preventDefault(); toast(t('agentOffline'), 3000); } });
   window.addEventListener('message', (e) => {
     if (e.origin === location.origin && e.data?.type === 'guide-ready') $('guidePrint').disabled = false;
   });
