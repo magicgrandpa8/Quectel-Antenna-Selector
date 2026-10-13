@@ -4,8 +4,8 @@
  * 策略:
  *  - 安裝時預先快取所有 App 檔案 (資料、圖片、字型皆內嵌於 index.html)，
  *    第一次開啟後即可完全離線使用。
- *  - 頁面導覽 (開啟 App)：一律先回快取的 index.html (秒開、離線可用)，
- *    有網路時於背景更新快取，下次開啟生效。
+ *  - 頁面導覽 (開啟 App)：有網路時優先載入最新版 (逾時 3.5 秒或離線則用快取)，
+ *    發佈新版後第一次開啟即生效；使用說明的示範畫面直接使用快取。
  *  - 其他同源檔案：cache-first，背景更新。
  *  - version.json：一律走網路，供 App 偵測新版本；離線時回 503。
  *  - 不使用任何外部網域資源。
@@ -13,7 +13,10 @@
  * CACHE_VERSION 由 build_data.py --version 自動改寫，請勿手動修改。
  * App 的「強制更新」會先確認伺服器可連線，才清除快取並重新載入。
  */
-const CACHE_VERSION = 'antenna-selector-v3.10.0';
+/** 開啟 App 時等待網路的上限 (毫秒)；超過即改用快取，確保開啟速度 */
+const NAV_TIMEOUT_MS = 3500;
+
+const CACHE_VERSION = 'antenna-selector-v3.11.0';
 
 const APP_SHELL = [
   './',
@@ -69,19 +72,27 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // 開啟 App (導覽請求)：回快取的 index.html，背景更新
+  // 開啟 App (導覽請求)
+  //  - 一般開啟：有網路時優先取最新版 (逾時 NAV_TIMEOUT_MS 改用快取)，離線時用快取
+  //    → 發佈新版後，使用者「第一次」開啟就會看到新版
+  //  - 使用說明內的示範畫面 (?embed=)：直接用快取，避免重複下載
   if (req.mode === 'navigate') {
     event.respondWith((async () => {
       const cache = await caches.open(CACHE_VERSION);
       const cached = (await cache.match('./index.html')) || (await cache.match('./'));
-      if (cached) {
-        event.waitUntil(refresh(cache, new Request('./index.html'), './index.html'));
-        return cached;
+      if (url.searchParams.has('embed') && cached) return cached;
+      const network = refresh(cache, new Request('./index.html'), './index.html');
+      if (!cached) {
+        const res = await network;
+        return res || new Response('<h1>Offline</h1><p>請先在有網路時開啟一次。</p>', {
+          status: 503, headers: { 'Content-Type': 'text/html; charset=utf-8' },
+        });
       }
-      const res = await refresh(cache, new Request('./index.html'), './index.html');
-      return res || new Response('<h1>Offline</h1><p>請先在有網路時開啟一次。</p>', {
-        status: 503, headers: { 'Content-Type': 'text/html; charset=utf-8' },
-      });
+      const timeout = new Promise((r) => setTimeout(() => r(null), NAV_TIMEOUT_MS));
+      const res = await Promise.race([network, timeout]);
+      if (res && res.ok) return res;
+      event.waitUntil(network);           // 逾時：先給快取，背景繼續更新
+      return cached;
     })());
     return;
   }

@@ -594,6 +594,7 @@ const I18N = {
     cxLen: '{c} 接頭＋{t} 線材，線長 {l} mm', cxSep: '；',
     f_gnss: 'GNSS 天線類型',
     guide: '使用說明', guidePrint: '列印 / 存成 PDF',
+    s_ip: 'IP 等級',
     agent: '移遠天線Agent', agentOffline: '移遠天線Agent 需要網路連線',
     datasheet: 'Datasheet', dsAria: '開啟 {oc} 的 Datasheet', dsOffline: 'Datasheet 需要網路連線 (並登入公司帳號)',
   },
@@ -656,6 +657,7 @@ const I18N = {
     cxLen: '{c} connector + {t} cable, {l} mm long', cxSep: '; ',
     f_gnss: 'GNSS antenna type',
     guide: 'User guide', guidePrint: 'Print / Save as PDF',
+    s_ip: 'IP rating',
     agent: 'Quectel Antenna Agent', agentOffline: 'Quectel Antenna Agent needs a network connection',
     datasheet: 'Datasheet', dsAria: 'Open datasheet for {oc}', dsOffline: 'Datasheets need a network connection (and company sign-in)',
   },
@@ -716,6 +718,7 @@ const I18N = {
     cxLen: '{c} コネクタ＋{t} ケーブル、長さ {l} mm', cxSep: '；',
     f_gnss: 'GNSS アンテナタイプ',
     guide: 'ユーザーガイド', guidePrint: '印刷 / PDF に保存',
+    s_ip: 'IP 等級',
     agent: 'Quectel アンテナ Agent', agentOffline: 'Quectel アンテナ Agent の利用にはネットワーク接続が必要です',
     datasheet: 'Datasheet', dsAria: '{oc} のデータシートを開く', dsOffline: 'データシートの表示にはネットワーク接続（と社内アカウントでのサインイン）が必要です',
   },
@@ -776,6 +779,7 @@ const I18N = {
     cxLen: '{c} 커넥터 + {t} 케이블, 길이 {l} mm', cxSep: '; ',
     f_gnss: 'GNSS 안테나 유형',
     guide: '사용자 가이드', guidePrint: '인쇄 / PDF로 저장',
+    s_ip: 'IP 등급',
     agent: 'Quectel 안테나 Agent', agentOffline: 'Quectel 안테나 Agent를 사용하려면 네트워크 연결이 필요합니다',
     datasheet: 'Datasheet', dsAria: '{oc} 데이터시트 열기', dsOffline: '데이터시트를 보려면 네트워크 연결(및 회사 계정 로그인)이 필요합니다',
   },
@@ -1118,6 +1122,7 @@ function specCells(p) {
   const cells = [['s_form', p.form], ['s_mount', p.mount]];
   if (!cx) cells.push(['s_conn', (p.conn || []).join(', ')]);
   cells.push(['s_gain', p.techs?.[0]?.gain]);
+  cells.push(['s_ip', p.ip]);   // IP 等級 (內嵌天線無此規格，顯示「—」)
   if (p.lna) cells.push(['s_lna', fmtLna(p.lna), 'lna']);
   if (cx) cells.push(['s_cx', cx, 'wide']);
   cells.push(['s_dim', p.dim, 'wide']);
@@ -2194,7 +2199,18 @@ if (MODE === 'app' && 'serviceWorker' in navigator && (location.protocol === 'ht
   });
 }
 // 啟動後檢查 version.json (失敗時安靜略過)
-if (MODE === 'app') setTimeout(checkForUpdate, 1500);
+if (MODE === 'app') {
+  setTimeout(checkForUpdate, 1500);
+  // App 回到前景時 (例如 iPhone 從背景切回，頁面並未重新載入) 再檢查一次新版本，
+  // 同時請瀏覽器檢查 sw.js 是否更新；最多每 10 分鐘一次
+  let lastCheck = Date.now();
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState !== 'visible' || !navigator.onLine || Date.now() - lastCheck < 10 * 60 * 1000) return;
+    lastCheck = Date.now();
+    checkForUpdate();
+    navigator.serviceWorker?.getRegistration().then((r) => r?.update()).catch(() => {});
+  });
+}
 </script>
 </body>
 </html>
