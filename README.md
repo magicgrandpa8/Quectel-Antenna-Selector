@@ -1,6 +1,6 @@
 # Quectel 天線選型 · TELEC 認證 PWA
 
-目前版本：**v3.15.1**
+目前版本：**v3.16.0**
 資料來源：`Quectel_Antenna_Product_and_TELEC_Certification_*.xlsx`（單一 Excel）
 
 ## 功能
@@ -55,6 +55,20 @@ Excel 照片錯誤或太模糊時，把正確的照片放進 `photo_overrides/` 
 這裡的照片優先於 Excel 與 `--photo-xlsx`，縮圖與放大檢視都會使用，之後每次更新都會保留。
 檔名找不到對應料號時，build 會顯示警告。
 
+## AI 修飾模糊照片（選用）
+最長邊小於 200px 的照片可用 AI 超解析（OpenCV EDSR）＋保邊平滑處理，讓邊緣較平滑、不再有明顯鋸齒。
+App 放大檢視時會標示「此照片經 AI 修飾」，因為細節（如印刷文字）可能與實物不同。
+
+- 結果存在 `photo_enhanced.json`（依原圖內容雜湊）。**一般 build 不需 AI 套件**，會直接沿用。
+- 只有新增或變更的照片需要重新處理：
+  ```bash
+  pip install opencv-contrib-python-headless
+  python3 build_data.py --version X.Y.Z --enhance --xlsx <TELEC Excel> --photo-xlsx <JP Excel>
+  # 模型 (tools/models/EDSR_x2.pb、EDSR_x4.pb，各約 38 MB) 不在 repo 中，第一次會自動下載
+  # 照片很多時可加 --enhance-budget 秒數，分次執行累積結果
+  ```
+- `photo_overrides/` 的手動照片與 `--photo-xlsx` 換成的清晰照片（≥ 200px）不會被修飾。
+
 ## 較清晰的產品照片（選用）
 TELEC Excel 中約一半的照片解析度偏低。若其他 Excel（例如 JP 天線表）有同一料號更清晰的照片，
 build 時加上 `--photo-xlsx`（可重複指定），清晰 2 倍以上的照片會自動替換（縮圖與放大檢視一起換）；
@@ -89,6 +103,7 @@ App 內不顯示更新紀錄；版本變更請記錄在本 README 的「更新�
 | `photos.json` | 產品照片（放大檢視用，原始解析度，全部打包成單一檔案，build 時自動產生） | ✅ |
 | `version.json` | 新版偵測 | ✅ |
 | `template.html`、`build_data.py`、`fonts/` | 產生 `index.html` 的原始碼 | 建議放在 repo |
+| `photo_enhanced.json` | AI 修飾後的照片快取（build 自動維護） | ✅ 建議放在 repo |
 | `photo_overrides/` | 手動指定的產品照片（檔名為料號） | 建議放在 repo |
 | `tools/export_guides.py` | 將內建使用說明匯出為 PDF（選用） | 建議放在 repo |
 | `guides/*.pdf` | 已匯出的使用說明 PDF（四種語言） | 選用 |
@@ -99,6 +114,7 @@ App 內不顯示更新紀錄；版本變更請記錄在本 README 的「更新�
 - 頻段預設邊界為一般公開配置，僅供初篩。
 
 ## 更新紀錄
+- **v3.16.0**：153 張模糊照片（< 200px）以 AI 超解析與平滑處理；放大檢視時標示「此照片經 AI 修飾」
 - **v3.15.1**：新增 `photo_overrides/` 手動指定照片；YC0001CA、YC0002AA、YC0011AA 改用正確且較清晰的照片
 - **v3.15.0**：19 款天線改用 JP 天線表中更清晰的照片（`--photo-xlsx`）
 - **v3.14.1**：放大檢視用照片改為打包成單一檔案 `photos.json`（原本 `photos/` 資料夾有 320 個檔案，超過 GitHub 網頁一次上傳 100 個檔案的上限）

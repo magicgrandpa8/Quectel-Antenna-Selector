@@ -24,6 +24,13 @@ build_data.py — 將「Quectel Antenna Product and TELEC Certification」Excel
     photo_overrides/<料號>.png|jpg|jpeg|webp  放在此資料夾的照片，會取代該料號的縮圖與放大照片
     (優先於 Excel 與 --photo-xlsx)。用於 Excel 照片錯誤或解析度不足時。
 
+AI 修飾模糊照片 (選用)
+    --enhance  對最長邊小於 ENHANCE_BELOW 的照片做 AI 超解析 (OpenCV EDSR) 與平滑處理。
+    結果存在 photo_enhanced.json (以原圖內容雜湊為鍵)；之後不加 --enhance 也會沿用，
+    只有新的或變更過的照片需要重新處理。需要 opencv-contrib-python-headless；
+    模型 EDSR_x2/x4.pb 若不在 tools/models/ 會自動從 GitHub 下載。
+    手動指定照片 (photo_overrides/) 不會被修飾。
+
 輸出:
     index.html    內嵌資料、圖片、字型、版本號的 App
     version.json  供 App 偵測伺服器新版本
@@ -240,6 +247,51 @@ def to_thumb(raw: bytes) -> str | None:
 
 
 # --------------------------------------------------------------------------- #
+# AI 修飾模糊照片 (選用)
+# --------------------------------------------------------------------------- #
+ENHANCE_BELOW = 200      # 最長邊小於此值 (px) 的照片才修飾
+ENHANCE_MAX = 800        # 修飾後最長邊上限
+MODEL_URL = "https://github.com/Saafke/EDSR_Tensorflow/raw/master/models/{name}.pb"
+_SR = {}
+
+
+def _sr_model(scale: int):
+    """載入 (必要時下載) OpenCV EDSR 超解析模型。"""
+    if scale in _SR:
+        return _SR[scale]
+    import cv2                                   # 只有 --enhance 時才需要
+    import urllib.request
+    name = f"EDSR_x{scale}"
+    path = Path(__file__).resolve().parent / "tools" / "models" / f"{name}.pb"
+    if not path.exists():
+        path.parent.mkdir(parents=True, exist_ok=True)
+        print(f"下載模型 {name} …")
+        urllib.request.urlretrieve(MODEL_URL.format(name=name), path)
+    m = cv2.dnn_superres.DnnSuperResImpl_create()
+    m.readModel(str(path))
+    m.setModel("edsr", scale)
+    _SR[scale] = m
+    return m
+
+
+def enhance_photo(webp: bytes) -> bytes:
+    """去除壓縮雜訊 → EDSR 超解析 (小於 150px 用 4 倍、其餘 2 倍) → 保邊平滑 → WebP。"""
+    import cv2
+    import numpy as np
+    im = Image.open(io.BytesIO(webp)).convert("RGB")
+    arr = cv2.cvtColor(np.array(im), cv2.COLOR_RGB2BGR)
+    arr = cv2.fastNlMeansDenoisingColored(arr, None, 3, 3, 7, 21)          # 輕度去雜訊 (JPEG 方塊)
+    scale = 4 if max(im.size) < 150 else 2
+    up = _sr_model(scale).upsample(arr)
+    up = cv2.bilateralFilter(up, 5, 25, 5)                                   # 保留邊緣的平滑
+    out = Image.fromarray(cv2.cvtColor(up, cv2.COLOR_BGR2RGB))
+    out.thumbnail((ENHANCE_MAX, ENHANCE_MAX), Image.LANCZOS)
+    buf = io.BytesIO()
+    out.save(buf, "WEBP", quality=PHOTO_QUALITY, method=6)
+    return buf.getvalue()
+
+
+# --------------------------------------------------------------------------- #
 # 其他 Excel 的照片 (選用)：只依料號取照片，不讀其他資料
 # --------------------------------------------------------------------------- #
 PHOTO_GAIN = 2.0   # 其他來源的照片至少清晰幾倍 (以裁白邊後的最長邊比較) 才替換
@@ -384,6 +436,10 @@ def main():
     ap.add_argument("--sw", default=Path("sw.js"), type=Path)
     ap.add_argument("--photo-dir", default=Path("photo_overrides"), type=Path,
                     help="手動指定照片的資料夾 (檔名為料號)，最優先使用")
+    ap.add_argument("--enhance", action="store_true", help="AI 修飾模糊照片 (結果快取於 photo_enhanced.json)")
+    ap.add_argument("--enhance-cache", default=Path("photo_enhanced.json"), type=Path)
+    ap.add_argument("--enhance-budget", default=0, type=int,
+                    help="AI 修飾的時間上限 (秒，0 = 不限)；超過即停止並保存，可分次執行累積結果")
     ap.add_argument("--photo-xlsx", action="append", default=[], type=Path,
                     help="選用：其他 Excel，僅用來取得較清晰的產品照片 (可重複指定)")
     ap.add_argument("--app-url", default="https://magicgrandpa8.github.io/Quectel-Antenna-Selector/",
@@ -430,6 +486,34 @@ def main():
                     photos[oc], images[oc] = ph, th
                     swapped.append((oc, cur_size, min(alt_size, PHOTO_PX)))
 
+    # ---- AI 修飾模糊照片：先查快取，--enhance 時處理未快取的照片 ----
+    cache = json.loads(a.enhance_cache.read_text(encoding="utf8")) if a.enhance_cache.exists() else {}
+    used, made, t_start = {}, 0, dt.datetime.now()
+    def save_cache():
+        merged = {**cache, **used}
+        a.enhance_cache.write_text(json.dumps(merged, separators=(",", ":")), encoding="utf8")
+    targets = [p for p in products if p["oc"] in photos
+               and max(Image.open(io.BytesIO(photos[p["oc"]])).size) < ENHANCE_BELOW]
+    for n, p in enumerate(targets, 1):
+        oc = p["oc"]
+        key = hashlib.sha1(photos[oc]).hexdigest()[:16]
+        over_budget = a.enhance_budget and (dt.datetime.now() - t_start).total_seconds() > a.enhance_budget
+        if key not in cache and a.enhance and not over_budget:
+            cache[key] = base64.b64encode(enhance_photo(photos[oc])).decode()
+            made += 1
+            save_cache()                         # 每張都保存，中斷也不會遺失
+            print(f"  AI 修飾 {n}/{len(targets)} {oc}", flush=True)
+        if key in cache:
+            raw = base64.b64decode(cache[key])
+            photos[oc], images[oc] = raw, to_thumb(raw)
+            p["ai"] = 1
+            used[key] = cache[key]
+    pending = sum(1 for p in targets if not p.get("ai") and p["oc"] in photos)
+    if a.enhance and not pending:
+        # 全部完成：只保留仍在使用的結果，移除過期項目
+        a.enhance_cache.write_text(json.dumps(used, separators=(",", ":")), encoding="utf8")
+    enhanced = [p["oc"] for p in products if p.get("ai")]
+
     # ---- 手動指定照片 (最優先)：photo_overrides/<料號>.<副檔名> ----
     overridden, unknown = [], []
     if a.photo_dir.is_dir():
@@ -445,6 +529,7 @@ def main():
             ph, th = to_photo(raw), to_thumb(raw)
             if ph and th:
                 photos[oc], images[oc] = ph, th
+                by_oc[oc].pop("ai", None)        # 手動照片不標示 AI 修飾
                 overridden.append(oc)
 
     # ---- 放大檢視用照片：全部打包成單一檔案 photos.json ({料號: WebP data URI}) ----
@@ -508,6 +593,10 @@ def main():
     print(f"天線: {len(products)}  (有 TELEC 認證: {certified})  模組: {len(modules)}  "
           f"認證組合 (☑): {sum(len(p.get('certs', [])) for p in products)}  圖片: {len(images)}")
     print(f"放大檢視照片: {len(photo_files)} 張，打包為 photos.json ({photo_mb:.1f} MB)")
+    enhanced = [oc for oc in enhanced if oc not in overridden]
+    if enhanced or a.enhance:
+        print(f"AI 修飾照片: {len(enhanced)} 款 (本次新處理 {made} 款，其餘沿用 {a.enhance_cache})"
+              + (f"；尚有 {pending} 款未處理，請再執行一次 --enhance" if pending else ""))
     if overridden:
         print(f"手動指定照片 ({a.photo_dir}/): {', '.join(overridden)}")
     if unknown:

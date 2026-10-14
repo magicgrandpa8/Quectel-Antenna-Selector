@@ -480,6 +480,7 @@ dialog.photo-dlg::backdrop { background: rgba(20, 16, 10, .62); }
 .photo-stage { background: #FFFFFF; display: grid; place-items: center; padding: 20px; min-height: 220px; }
 .photo-stage img { display: block; max-width: 100%; max-height: calc(100vh - 190px); height: auto; object-fit: contain; }
 .photo-name { margin: 0; padding: 12px 18px 16px; font-size: 13px; color: var(--muted); }
+.photo-ai { margin: -8px 18px 16px; padding: 8px 10px; border-radius: 8px; background: var(--warn-soft); color: var(--ink); font-size: 12px; }
 </style>
 </head>
 <body>
@@ -593,6 +594,7 @@ dialog.photo-dlg::backdrop { background: rgba(20, 16, 10, .62); }
   <div class="photo-bar"><strong id="photoTitle"></strong><button type="button" class="icon-btn" id="photoClose"></button></div>
   <div class="photo-stage"><img id="photoImg" alt="" decoding="async"></div>
   <p class="photo-name" id="photoName"></p>
+  <p class="photo-ai" id="photoAi" hidden></p>
 </dialog>
 <dialog class="detail small" id="installDialog" aria-labelledby="installTitle"></dialog>
 <dialog class="guide-dlg" id="guideDialog" aria-labelledby="guideTitle">
@@ -715,6 +717,7 @@ const I18N = {
     f_gnss: 'GNSS 天線類型',
     guide: '使用說明', guidePrint: '列印 / 存成 PDF',
     photoAria: '放大檢視 {oc} 的照片',
+    photoAi: '此照片經 AI 修飾以提高清晰度，細節（如印刷文字）可能與實物略有不同。',
     menu: '更多功能',
     moreFilters: '更多條件', kl_size: '尺寸',
     s_ip: 'IP 等級',
@@ -781,6 +784,7 @@ const I18N = {
     f_gnss: 'GNSS antenna type',
     guide: 'User guide', guidePrint: 'Print / Save as PDF',
     photoAria: 'View a larger photo of {oc}',
+    photoAi: 'This photo was AI-enhanced for clarity; fine details such as printed text may differ from the actual product.',
     menu: 'More',
     moreFilters: 'More filters', kl_size: 'Size',
     s_ip: 'IP rating',
@@ -845,6 +849,7 @@ const I18N = {
     f_gnss: 'GNSS アンテナタイプ',
     guide: 'ユーザーガイド', guidePrint: '印刷 / PDF に保存',
     photoAria: '{oc} の写真を拡大表示',
+    photoAi: 'この写真は AI で鮮明化しています。印刷文字などの細部は実物と異なる場合があります。',
     menu: 'その他',
     moreFilters: 'その他の条件', kl_size: '寸法',
     s_ip: 'IP 等級',
@@ -909,6 +914,7 @@ const I18N = {
     f_gnss: 'GNSS 안테나 유형',
     guide: '사용자 가이드', guidePrint: '인쇄 / PDF로 저장',
     photoAria: '{oc} 사진 크게 보기',
+    photoAi: '이 사진은 AI로 선명하게 보정했습니다. 인쇄된 글자 등 세부 사항은 실제 제품과 다를 수 있습니다.',
     menu: '더보기',
     moreFilters: '추가 조건', kl_size: '크기',
     s_ip: 'IP 등급',
@@ -1279,6 +1285,9 @@ async function openPhoto(oc) {
   const img = $('photoImg');
   $('photoTitle').textContent = p.oc;
   $('photoName').textContent = p.name || '';
+  // AI 修飾過的照片加註說明 (細節可能與實物不同)
+  $('photoAi').hidden = !p.ai;
+  $('photoAi').textContent = p.ai ? t('photoAi') : '';
   $('photoClose').textContent = t('close');
   img.alt = t('photoAria', { oc: p.oc });
   img.style.width = '320px';
