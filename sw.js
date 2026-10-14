@@ -7,6 +7,7 @@
  *  - 頁面導覽 (開啟 App)：有網路時優先載入最新版 (逾時 3.5 秒或離線則用快取)，
  *    發佈新版後第一次開啟即生效；使用說明的示範畫面直接使用快取。
  *  - 其他同源檔案：cache-first，背景更新。
+ *  - 產品照片 (photos.json)：安裝時預先快取，離線也能放大檢視。
  *  - version.json：一律走網路，供 App 偵測新版本；離線時回 503。
  *  - 不使用任何外部網域資源。
  *
@@ -16,7 +17,7 @@
 /** 開啟 App 時等待網路的上限 (毫秒)；超過即改用快取，確保開啟速度 */
 const NAV_TIMEOUT_MS = 3500;
 
-const CACHE_VERSION = 'antenna-selector-v3.13.0';
+const CACHE_VERSION = 'antenna-selector-v3.14.1';
 
 const APP_SHELL = [
   './',
@@ -35,6 +36,9 @@ self.addEventListener('install', (event) => {
     const cache = await caches.open(CACHE_VERSION);
     // cache: 'reload' 確保拿到伺服器最新檔案，而非瀏覽器 HTTP 快取
     await cache.addAll(APP_SHELL.map((u) => new Request(u, { cache: 'reload' })));
+    // 放大檢視用照片 (photos.json，由 build_data.py 產生)：一併預先快取以便離線檢視；
+    // 檔案不存在或下載失敗時不影響安裝
+    try { await cache.add(new Request('./photos.json', { cache: 'reload' })); } catch { /* 忽略 */ }
     await self.skipWaiting();
   })());
 });

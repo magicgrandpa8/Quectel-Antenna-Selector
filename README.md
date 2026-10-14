@@ -1,6 +1,6 @@
 # Quectel 天線選型 · TELEC 認證 PWA
 
-目前版本：**v3.13.0**
+目前版本：**v3.14.1**
 資料來源：`Quectel_Antenna_Product_and_TELEC_Certification_*.xlsx`（單一 Excel）
 
 ## 功能
@@ -70,6 +70,7 @@ App 內不顯示更新紀錄；版本變更請記錄在本 README 的「更新�
 | `index.html` | App 本體（內嵌資料、圖片、字型） | ✅ |
 | `manifest.webmanifest`、`icon-*.png`、`apple-touch-icon.png`、`screenshot-*.png` | 安裝資訊與圖示 | ✅ |
 | `sw.js` | 離線快取 | ✅ |
+| `photos.json` | 產品照片（放大檢視用，原始解析度，全部打包成單一檔案，build 時自動產生） | ✅ |
 | `version.json` | 新版偵測 | ✅ |
 | `template.html`、`build_data.py`、`fonts/` | 產生 `index.html` 的原始碼 | 建議放在 repo |
 | `tools/export_guides.py` | 將內建使用說明匯出為 PDF（選用） | 建議放在 repo |
@@ -81,6 +82,8 @@ App 內不顯示更新紀錄；版本變更請記錄在本 README 的「更新�
 - 頻段預設邊界為一般公開配置，僅供初篩。
 
 ## 更新紀錄
+- **v3.14.1**：放大檢視用照片改為打包成單一檔案 `photos.json`（原本 `photos/` 資料夾有 320 個檔案，超過 GitHub 網頁一次上傳 100 個檔案的上限）
+- **v3.14.0**：所有天線照片可點擊放大檢視（清單與詳細資料皆可），使用原始解析度照片並可離線檢視
 - **v3.13.0**：電腦版（寬度 > 820px）版面整理：篩選集中左欄（搜尋 → 下拉選單 → 更多條件）、頁首精簡為語言／使用說明／「⋯」、清單每列改為一行關鍵值；手機與平板維持原版面，頁首按鈕依螢幕寬度平均分配；標題下方說明改為「使用下拉式選單篩選天線或是跟移遠天線Agent說明您的需求」
 - **v3.12.0**：淺色模式改為無印良品風格配色；App 圖示（iOS / Android / Windows）改為 Q logo；標題下方說明改為「請用下拉式選單進行篩選天線，或是直接使用移遠天線Agent」
 - **v3.11.0**：清單每列的規格欄位新增 IP Rating（IP 等級）

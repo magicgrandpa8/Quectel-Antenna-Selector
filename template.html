@@ -465,6 +465,21 @@ html.offline .net { display: inline-flex; }
   .filters > .search { margin: 4px 0 12px; }
 }
 
+
+/* 產品照片：可點擊放大 */
+.thumb.zoomable { padding: 0; cursor: zoom-in; position: relative; font: inherit; color: inherit; }
+.thumb.zoomable:hover { border-color: var(--accent); }
+.zoom-hint { display: none; position: absolute; right: 4px; bottom: 4px; width: 22px; height: 22px; border-radius: 50%;
+  place-items: center; background: rgba(255, 255, 255, .92); color: var(--accent); box-shadow: 0 1px 4px rgba(40, 32, 20, .25); }
+.d-head .zoom-hint, .thumb.zoomable:hover .zoom-hint, .thumb.zoomable:focus-visible .zoom-hint { display: grid; }
+dialog.photo-dlg { width: min(760px, calc(100vw - 24px)); max-height: calc(100% - 32px); padding: 0; border: 1px solid var(--rule);
+  border-radius: 14px; background: var(--surface); color: var(--ink); overflow: auto; }
+dialog.photo-dlg::backdrop { background: rgba(20, 16, 10, .62); }
+.photo-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 14px 12px 18px; }
+.photo-bar strong { font-size: 17px; }
+.photo-stage { background: #FFFFFF; display: grid; place-items: center; padding: 20px; min-height: 220px; }
+.photo-stage img { display: block; max-width: 100%; max-height: calc(100vh - 190px); height: auto; object-fit: contain; }
+.photo-name { margin: 0; padding: 12px 18px 16px; font-size: 13px; color: var(--muted); }
 </style>
 </head>
 <body>
@@ -574,6 +589,11 @@ html.offline .net { display: inline-flex; }
 
 <dialog class="detail" id="detail" aria-labelledby="dTitle"></dialog>
 <dialog class="detail small" id="verDialog" aria-labelledby="verTitle"></dialog>
+<dialog class="photo-dlg" id="photoDlg" aria-labelledby="photoTitle">
+  <div class="photo-bar"><strong id="photoTitle"></strong><button type="button" class="icon-btn" id="photoClose"></button></div>
+  <div class="photo-stage"><img id="photoImg" alt="" decoding="async"></div>
+  <p class="photo-name" id="photoName"></p>
+</dialog>
 <dialog class="detail small" id="installDialog" aria-labelledby="installTitle"></dialog>
 <dialog class="guide-dlg" id="guideDialog" aria-labelledby="guideTitle">
   <div class="guide-bar">
@@ -694,6 +714,7 @@ const I18N = {
     cxLen: '{c} 接頭＋{t} 線材，線長 {l} mm', cxSep: '；',
     f_gnss: 'GNSS 天線類型',
     guide: '使用說明', guidePrint: '列印 / 存成 PDF',
+    photoAria: '放大檢視 {oc} 的照片',
     menu: '更多功能',
     moreFilters: '更多條件', kl_size: '尺寸',
     s_ip: 'IP 等級',
@@ -759,6 +780,7 @@ const I18N = {
     cxLen: '{c} connector + {t} cable, {l} mm long', cxSep: '; ',
     f_gnss: 'GNSS antenna type',
     guide: 'User guide', guidePrint: 'Print / Save as PDF',
+    photoAria: 'View a larger photo of {oc}',
     menu: 'More',
     moreFilters: 'More filters', kl_size: 'Size',
     s_ip: 'IP rating',
@@ -822,6 +844,7 @@ const I18N = {
     cxLen: '{c} コネクタ＋{t} ケーブル、長さ {l} mm', cxSep: '；',
     f_gnss: 'GNSS アンテナタイプ',
     guide: 'ユーザーガイド', guidePrint: '印刷 / PDF に保存',
+    photoAria: '{oc} の写真を拡大表示',
     menu: 'その他',
     moreFilters: 'その他の条件', kl_size: '寸法',
     s_ip: 'IP 等級',
@@ -885,6 +908,7 @@ const I18N = {
     cxLen: '{c} 커넥터 + {t} 케이블, 길이 {l} mm', cxSep: '; ',
     f_gnss: 'GNSS 안테나 유형',
     guide: '사용자 가이드', guidePrint: '인쇄 / PDF로 저장',
+    photoAria: '{oc} 사진 크게 보기',
     menu: '더보기',
     moreFilters: '추가 조건', kl_size: '크기',
     s_ip: 'IP 등급',
@@ -1227,7 +1251,49 @@ function connCableInfo(p) {
 const PLACEHOLDER = `<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M6.3 7.5a8 8 0 0 1 11.4 0M8.8 10a4.5 4.5 0 0 1 6.4 0"/><path d="M12 12v9"/></svg>`;
 function thumb(oc) {
   const src = DATA.images[oc];
-  return `<div class="thumb">${src ? `<img src="${src}" alt="" loading="lazy" decoding="async">` : PLACEHOLDER}</div>`;
+  if (!src) return `<div class="thumb">${PLACEHOLDER}</div>`;
+  // 點擊放大檢視 (清單與詳細資料皆可)
+  return `<button type="button" class="thumb zoomable" data-photo="${esc(oc)}" aria-label="${esc(t('photoAria', { oc }))}">
+    <img src="${src}" alt="" loading="lazy" decoding="async">
+    <span class="zoom-hint" aria-hidden="true"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M20 20l-4.5-4.5M10.5 7.5v6M7.5 10.5h6"/></svg></span>
+  </button>`;
+}
+
+/* ==========================================================================
+   產品照片放大檢視：先顯示縮圖，原始解析度照片 (photos/) 載入後替換；最多放大到原圖 2 倍
+   ========================================================================== */
+/** 原始解析度照片包 (photos.json)：第一次放大檢視時載入一次，之後重複使用 */
+let photoBundle = null;
+function loadPhotos() {
+  if (!photoBundle) {
+    photoBundle = fetch('photos.json').then((r) => (r.ok ? r.json() : {})).catch(() => {
+      photoBundle = null;   // 失敗 (例如離線且尚未快取) 時下次再試
+      return {};
+    });
+  }
+  return photoBundle;
+}
+async function openPhoto(oc) {
+  const p = PAGES[page].items().find((x) => x.oc === oc);
+  if (!p) return;
+  const img = $('photoImg');
+  $('photoTitle').textContent = p.oc;
+  $('photoName').textContent = p.name || '';
+  $('photoClose').textContent = t('close');
+  img.alt = t('photoAria', { oc: p.oc });
+  img.style.width = '320px';
+  img.src = DATA.images[p.oc] || '';          // 先顯示縮圖
+  if (!$('photoDlg').open) $('photoDlg').showModal();
+  if (!p.ph) return;
+  const src = (await loadPhotos())[p.oc];
+  if (!src || $('photoTitle').textContent !== p.oc) return;   // 無照片或已切換到其他照片
+  const big = new Image();
+  big.onload = () => {
+    if ($('photoTitle').textContent !== p.oc) return;
+    img.src = src;
+    img.style.width = Math.max(big.naturalWidth * 2, 240) + 'px';   // 由 CSS 的 max-width / max-height 限制在畫面內
+  };
+  big.src = src;
 }
 function badges(p) {
   let b = '';
@@ -1672,6 +1738,8 @@ $('copyBtn').addEventListener('click', () => {
 });
 $('list').addEventListener('click', (e) => {
   if (e.target.closest('[data-act="reset"]')) { resetAll(); return; }
+  const ph = e.target.closest('[data-photo]');
+  if (ph) { e.stopPropagation(); openPhoto(ph.dataset.photo); return; }
   const ds = e.target.closest('[data-ds]');
   if (ds) { e.stopPropagation(); openDatasheet(ds.dataset.ds); return; }
   const r = e.target.closest('[data-oc]'); if (r) openDetail(r.dataset.oc);
@@ -1684,6 +1752,7 @@ $('list').addEventListener('keydown', (e) => {
 });
 $('detail').addEventListener('click', (e) => {
   if (e.target === $('detail') || e.target.closest('[data-close]')) { $('detail').close(); return; }
+  const ph = e.target.closest('[data-photo]'); if (ph) { openPhoto(ph.dataset.photo); return; }
   const c = e.target.closest('[data-copy]'); if (c) { copyText(c.dataset.copy, t('copied', { oc: c.dataset.copy })); return; }
   const ds = e.target.closest('[data-ds]'); if (ds) { openDatasheet(ds.dataset.ds); return; }
   const g = e.target.closest('[data-goto]');
@@ -1698,6 +1767,9 @@ $('verDialog').addEventListener('click', (e) => {
   if (e.target.closest('[data-force]')) forceUpdate();
 });
 
+$('photoDlg').addEventListener('click', (e) => {
+  if (e.target === $('photoDlg') || e.target.closest('#photoClose')) $('photoDlg').close();
+});
 /* 頂部工具列 */
 $('langSel').addEventListener('change', (e) => {
   lang = LANGS.includes(e.target.value) ? e.target.value : DEFAULT_LANG;
@@ -1767,7 +1839,7 @@ const GUIDE = {
   "P1": "已認證天線",
   "P2": "主動式 GNSS 天線",
   "D": [
-   "<b>複製料號</b>與 <b>Datasheet</b>（需要網路連線並登入公司帳號）。",
+   "<b>複製料號</b>與 <b>Datasheet</b>（需要網路連線並登入公司帳號）。點產品照片可放大檢視。",
    "<b>TELEC 認證模組</b>：依類別列出並附認證日期，目前選定的模組以綠色標示。",
    "<b>射頻效能</b>：效率、峰值增益、場型、極化。主動式 GNSS 天線另外顯示 <b>LNA 增益</b>。",
    "<b>連接器與線材</b>：使用 IPEX MHF 連接器或 RG174 線材的天線，會將連接器、線材型號與線長合併描述（IPEX 另含線徑）。"
@@ -1847,7 +1919,7 @@ const GUIDE = {
   "P1": "Certified antenna",
   "P2": "Active GNSS antenna",
   "D": [
-   "<b>Copy part no.</b> and <b>Datasheet</b> (needs a network connection and company sign-in).",
+   "<b>Copy part no.</b> and <b>Datasheet</b> (needs a network connection and company sign-in). Tap the product photo to enlarge it.",
    "<b>TELEC-certified modules</b>, grouped by category with cert dates. The module you selected is highlighted.",
    "<b>RF performance</b>: efficiency, peak gain, pattern, polarization. Active GNSS antennas also show their <b>LNA gain</b>.",
    "<b>Connector &amp; cable</b>: for IPEX MHF connectors and RG174 cables, the connector, cable type and length are described together (IPEX also shows the cable diameter)."
@@ -1927,7 +1999,7 @@ const GUIDE = {
   "P1": "認証済みアンテナ",
   "P2": "アクティブ GNSS アンテナ",
   "D": [
-   "<b>品番をコピー</b>と<b>データシート</b>（ネットワーク接続と社内アカウントでのサインインが必要）。",
+   "<b>品番をコピー</b>と<b>データシート</b>（ネットワーク接続と社内アカウントでのサインインが必要）。製品写真をタップすると拡大表示できます。",
    "<b>TELEC 認証モジュール</b>：カテゴリ別に認証日とともに表示されます。選択中のモジュールは緑色で強調されます。",
    "<b>RF 性能</b>：効率、ピークゲイン、放射パターン、偏波。アクティブ GNSS アンテナは <b>LNA ゲイン</b>も表示されます。",
    "<b>コネクタとケーブル</b>：IPEX MHF コネクタまたは RG174 ケーブルのアンテナは、コネクタ、ケーブルの型番、長さをまとめて表示します（IPEX は線径も表示）。"
@@ -2007,7 +2079,7 @@ const GUIDE = {
   "P1": "인증된 안테나",
   "P2": "액티브 GNSS 안테나",
   "D": [
-   "<b>품번 복사</b>와 <b>데이터시트</b> (네트워크 연결과 회사 계정 로그인 필요).",
+   "<b>품번 복사</b>와 <b>데이터시트</b> (네트워크 연결과 회사 계정 로그인 필요). 제품 사진을 누르면 크게 볼 수 있습니다.",
    "<b>TELEC 인증 모듈</b>: 분류별로 인증일과 함께 표시됩니다. 선택한 모듈은 초록색으로 강조됩니다.",
    "<b>RF 성능</b>: 효율, 피크 이득, 방사 패턴, 편파. 액티브 GNSS 안테나는 <b>LNA 이득</b>도 표시됩니다.",
    "<b>커넥터 및 케이블</b>: IPEX MHF 커넥터 또는 RG174 케이블을 사용하는 안테나는 커넥터, 케이블 모델, 길이를 함께 표시합니다 (IPEX는 지름도 표시)."

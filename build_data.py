@@ -26,6 +26,7 @@ build_data.py — 將「Quectel Antenna Product and TELEC Certification」Excel
 from __future__ import annotations
 
 import argparse
+import hashlib
 import base64
 import datetime as dt
 import io
@@ -40,6 +41,8 @@ from PIL import Image
 
 THUMB_PX = 160          # 縮圖最長邊 (px)
 THUMB_QUALITY = 72      # WebP 品質
+PHOTO_PX = 800          # 放大檢視用照片的最長邊上限 (px)；原圖較小時維持原尺寸，不放大
+PHOTO_QUALITY = 86
 MAIN_SHEET = "Antenna vs Cert"
 MODULE_SHEET = "Name"
 HISTORY_SHEET = "Histories"
@@ -192,6 +195,26 @@ class SheetImages:
         return result
 
 
+def _flatten_crop(raw: bytes) -> Image.Image:
+    """轉成白底 RGB 並裁掉白邊。"""
+    im = Image.open(io.BytesIO(raw)).convert("RGBA")
+    flat = Image.alpha_composite(Image.new("RGBA", im.size, (255, 255, 255, 255)), im).convert("RGB")
+    bbox = Image.eval(flat, lambda p: 255 - p).point(lambda p: 255 if p > 12 else 0).getbbox()
+    return flat.crop(bbox) if bbox else flat
+
+
+def to_photo(raw: bytes) -> bytes | None:
+    """放大檢視用的照片 (WebP)：保留原始解析度，最長邊不超過 PHOTO_PX。"""
+    try:
+        flat = _flatten_crop(raw)
+        flat.thumbnail((PHOTO_PX, PHOTO_PX), Image.LANCZOS)   # 只縮小，不放大
+        buf = io.BytesIO()
+        flat.save(buf, "WEBP", quality=PHOTO_QUALITY, method=6)
+        return buf.getvalue()
+    except Exception:
+        return None
+
+
 def to_thumb(raw: bytes) -> str | None:
     """轉為 WebP 縮圖 data URI (裁白邊)；失敗回傳 None。"""
     try:
@@ -241,7 +264,7 @@ def read_revision(wb) -> dict:
     return {}
 
 
-def read_products(wb, imgs: dict[int, bytes], images: dict, module_names: list[str]):
+def read_products(wb, imgs: dict[int, bytes], images: dict, photos: dict, module_names: list[str]):
     rows = list(wb[MAIN_SHEET].iter_rows(values_only=True))
     hdr = [clean(h) for h in rows[0]]
     idx = {h: i for i, h in enumerate(hdr) if h}
@@ -287,6 +310,10 @@ def read_products(wb, imgs: dict[int, bytes], images: dict, module_names: list[s
             "ds": clean_url(r[idx["Datasheet link"]]) if "Datasheet link" in idx else None,
             "certs": certs,
         }
+        if rnum in imgs and oc not in photos:
+            ph = to_photo(imgs[rnum])
+            if ph:
+                photos[oc] = ph
         if rnum in imgs and oc not in images:
             t = to_thumb(imgs[rnum])
             if t:
@@ -319,8 +346,9 @@ def main():
 
     modules = read_modules(wb)
     images: dict[str, str] = {}
+    photos: dict[str, bytes] = {}
     products, matrix_mods = read_products(
-        wb, SheetImages(a.xlsx).row_images(MAIN_SHEET), images, [m["name"] for m in modules])
+        wb, SheetImages(a.xlsx).row_images(MAIN_SHEET), images, photos, [m["name"] for m in modules])
 
     # 模組清單以 Name 工作表順序為準，附上認證天線數
     for m in modules:
@@ -329,6 +357,24 @@ def main():
         if name not in {m["name"] for m in modules}:
             modules.append({"name": name, "date": None, "cat": "Other",
                             "n": sum(1 for p in products if name in p.get("certs", []))})
+
+    # ---- 放大檢視用照片：全部打包成單一檔案 photos.json ({料號: WebP data URI}) ----
+    # 單一檔案方便以 GitHub 網頁上傳 (一次上限 100 個檔案)，也不會留下過期的舊照片檔
+    old_dir = a.out.parent / "photos"            # v3.14.0 曾使用的資料夾，若存在則清除
+    if old_dir.exists():
+        for old in old_dir.glob("*"):
+            old.unlink()
+        old_dir.rmdir()
+    bundle = {}
+    for p in products:
+        raw = photos.get(p["oc"])
+        if raw:
+            bundle[p["oc"]] = "data:image/webp;base64," + base64.b64encode(raw).decode()
+            p["ph"] = 1                          # 有原始解析度照片
+    photo_path = a.out.parent / "photos.json"
+    photo_path.write_text(json.dumps(bundle, separators=(",", ":")), encoding="utf8")
+    photo_files = list(bundle)
+    photo_mb = photo_path.stat().st_size / 1e6
 
     data = {
         "version": a.version, "built": built, "source": a.xlsx.name,
@@ -372,6 +418,7 @@ def main():
     print(f"工具網址: {a.app_url or '(使用目前頁面網址)'}")
     print(f"天線: {len(products)}  (有 TELEC 認證: {certified})  模組: {len(modules)}  "
           f"認證組合 (☑): {sum(len(p.get('certs', [])) for p in products)}  圖片: {len(images)}")
+    print(f"放大檢視照片: {len(photo_files)} 張，打包為 photos.json ({photo_mb:.1f} MB)")
     print(f"Datasheet 連結: {sum(1 for p in products if p.get('ds'))}/{len(products)}  "
           f"尺寸可解析: {sum(1 for p in products if p.get('dimL'))}/{len(products)}")
     print(f"輸出: {a.out} ({a.out.stat().st_size / 1024:.0f} KB)")
