@@ -1,6 +1,6 @@
 # Quectel 天線選型 · TELEC 認證 PWA
 
-目前版本：**v3.16.0**
+目前版本：**v3.17.0**
 資料來源：`Quectel_Antenna_Product_and_TELEC_Certification_*.xlsx`（單一 Excel）
 
 ## 功能
@@ -55,19 +55,16 @@ Excel 照片錯誤或太模糊時，把正確的照片放進 `photo_overrides/` 
 這裡的照片優先於 Excel 與 `--photo-xlsx`，縮圖與放大檢視都會使用，之後每次更新都會保留。
 檔名找不到對應料號時，build 會顯示警告。
 
-## AI 修飾模糊照片（選用）
-最長邊小於 200px 的照片可用 AI 超解析（OpenCV EDSR）＋保邊平滑處理，讓邊緣較平滑、不再有明顯鋸齒。
-App 放大檢視時會標示「此照片經 AI 修飾」，因為細節（如印刷文字）可能與實物不同。
-
-- 結果存在 `photo_enhanced.json`（依原圖內容雜湊）。**一般 build 不需 AI 套件**，會直接沿用。
-- 只有新增或變更的照片需要重新處理：
-  ```bash
-  pip install opencv-contrib-python-headless
-  python3 build_data.py --version X.Y.Z --enhance --xlsx <TELEC Excel> --photo-xlsx <JP Excel>
-  # 模型 (tools/models/EDSR_x2.pb、EDSR_x4.pb，各約 38 MB) 不在 repo 中，第一次會自動下載
-  # 照片很多時可加 --enhance-budget 秒數，分次執行累積結果
-  ```
-- `photo_overrides/` 的手動照片與 `--photo-xlsx` 換成的清晰照片（≥ 200px）不會被修飾。
+## 從 datasheet 擷取清晰照片（建議）
+把 datasheet PDF 放在一個資料夾（或壓成 .zip），檔名含料號最佳（沒有時會讀 PDF 第 1 頁文字找料號）：
+```bash
+pip install pymupdf pillow
+python3 tools/extract_datasheet_photos.py <PDF 資料夾或 .zip> --only-blurry
+```
+- 自動略過 logo、各頁重複的頁首圖、滿版背景，取第 1～3 頁中的產品照片；透明背景補白底並裁白邊。
+- 結果存入 `photo_datasheet.json`（單一檔案），只採用比目前照片清晰的圖；之後執行 `build_data.py` 即會使用。
+- 請先檢查 `photo_datasheet_review.png`（擷取結果對照圖）與 `photo_datasheet_report.csv`（每份 PDF 的處理結果）。
+- 照片優先順序：`photo_overrides/` 手動照片 > datasheet 照片 > `--photo-xlsx` > TELEC Excel。
 
 ## 較清晰的產品照片（選用）
 TELEC Excel 中約一半的照片解析度偏低。若其他 Excel（例如 JP 天線表）有同一料號更清晰的照片，
@@ -103,7 +100,7 @@ App 內不顯示更新紀錄；版本變更請記錄在本 README 的「更新�
 | `photos.json` | 產品照片（放大檢視用，原始解析度，全部打包成單一檔案，build 時自動產生） | ✅ |
 | `version.json` | 新版偵測 | ✅ |
 | `template.html`、`build_data.py`、`fonts/` | 產生 `index.html` 的原始碼 | 建議放在 repo |
-| `photo_enhanced.json` | AI 修飾後的照片快取（build 自動維護） | ✅ 建議放在 repo |
+| `photo_datasheet.json` | 從 datasheet 擷取的產品照片（`tools/extract_datasheet_photos.py` 產生） | ✅（有擷取時） |
 | `photo_overrides/` | 手動指定的產品照片（檔名為料號） | 建議放在 repo |
 | `tools/export_guides.py` | 將內建使用說明匯出為 PDF（選用） | 建議放在 repo |
 | `guides/*.pdf` | 已匯出的使用說明 PDF（四種語言） | 選用 |
@@ -114,6 +111,7 @@ App 內不顯示更新紀錄；版本變更請記錄在本 README 的「更新�
 - 頻段預設邊界為一般公開配置，僅供初篩。
 
 ## 更新紀錄
+- **v3.17.0**：介面改為 Liquid Glass（液態玻璃）風格；移除所有 AI 修飾照片；新增 datasheet 產品照片擷取工具
 - **v3.16.0**：153 張模糊照片（< 200px）以 AI 超解析與平滑處理；放大檢視時標示「此照片經 AI 修飾」
 - **v3.15.1**：新增 `photo_overrides/` 手動指定照片；YC0001CA、YC0002AA、YC0011AA 改用正確且較清晰的照片
 - **v3.15.0**：19 款天線改用 JP 天線表中更清晰的照片（`--photo-xlsx`）

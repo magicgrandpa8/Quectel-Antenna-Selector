@@ -480,7 +480,128 @@ dialog.photo-dlg::backdrop { background: rgba(20, 16, 10, .62); }
 .photo-stage { background: #FFFFFF; display: grid; place-items: center; padding: 20px; min-height: 220px; }
 .photo-stage img { display: block; max-width: 100%; max-height: calc(100vh - 190px); height: auto; object-fit: contain; }
 .photo-name { margin: 0; padding: 12px 18px 16px; font-size: 13px; color: var(--muted); }
-.photo-ai { margin: -8px 18px 16px; padding: 8px 10px; border-radius: 8px; background: var(--warn-soft); color: var(--ink); font-size: 12px; }
+
+/* ======================================================================
+   Liquid Glass (仿 iOS 液態玻璃)：半透明毛玻璃、邊緣高光、浮起陰影、膠囊按鈕
+   - 背景加上柔和的暖色光暈，讓玻璃有可折射的內容
+   - 「減少透明度」或不支援 backdrop-filter 時，退回原本的實色樣式
+   ====================================================================== */
+:root {
+  --glass: rgba(252, 250, 246, .56);
+  --glass-strong: rgba(252, 250, 246, .76);
+  --glass-btn: rgba(255, 255, 255, .46);
+  --glass-btn-hover: rgba(255, 255, 255, .72);
+  --glass-edge: rgba(255, 255, 255, .78);
+  --glass-line: rgba(122, 96, 72, .14);
+  --glass-shadow: 0 12px 32px rgba(70, 52, 30, .10), 0 2px 6px rgba(70, 52, 30, .06);
+  --glass-hi: inset 0 1px 0 rgba(255, 255, 255, .9), inset 0 -1px 0 rgba(122, 96, 72, .06);
+  --glass-sheen: linear-gradient(140deg, rgba(255, 255, 255, .42), rgba(255, 255, 255, .06) 36%, rgba(255, 255, 255, 0) 60%, rgba(255, 255, 255, .14));
+  --glass-blur: blur(22px) saturate(170%);
+  --glow-1: rgba(122, 96, 72, .17); --glow-2: rgba(142, 42, 42, .07); --glow-3: rgba(176, 150, 110, .16);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --glass: rgba(30, 38, 44, .54); --glass-strong: rgba(30, 38, 44, .74);
+    --glass-btn: rgba(255, 255, 255, .07); --glass-btn-hover: rgba(255, 255, 255, .14);
+    --glass-edge: rgba(255, 255, 255, .14); --glass-line: rgba(255, 255, 255, .09);
+    --glass-shadow: 0 12px 32px rgba(0, 0, 0, .38), 0 2px 6px rgba(0, 0, 0, .25);
+    --glass-hi: inset 0 1px 0 rgba(255, 255, 255, .14), inset 0 -1px 0 rgba(0, 0, 0, .3);
+    --glass-sheen: linear-gradient(140deg, rgba(255, 255, 255, .10), rgba(255, 255, 255, .02) 40%, rgba(255, 255, 255, 0) 60%, rgba(255, 255, 255, .05));
+    --glow-1: rgba(45, 179, 167, .12); --glow-2: rgba(240, 122, 142, .06); --glow-3: rgba(90, 130, 160, .12);
+  }
+}
+:root[data-theme="dark"] {
+  --glass: rgba(30, 38, 44, .54); --glass-strong: rgba(30, 38, 44, .74);
+  --glass-btn: rgba(255, 255, 255, .07); --glass-btn-hover: rgba(255, 255, 255, .14);
+  --glass-edge: rgba(255, 255, 255, .14); --glass-line: rgba(255, 255, 255, .09);
+  --glass-shadow: 0 12px 32px rgba(0, 0, 0, .38), 0 2px 6px rgba(0, 0, 0, .25);
+  --glass-hi: inset 0 1px 0 rgba(255, 255, 255, .14), inset 0 -1px 0 rgba(0, 0, 0, .3);
+  --glass-sheen: linear-gradient(140deg, rgba(255, 255, 255, .10), rgba(255, 255, 255, .02) 40%, rgba(255, 255, 255, 0) 60%, rgba(255, 255, 255, .05));
+  --glow-1: rgba(45, 179, 167, .12); --glow-2: rgba(240, 122, 142, .06); --glow-3: rgba(90, 130, 160, .12);
+}
+
+/* 背景光暈 */
+body {
+  background:
+    radial-gradient(1100px 620px at 6% -8%, var(--glow-1), transparent 62%),
+    radial-gradient(900px 520px at 100% 4%, var(--glow-2), transparent 58%),
+    radial-gradient(1000px 720px at 50% 112%, var(--glow-3), transparent 62%),
+    var(--paper);
+  background-attachment: fixed;
+}
+
+/* 大面積玻璃：頁首、篩選、清單、視窗、選單 */
+.top, .quick, .list, dialog.detail, dialog.photo-dlg, .tool-menu, .guide-bar {
+  background-color: var(--glass);
+  background-image: var(--glass-sheen);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-edge);
+  box-shadow: var(--glass-shadow), var(--glass-hi);
+}
+.top { border-width: 0 0 1px; border-bottom-color: var(--glass-line); box-shadow: 0 1px 0 var(--glass-edge) inset, 0 6px 20px rgba(70, 52, 30, .06); }
+.quick, .list { border-radius: 20px; }
+.list .row { border-bottom-color: var(--glass-line); background: transparent; }
+.list .row:hover { background: rgba(255, 255, 255, .28); }
+dialog.detail, dialog.photo-dlg { border-radius: 24px; background-color: var(--glass-strong); }
+dialog.detail::backdrop, dialog.photo-dlg::backdrop {
+  background: rgba(40, 30, 18, .22); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+}
+.d-head, .photo-bar { border-bottom-color: var(--glass-line); }
+.photo-stage { border-radius: 0; }
+.tool-menu { border-radius: 18px; background-color: var(--glass-strong); }
+.thumb { border-radius: 12px; border-color: var(--glass-edge); box-shadow: 0 2px 8px rgba(70, 52, 30, .08); }
+
+@media (min-width: 821px) {
+  /* 電腦版左欄篩選：一整塊玻璃面板 */
+  .filters { background-color: var(--glass); background-image: var(--glass-sheen);
+    -webkit-backdrop-filter: var(--glass-blur); backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--glass-edge); box-shadow: var(--glass-shadow), var(--glass-hi);
+    border-radius: 22px; padding: 18px; top: calc(env(safe-area-inset-top, 0px) + 76px); }
+  .filters .quick { background: none; border: 0; box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; border-radius: 0; }   /* 左欄內不再疊一層玻璃 */
+  .tool-menu .tool-btn { background: transparent; border: 0; box-shadow: none; }
+  .tool-menu .tool-btn:hover { background: var(--glass-btn-hover); }
+}
+@media (max-width: 820px) {
+  .filters.open { background-color: var(--glass-strong); background-image: var(--glass-sheen);
+    -webkit-backdrop-filter: var(--glass-blur); backdrop-filter: var(--glass-blur); border-left: 1px solid var(--glass-edge); }
+  .tool-menu, .tool-menu[hidden] { background: none; border: 0; box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; }
+}
+
+/* 膠囊玻璃按鈕與輸入框 */
+.tool-btn, .icon-btn, .chip, .ds-icon, .ds-btn, .agent-btn, .search, .quick select, .results-bar select, .size-filter input {
+  background-color: var(--glass-btn);
+  -webkit-backdrop-filter: blur(14px) saturate(160%);
+  backdrop-filter: blur(14px) saturate(160%);
+  border: 1px solid var(--glass-edge);
+  box-shadow: var(--glass-hi), 0 1px 3px rgba(70, 52, 30, .07);
+  transition: background-color .15s ease, transform .12s ease, box-shadow .15s ease;
+}
+.tool-btn, .icon-btn, .chip, .agent-btn, .ds-btn { border-radius: 999px; }
+.ds-icon { border-radius: 14px; }
+.search, .quick select, .results-bar select { border-radius: 14px; }
+.tool-btn:hover, .icon-btn:hover, .chip:hover, .ds-icon:hover, .ds-btn:hover { background-color: var(--glass-btn-hover); }
+.tool-btn:active, .icon-btn:active, .chip:active, .ds-icon:active, .ds-btn:active, .agent-btn:active, .row:active .thumb { transform: scale(.97); }
+.agent-btn { color: var(--accent); border-color: var(--glass-edge); }
+.agent-btn:hover { background-color: var(--accent); color: var(--accent-ink); }
+.quick select.active, .chip[aria-pressed="true"] { background-color: color-mix(in srgb, var(--accent-soft) 78%, transparent); border-color: color-mix(in srgb, var(--accent) 45%, transparent); }
+.toast { background: rgba(40, 32, 22, .72); -webkit-backdrop-filter: blur(16px) saturate(150%); backdrop-filter: blur(16px) saturate(150%);
+  border: 1px solid rgba(255, 255, 255, .18); border-radius: 999px; }
+
+/* 退回實色：使用者開啟「減少透明度」或瀏覽器不支援模糊時 */
+@media (prefers-reduced-transparency: reduce) {
+  :root { --glass: var(--surface); --glass-strong: var(--surface); --glass-btn: var(--surface); --glass-btn-hover: var(--band); --glass-sheen: none; }
+  .top, .quick, .list, dialog.detail, dialog.photo-dlg, .tool-menu, .guide-bar, .filters, .tool-btn, .icon-btn, .chip, .ds-icon, .ds-btn,
+  .agent-btn, .search, .quick select, .results-bar select, .toast { -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
+  body { background: var(--paper); }
+}
+/* 列印 (含使用說明 PDF 中的手機畫面)：模糊效果無法列印，玻璃改為實色以免內容透出重疊 */
+@media print {
+  :root { --glass: var(--surface); --glass-strong: var(--surface); --glass-btn: var(--surface); --glass-sheen: none; }
+}
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  :root { --glass: var(--surface); --glass-strong: var(--surface); --glass-btn: var(--surface); }
+}
 </style>
 </head>
 <body>
@@ -594,7 +715,6 @@ dialog.photo-dlg::backdrop { background: rgba(20, 16, 10, .62); }
   <div class="photo-bar"><strong id="photoTitle"></strong><button type="button" class="icon-btn" id="photoClose"></button></div>
   <div class="photo-stage"><img id="photoImg" alt="" decoding="async"></div>
   <p class="photo-name" id="photoName"></p>
-  <p class="photo-ai" id="photoAi" hidden></p>
 </dialog>
 <dialog class="detail small" id="installDialog" aria-labelledby="installTitle"></dialog>
 <dialog class="guide-dlg" id="guideDialog" aria-labelledby="guideTitle">
@@ -717,7 +837,6 @@ const I18N = {
     f_gnss: 'GNSS 天線類型',
     guide: '使用說明', guidePrint: '列印 / 存成 PDF',
     photoAria: '放大檢視 {oc} 的照片',
-    photoAi: '此照片經 AI 修飾以提高清晰度，細節（如印刷文字）可能與實物略有不同。',
     menu: '更多功能',
     moreFilters: '更多條件', kl_size: '尺寸',
     s_ip: 'IP 等級',
@@ -784,7 +903,6 @@ const I18N = {
     f_gnss: 'GNSS antenna type',
     guide: 'User guide', guidePrint: 'Print / Save as PDF',
     photoAria: 'View a larger photo of {oc}',
-    photoAi: 'This photo was AI-enhanced for clarity; fine details such as printed text may differ from the actual product.',
     menu: 'More',
     moreFilters: 'More filters', kl_size: 'Size',
     s_ip: 'IP rating',
@@ -849,7 +967,6 @@ const I18N = {
     f_gnss: 'GNSS アンテナタイプ',
     guide: 'ユーザーガイド', guidePrint: '印刷 / PDF に保存',
     photoAria: '{oc} の写真を拡大表示',
-    photoAi: 'この写真は AI で鮮明化しています。印刷文字などの細部は実物と異なる場合があります。',
     menu: 'その他',
     moreFilters: 'その他の条件', kl_size: '寸法',
     s_ip: 'IP 等級',
@@ -914,7 +1031,6 @@ const I18N = {
     f_gnss: 'GNSS 안테나 유형',
     guide: '사용자 가이드', guidePrint: '인쇄 / PDF로 저장',
     photoAria: '{oc} 사진 크게 보기',
-    photoAi: '이 사진은 AI로 선명하게 보정했습니다. 인쇄된 글자 등 세부 사항은 실제 제품과 다를 수 있습니다.',
     menu: '더보기',
     moreFilters: '추가 조건', kl_size: '크기',
     s_ip: 'IP 등급',
@@ -1285,9 +1401,6 @@ async function openPhoto(oc) {
   const img = $('photoImg');
   $('photoTitle').textContent = p.oc;
   $('photoName').textContent = p.name || '';
-  // AI 修飾過的照片加註說明 (細節可能與實物不同)
-  $('photoAi').hidden = !p.ai;
-  $('photoAi').textContent = p.ai ? t('photoAi') : '';
   $('photoClose').textContent = t('close');
   img.alt = t('photoAria', { oc: p.oc });
   img.style.width = '320px';
