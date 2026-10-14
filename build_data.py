@@ -20,6 +20,11 @@ build_data.py — 將「Quectel Antenna Product and TELEC Certification」Excel
     --photo-xlsx <其他 Excel>  可重複指定。依料號比對，某款天線在其他 Excel 的照片
     比目前照片清晰 2 倍以上時，縮圖與放大檢視改用該照片。
 
+datasheet 檔案 (選用)
+    datasheets/*.pdf  檔名含料號的 datasheet (例如 Quectel_4G_Antenna_YC0001CA_Datasheet_V2_4.pdf)。
+    各天線的 Datasheet 按鈕改連到這裡的檔案；同一料號有多份時，優先英文版、再取版本最新者。
+    沒有對應檔案的天線沿用 Excel 中的 Datasheet 連結。
+
 datasheet 照片 (選用)
     photo_datasheet.json  由 tools/extract_datasheet_photos.py 從 datasheet PDF 擷取的產品照片，
     優先於 Excel 與 --photo-xlsx，僅次於 photo_overrides/ 手動照片。
@@ -244,6 +249,38 @@ def to_thumb(raw: bytes) -> str | None:
 
 
 # --------------------------------------------------------------------------- #
+# datasheet 檔案 (選用)：依檔名對應料號
+# --------------------------------------------------------------------------- #
+CN_MARK = ("规格书", "規格書", "天线", "天線")
+
+
+def map_datasheets(folder: Path, ocs: list[str]) -> tuple[dict[str, str], list[str]]:
+    """回傳 ({料號: 相對網址}, [無法對應料號的檔名])。
+    同一料號多份時排序：英文版 > 中文版，版本號大者優先，再以修改時間新者優先。"""
+    from urllib.parse import quote
+    if not folder.is_dir():
+        return {}, []
+    ocs_sorted = sorted(ocs, key=len, reverse=True)
+    best: dict[str, tuple] = {}
+    unmatched = []
+    for f in sorted(folder.rglob("*.pdf")):
+        name = f.name.upper()
+        oc = next((o for o in ocs_sorted
+                   if re.search(rf"(?<![A-Z0-9]){re.escape(o)}(?![A-Z0-9])", name)), None)
+        if not oc:
+            unmatched.append(f.name)
+            continue
+        m = re.search(r"V(\d+)(?:[._](\d+))?(?:[._](\d+))?", f.stem, re.I)
+        ver = tuple(int(x or 0) for x in m.groups()) if m else (0, 0, 0)
+        english = not any(k in f.name for k in CN_MARK)
+        key = (english, ver, f.stat().st_mtime)
+        if oc not in best or key > best[oc][0]:
+            rel = f.relative_to(folder.parent).as_posix()
+            best[oc] = (key, quote(rel))
+    return {oc: url for oc, (key, url) in best.items()}, unmatched
+
+
+# --------------------------------------------------------------------------- #
 # 其他 Excel 的照片 (選用)：只依料號取照片，不讀其他資料
 # --------------------------------------------------------------------------- #
 PHOTO_GAIN = 2.0   # 其他來源的照片至少清晰幾倍 (以裁白邊後的最長邊比較) 才替換
@@ -386,6 +423,8 @@ def main():
     ap.add_argument("--template", default=Path("template.html"), type=Path)
     ap.add_argument("--out", default=Path("index.html"), type=Path)
     ap.add_argument("--sw", default=Path("sw.js"), type=Path)
+    ap.add_argument("--datasheet-dir", default=Path("datasheets"), type=Path,
+                    help="datasheet PDF 資料夾 (隨工具一起放在 GitHub)，Datasheet 按鈕改連到這裡的檔案")
     ap.add_argument("--datasheet-photos", default=Path("photo_datasheet.json"), type=Path,
                     help="datasheet 擷取的照片 (tools/extract_datasheet_photos.py 產生)")
     ap.add_argument("--photo-dir", default=Path("photo_overrides"), type=Path,
@@ -419,6 +458,12 @@ def main():
         if name not in {m["name"] for m in modules}:
             modules.append({"name": name, "date": None, "cat": "Other",
                             "n": sum(1 for p in products if name in p.get("certs", []))})
+
+    # ---- datasheet 檔案：Datasheet 按鈕改連到 datasheets/ 中對應的 PDF ----
+    ds_map, ds_unmatched = map_datasheets(a.datasheet_dir, [p["oc"] for p in products])
+    for p in products:
+        if p["oc"] in ds_map:
+            p["ds"] = ds_map[p["oc"]]
 
     # ---- 較清晰的照片來源 (選用)：清晰 PHOTO_GAIN 倍以上才替換，縮圖與放大照片一起換 ----
     swapped = []
@@ -538,6 +583,12 @@ def main():
     if a.photo_xlsx:
         print(f"改用其他 Excel 的清晰照片: {len(swapped)} 款 "
               + ", ".join(f"{oc} {c}→{n}px" for oc, c, n in swapped[:6]) + (" …" if len(swapped) > 6 else ""))
+    if a.datasheet_dir.is_dir():
+        print(f"datasheet 檔案 ({a.datasheet_dir}/): {len(ds_map)} 款天線連到此資料夾，"
+              f"其餘 {len(products) - len(ds_map)} 款沿用 Excel 連結")
+        if ds_unmatched:
+            print(f"警告：{len(ds_unmatched)} 個 PDF 找不到對應料號 (請確認檔名含料號)：{', '.join(ds_unmatched[:8])}"
+                  + (" …" if len(ds_unmatched) > 8 else ""), file=sys.stderr)
     print(f"Datasheet 連結: {sum(1 for p in products if p.get('ds'))}/{len(products)}  "
           f"尺寸可解析: {sum(1 for p in products if p.get('dimL'))}/{len(products)}")
     print(f"輸出: {a.out} ({a.out.stat().st_size / 1024:.0f} KB)")

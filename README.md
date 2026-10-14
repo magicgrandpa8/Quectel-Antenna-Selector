@@ -1,6 +1,6 @@
 # Quectel 天線選型 · TELEC 認證 PWA
 
-目前版本：**v3.18.0**
+目前版本：**v3.19.0**
 資料來源：`Quectel_Antenna_Product_and_TELEC_Certification_*.xlsx`（單一 Excel）
 
 ## 功能
@@ -54,6 +54,13 @@ Excel 照片錯誤或太模糊時，把正確的照片放進 `photo_overrides/` 
 （例如 `YC0001CA.png`，支援 png / jpg / jpeg / webp），重新產生工具即可。
 這裡的照片優先於 Excel 與 `--photo-xlsx`，縮圖與放大檢視都會使用，之後每次更新都會保留。
 檔名找不到對應料號時，build 會顯示警告。
+
+## Datasheet 檔案（客戶可直接開啟、下載）
+把 datasheet PDF 放在 repo 的 `datasheets/` 資料夾（檔名含料號即可，不需改名），重新 build：
+- 各天線的 Datasheet 按鈕自動連到對應的 PDF；同一料號多份時，優先英文版、再取版本最新者。
+- 沒有對應檔案的天線沿用 Excel 中的連結；找不到料號的 PDF 會在 build 時列出警告。
+- App 不會預先下載 datasheet；客戶開啟過的 datasheet 會保存在裝置上，離線時可再開啟。
+- GitHub 網頁一次最多上傳 100 個檔案、單檔 25 MB；GitHub Pages 網站總容量建議 1 GB 以內。
 
 ## 從 datasheet 擷取清晰照片（建議）
 把 datasheet PDF 放在一個資料夾（或壓成 .zip），檔名含料號最佳（沒有時會讀 PDF 第 1 頁文字找料號）：
@@ -111,6 +118,7 @@ App 內不顯示更新紀錄；版本變更請記錄在本 README 的「更新�
 - 頻段預設邊界為一般公開配置，僅供初篩。
 
 ## 更新紀錄
+- **v3.19.0**：支援 `datasheets/` 資料夾（Datasheet 按鈕連到 repo 中的 PDF、開啟過的可離線閱讀）；修正 datasheet 照片擷取（透明背景、裝飾色條、重複出現的產品照）；5 款天線改用 datasheet 中的清晰照片；使用說明 PDF 改為固定檔名
 - **v3.18.0**：手機版結果優先（篩選改為底部面板＋浮動「篩選」按鈕）；天線比較（最多 3 款、差異標色、只看差異、共同認證模組）；TELEC 認證模組可多選（共同認證）
 - **v3.17.0**：介面改為 Liquid Glass（液態玻璃）風格；移除所有 AI 修飾照片；新增 datasheet 產品照片擷取工具
 - **v3.16.0**：153 張模糊照片（< 200px）以 AI 超解析與平滑處理；放大檢視時標示「此照片經 AI 修飾」

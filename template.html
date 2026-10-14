@@ -1432,7 +1432,9 @@ function openDatasheet(oc) {
   const p = PAGES[page].items().find((x) => x.oc === oc);
   const url = dsUrl(p);
   if (!url) return;
-  if (!navigator.onLine) { toast(t('dsOffline'), 3000); return; }
+  // 離線時：放在本工具的 datasheet (datasheets/) 若開啟過仍可從快取開啟；外部連結則提示需要網路
+  const local = !/^https?:/i.test(url);
+  if (!navigator.onLine && !local) { toast(t('dsOffline'), 3000); return; }
   // noopener / noreferrer：新分頁無法回頭存取本 App，也不帶來源網址
   window.open(url, '_blank', 'noopener,noreferrer');
 }
