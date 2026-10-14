@@ -33,7 +33,7 @@ import zipfile
 from pathlib import Path
 
 import pymupdf
-from PIL import Image, ImageChops, ImageDraw
+from PIL import Image, ImageChops, ImageDraw, ImageStat
 
 ROOT = Path(__file__).resolve().parent.parent
 BLURRY_PX = 200
@@ -97,21 +97,27 @@ def extract_photo(doc) -> tuple[Image.Image, int] | None:
         page_area = page.rect.width * page.rect.height
         for img in page.get_images(full=True):
             xref, smask = img[0], img[1]
-            if seen.get(xref, 0) >= 2 and len(doc) > 1:
-                continue                           # 頁首/頁尾等重複圖
+            if seen.get(xref, 0) >= max(3, len(doc) // 2):
+                continue                           # 頁首/頁尾等在大部分頁面重複出現的圖 (產品照可能在後面頁面再出現一次，不算)
             try:
                 rects = page.get_image_rects(xref)
                 if rects and max(r.width * r.height for r in rects) > 0.85 * page_area:
                     continue                       # 滿版背景
                 pix = pymupdf.Pixmap(doc, xref)
                 if smask:
-                    pix = pymupdf.Pixmap(pix, pymupdf.Pixmap(doc, smask))
+                    # 套用透明遮罩 (smask)：先去掉可能已存在但未套用遮罩的 alpha，再與遮罩合成
+                    base = pymupdf.Pixmap(pix, 0) if pix.alpha else pix
+                    if base.n - base.alpha >= 4:
+                        base = pymupdf.Pixmap(pymupdf.csRGB, base)
+                    pix = pymupdf.Pixmap(base, pymupdf.Pixmap(doc, smask))
                 im = crop_white(to_white_rgb(pix))
             except Exception:
                 continue
             w, h = im.size
             if min(w, h) < 60 or max(w, h) < 150 or max(w, h) / max(1, min(w, h)) > 8:
                 continue                           # logo、細線、色條
+            if max(ImageStat.Stat(im.convert("L")).stddev) < 12:
+                continue                           # 幾乎單一顏色的裝飾圖 (例如側邊色條)
             score = w * h * (1.25 if pno == 0 else 1.0)
             if not best or score > best[0]:
                 best = (score, im, pno + 1)

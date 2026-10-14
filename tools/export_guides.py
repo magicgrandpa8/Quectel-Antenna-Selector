@@ -64,7 +64,8 @@ def main():
                 page.wait_for_timeout(300)
                 title = page.evaluate("document.querySelector('.g-foot')?.textContent || document.title")
                 title = title.replace("&", "&amp;").replace("<", "&lt;")
-                out = a.out / f"Quectel_Antenna_Selector_TELEC_User_Guide_{lang.upper()}_v{version}.pdf"
+                # 固定檔名 (不含版本號)：每次更新直接覆蓋，GitHub 上不會累積舊檔；版本號印在 PDF 內
+                out = a.out / f"Quectel_Antenna_Selector_TELEC_User_Guide_{lang.upper()}.pdf"
                 page.pdf(path=str(out), format="A4", print_background=True, prefer_css_page_size=True,
                          display_header_footer=True, header_template="<div></div>", footer_template=FOOT.format(title=title))
                 print(f"{lang}: {out}")
