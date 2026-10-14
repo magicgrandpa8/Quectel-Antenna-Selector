@@ -380,6 +380,91 @@ html.offline .net { display: inline-flex; }
   .tool-btn.ver .lbl, .tool-btn.install .lbl { display: inline; }
   .quick { padding: 10px; }
 }
+
+/* ======================================================================
+   v3.13 版面整理 (電腦版，寬度 > 820px)：篩選集中左欄、頁首精簡、清單精簡
+   手機與平板 (≤ 820px) 維持原版面，只把頁首按鈕依螢幕寬度平均分配
+   ====================================================================== */
+.menu-wrap { position: relative; }
+.more-count:not(:empty) { font-size: 12px; min-width: 20px; height: 20px; padding: 0 6px; box-sizing: border-box; border-radius: 10px; background: var(--accent); color: var(--accent-ink); display: inline-grid; place-items: center; }
+.keys { display: flex; flex-wrap: wrap; gap: 4px 20px; margin: 4px 0 0; font-size: 13px; }
+.keys div { display: flex; gap: 6px; align-items: baseline; min-width: 0; }
+.keys dt { color: var(--muted); font-size: 12px; white-space: nowrap; }
+.keys dd { margin: 0; font-weight: 600; }
+.keys .lna dd { color: var(--accent); }
+.ds-icon { width: 40px; height: 40px; display: grid; place-items: center; border-radius: 10px; border: 1px solid var(--rule);
+  background: var(--surface); color: var(--accent); cursor: pointer; }
+.ds-icon:hover { border-color: var(--accent); }
+
+@media (min-width: 821px) {
+  /* 頁首：語言、使用說明、「⋯」 */
+  .top-inner { flex-wrap: nowrap; }
+  .brand { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .tools { flex-wrap: nowrap; }
+  .menu-btn { padding: 6px 10px; }
+  .menu-btn .dot { display: none; width: 7px; height: 7px; border-radius: 50%; background: var(--danger); position: absolute; top: 4px; right: 4px; }
+  .menu-wrap:has(.has-update) .menu-btn .dot { display: block; }
+  .tool-menu { position: absolute; right: 0; top: calc(100% + 6px); z-index: 30; min-width: 200px; padding: 6px;
+    background: var(--surface); border: 1px solid var(--rule); border-radius: 12px; box-shadow: 0 12px 32px rgba(40, 32, 20, .14);
+    display: grid; gap: 2px; }
+  .tool-menu[hidden] { display: none; }
+  .tool-menu .tool-btn { width: 100%; justify-content: flex-start; border: 0; background: none; padding: 10px 12px; border-radius: 8px; font-size: 14px; }
+  .tool-menu .tool-btn:hover { background: var(--band); }
+  .tool-menu .tool-btn .lbl { display: inline !important; }
+  .tool-menu .tool-btn.ver { color: var(--ink); }
+
+  /* 篩選集中在左欄：搜尋 → 下拉選單 → 更多條件 → 清除 */
+  .layout { grid-template-columns: 296px minmax(0, 1fr); gap: 32px; padding-top: 8px; }
+  .filters { display: grid; gap: 16px; align-content: start; padding: 0 4px 16px 0; }
+  .filters .search { margin: 0; }
+  .filters .quick { background: none; border: 0; padding: 0; margin: 0; max-width: none; gap: 16px; }
+  .filters .quick label { font-size: 13px; color: var(--ink); font-weight: 600; gap: 6px; }
+  .filters .quick label .en { font-weight: 400; color: var(--muted); font-size: 12px; }
+  .filters .quick select { padding: 10px 12px; font-size: 14px; border-radius: 8px; }
+  .more-filters { border-top: 1px solid var(--rule); padding-top: 16px; }
+  .more-filters > summary { cursor: pointer; list-style: none; display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600; }
+  .more-filters > summary::-webkit-details-marker { display: none; }
+  .more-filters > summary::after { content: "+"; margin-left: auto; color: var(--muted); font-weight: 400; font-size: 18px; }
+  .more-filters[open] > summary::after { content: "−"; }
+  .more-filters #filterBody { margin-top: 8px; }
+  .reset { margin-top: 0; }
+  .results-bar { margin-bottom: 16px; }
+  .count b { font-size: 22px; }
+  .active-tags { display: none; }   /* 條件已顯示在左欄，不重複 */
+
+  /* 清單每列：一行關鍵值 */
+  .row.r2 { grid-template-columns: 64px minmax(0, 1fr) auto; gap: 16px; padding: 16px; align-items: start; }
+  .r-main { display: grid; gap: 4px; min-width: 0; }
+  .r-top { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .r-top .oc { font-size: 15px; font-weight: 700; }
+  .row.r2 .pname { margin: 0; font-size: 13px; color: var(--muted); }
+}
+
+@media (max-width: 820px) {
+  /* 手機：「更多條件」不收合 (維持原本的篩選抽屜內容) */
+  .more-filters > summary { display: none; }
+  /* 頁首按鈕：中文 / 深色 / 強制更新 / 使用說明 / 版本，依螢幕寬度平均分配 */
+  .tools { width: 100%; flex-wrap: wrap; gap: 6px; }
+  .menu-btn { display: none; }
+  .menu-wrap, .tool-menu, .tool-menu[hidden] { display: contents; }
+  .tools > .tool-btn, .tools > label.tool-btn, .tool-menu > .tool-btn:not([hidden]) {
+    flex: 1 1 0; min-width: 0; justify-content: center; height: 38px; padding: 0 6px; box-sizing: border-box;
+  }
+  .tool-btn.lang { order: 1; padding: 0 4px; }
+  #themeBtn { order: 2; } #updateBtn { order: 3; } #guideBtn { order: 4; } #verBtn { order: 5; }
+  /* 「安裝 App」(僅 iPhone Safari 等尚未安裝時出現)：獨立一整列，不擠壓上面 5 個按鈕 */
+  .tool-menu > #installBtn:not([hidden]) { order: 6; flex: 1 1 100%; }
+  .tool-btn.lang > svg { display: none; }                       /* 語言：省略地球圖示 */
+  .tool-btn.lang select { padding: 6px 14px 6px 2px; text-align: center; }
+  .tool-btn.lang::after { right: 5px; }
+  #verBtn .lbl { font-size: 12px; }
+  .net { order: 0; flex: none; }
+  .tool-btn.lang select { min-width: 0; max-width: 100%; text-overflow: ellipsis; }
+  .tool-btn .lbl { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  #verBtn [data-i18n="verAria"] { display: none; }   /* 手機只顯示版本號 */
+  .filters > .search { margin: 4px 0 12px; }
+}
+
 </style>
 </head>
 <body>
@@ -393,11 +478,6 @@ html.offline .net { display: inline-flex; }
     </div>
     <div class="tools">
       <span class="net" id="netBadge" role="status" data-i18n="offline"></span>
-      <!-- 安裝 App (已安裝或不支援時隱藏) -->
-      <button class="tool-btn install" id="installBtn" type="button" hidden>
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg>
-        <span class="lbl" data-i18n="install"></span>
-      </button>
       <!-- 中英文切換 -->
       <label class="tool-btn lang">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg>
@@ -408,6 +488,23 @@ html.offline .net { display: inline-flex; }
           <option value="ko" lang="ko">한국어</option>
         </select>
       </label>
+      <!-- 使用說明 (依目前語言即時產生) -->
+      <button class="tool-btn" id="guideBtn" type="button">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5V5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2.5z"/><path d="M8 7h7M8 11h7"/></svg>
+        <span class="lbl" data-i18n="guide"></span>
+      </button>
+      <!-- 其他功能收進「⋯」選單：安裝 App、深色模式、強制更新、版本資訊 -->
+      <div class="menu-wrap" id="menuWrap">
+        <button class="tool-btn menu-btn" id="menuBtn" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="toolMenu">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg>
+          <span class="dot" aria-hidden="true"></span>
+        </button>
+        <div class="tool-menu" id="toolMenu" role="menu" hidden>
+      <!-- 安裝 App (已安裝或不支援時隱藏) -->
+      <button class="tool-btn install" id="installBtn" type="button" hidden>
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg>
+        <span class="lbl" data-i18n="install"></span>
+      </button>
       <!-- 深色/淺色切換 -->
       <button class="tool-btn" id="themeBtn" type="button">
         <svg id="themeIcon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"></svg>
@@ -418,15 +515,12 @@ html.offline .net { display: inline-flex; }
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/></svg>
         <span class="lbl" data-i18n="update"></span><span class="dot" aria-hidden="true"></span>
       </button>
-      <!-- 使用說明 (依目前語言即時產生) -->
-      <button class="tool-btn" id="guideBtn" type="button">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5V5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2.5z"/><path d="M8 7h7M8 11h7"/></svg>
-        <span class="lbl" data-i18n="guide"></span>
-      </button>
       <!-- 版本資訊 -->
       <button class="tool-btn ver" id="verBtn" type="button">
-        <span class="lbl" id="verLbl"></span>
+        <span class="lbl"><span data-i18n="verAria"></span> <span id="verLbl"></span></span>
       </button>
+        </div>
+      </div>
     </div>
   </div>
 </header>
@@ -446,13 +540,18 @@ html.offline .net { display: inline-flex; }
 <main class="layout">
   <aside class="filters" id="filters">
     <div class="filters-head"><span data-i18n="filters"></span><button class="icon-btn" id="closeFilters" type="button" data-i18n="done"></button></div>
-    <div id="filterBody"></div>
+    <label class="sr-only" for="q" data-i18n="searchAria"></label>
+    <input class="search" id="q" type="search" data-i18n-ph="search">
+    <!-- 下拉選單：Tech → Japan Market → [TELEC 模組] → [GNSS 天線類型] → Product Type → Form -->
+    <div class="quick" id="quick"></div>
+    <details class="more-filters" id="moreFilters">
+      <summary><span data-i18n="moreFilters"></span><span class="more-count" id="moreCount"></span></summary>
+      <div id="filterBody"></div>
+    </details>
     <button class="icon-btn reset" id="resetBtn" type="button" data-i18n="resetAll"></button>
   </aside>
 
   <section>
-    <!-- 快速選單：模組 (日本頁) / Type / Product Type / Antenna Type -->
-    <div class="quick" id="quick"></div>
     <div class="results-bar">
       <div class="count" aria-live="polite"><b id="count">0</b> <span id="countOf"></span></div>
       <div class="spacer"></div>
@@ -543,7 +642,7 @@ const I18N = {
     update: '強制更新', updateAria: '清除快取並重新載入最新版本', updating: '正在清除快取並重新載入…',
     newVersion: '伺服器有新版本 v{v}，按「強制更新」套用',
     verAria: '版本資訊',
-    mTitle: '天線選型與 TELEC 認證', mSub: '請用下拉式選單進行篩選天線，或是直接使用移遠天線Agent',
+    mTitle: '天線選型與 TELEC 認證', mSub: '使用下拉式選單篩選天線或是跟移遠天線Agent說明您的需求',
    
     filters: '篩選條件', done: '完成', resetAll: '清除所有條件', search: '搜尋料號、名稱、頻率…', searchAria: '搜尋',
     countOf: '/ {n} 項天線', filterBtn: '篩選', sort: '排序',
@@ -595,6 +694,8 @@ const I18N = {
     cxLen: '{c} 接頭＋{t} 線材，線長 {l} mm', cxSep: '；',
     f_gnss: 'GNSS 天線類型',
     guide: '使用說明', guidePrint: '列印 / 存成 PDF',
+    menu: '更多功能',
+    moreFilters: '更多條件', kl_size: '尺寸',
     s_ip: 'IP 等級',
     agent: '移遠天線Agent', agentOffline: '移遠天線Agent 需要網路連線',
     datasheet: 'Datasheet', dsAria: '開啟 {oc} 的 Datasheet', dsOffline: 'Datasheet 需要網路連線 (並登入公司帳號)',
@@ -606,7 +707,7 @@ const I18N = {
     update: 'Force update', updateAria: 'Clear cache and reload the latest version', updating: 'Clearing cache and reloading…',
     newVersion: 'Version v{v} is available. Press "Force update" to apply.',
     verAria: 'Version info',
-    mTitle: 'Antenna selection & TELEC certification', mSub: 'Filter antennas with the dropdown menus, or ask Quectel Antenna Agent directly.',
+    mTitle: 'Antenna selection & TELEC certification', mSub: 'Filter antennas with the dropdown menus, or tell Quectel Antenna Agent what you need.',
    
     filters: 'Filters', done: 'Done', resetAll: 'Clear all filters', search: 'Search part no., name, frequency…', searchAria: 'Search',
     countOf: '/ {n} antennas', filterBtn: 'Filters', sort: 'Sort',
@@ -658,6 +759,8 @@ const I18N = {
     cxLen: '{c} connector + {t} cable, {l} mm long', cxSep: '; ',
     f_gnss: 'GNSS antenna type',
     guide: 'User guide', guidePrint: 'Print / Save as PDF',
+    menu: 'More',
+    moreFilters: 'More filters', kl_size: 'Size',
     s_ip: 'IP rating',
     agent: 'Quectel Antenna Agent', agentOffline: 'Quectel Antenna Agent needs a network connection',
     datasheet: 'Datasheet', dsAria: 'Open datasheet for {oc}', dsOffline: 'Datasheets need a network connection (and company sign-in)',
@@ -668,7 +771,7 @@ const I18N = {
     update: '強制更新', updateAria: 'キャッシュを削除して最新版を再読み込み', updating: 'キャッシュを削除して再読み込みしています…',
     newVersion: '新しいバージョン v{v} があります。「強制更新」を押して適用してください。',
     verAria: 'バージョン情報',
-    mTitle: 'アンテナ選定と TELEC 認証', mSub: 'ドロップダウンメニューでアンテナを絞り込むか、Quectel アンテナ Agent を直接ご利用ください。',
+    mTitle: 'アンテナ選定と TELEC 認証', mSub: 'ドロップダウンメニューでアンテナを絞り込むか、Quectel アンテナ Agent にご要望をお伝えください。',
    
     filters: '絞り込み条件', done: '完了', resetAll: 'すべての条件をクリア', search: '品番・名称・周波数で検索…', searchAria: '検索',
     countOf: '/ {n} 件のアンテナ', filterBtn: '絞り込み', sort: '並べ替え',
@@ -719,6 +822,8 @@ const I18N = {
     cxLen: '{c} コネクタ＋{t} ケーブル、長さ {l} mm', cxSep: '；',
     f_gnss: 'GNSS アンテナタイプ',
     guide: 'ユーザーガイド', guidePrint: '印刷 / PDF に保存',
+    menu: 'その他',
+    moreFilters: 'その他の条件', kl_size: '寸法',
     s_ip: 'IP 等級',
     agent: 'Quectel アンテナ Agent', agentOffline: 'Quectel アンテナ Agent の利用にはネットワーク接続が必要です',
     datasheet: 'Datasheet', dsAria: '{oc} のデータシートを開く', dsOffline: 'データシートの表示にはネットワーク接続（と社内アカウントでのサインイン）が必要です',
@@ -729,7 +834,7 @@ const I18N = {
     update: '강제 업데이트', updateAria: '캐시를 지우고 최신 버전을 다시 불러오기', updating: '캐시를 지우고 다시 불러오는 중…',
     newVersion: '새 버전 v{v}을(를) 사용할 수 있습니다. "강제 업데이트"를 눌러 적용하세요.',
     verAria: '버전 정보',
-    mTitle: '안테나 선정 및 TELEC 인증', mSub: '드롭다운 메뉴로 안테나를 필터링하거나, Quectel 안테나 Agent를 바로 이용하세요.',
+    mTitle: '안테나 선정 및 TELEC 인증', mSub: '드롭다운 메뉴로 안테나를 필터링하거나, Quectel 안테나 Agent에게 필요한 내용을 알려 주세요.',
    
     filters: '필터', done: '완료', resetAll: '모든 조건 지우기', search: '품번, 이름, 주파수로 검색…', searchAria: '검색',
     countOf: '/ {n}개 안테나', filterBtn: '필터', sort: '정렬',
@@ -780,6 +885,8 @@ const I18N = {
     cxLen: '{c} 커넥터 + {t} 케이블, 길이 {l} mm', cxSep: '; ',
     f_gnss: 'GNSS 안테나 유형',
     guide: '사용자 가이드', guidePrint: '인쇄 / PDF로 저장',
+    menu: '더보기',
+    moreFilters: '추가 조건', kl_size: '크기',
     s_ip: 'IP 등급',
     agent: 'Quectel 안테나 Agent', agentOffline: 'Quectel 안테나 Agent를 사용하려면 네트워크 연결이 필요합니다',
     datasheet: 'Datasheet', dsAria: '{oc} 데이터시트 열기', dsOffline: '데이터시트를 보려면 네트워크 연결(및 회사 계정 로그인)이 필요합니다',
@@ -807,11 +914,13 @@ function applyStaticI18n() {
   document.querySelectorAll('[data-i18n-ph]').forEach((el) => { el.placeholder = t(el.dataset.i18nPh); el.setAttribute('aria-label', t(el.dataset.i18nPh)); });
   document.querySelectorAll('[data-i18n-aria]').forEach((el) => { el.setAttribute('aria-label', t(el.dataset.i18nAria)); });
   $('langSel').value = lang;
+  $('langSel').querySelector('option[value="en"]').textContent = isDesktop() ? 'English' : 'EN';
   $('langSel').setAttribute('aria-label', t('langAria'));
   $('updateBtn').setAttribute('aria-label', t('updateAria'));
   $('updateBtn').title = t('updateAria');
   $('verLbl').textContent = 'v' + APP_VERSION;
   $('guideBtn').setAttribute('aria-label', t('guide'));
+  $('menuBtn').setAttribute('aria-label', t('menu'));
   $('agentBtn').href = AGENT_URL;
   $('agentBtn').title = t('agent');
   $('guideBtn').title = t('guide');
@@ -884,6 +993,11 @@ const PAGES = {
     ],
   },
 };
+/** 「技術類別 Tech」這類雙語標題：英文部分以淡色小字顯示 */
+function labelHtml(title) {
+  const m = String(title).match(/^(.*[^\x00-\x7F])\s+([A-Za-z][A-Za-z ]*)$/);
+  return m ? `<span>${esc(m[1])} <span class="en">${esc(m[2])}</span></span>` : `<span>${esc(title)}</span>`;
+}
 const facetTitle = (f) => t(f.title || 'f_' + f.key);
 /** 技術類別是否選了 GNSS (決定是否顯示 GNSS 天線類型選單) */
 /** GNSS 天線類型選項順序；其他值 (若 Excel 日後新增) 排在最後 */
@@ -923,7 +1037,8 @@ function filterItems(skipKey) {
   const cfg = PAGES[page];
   const q = state.q.trim().toLowerCase();
   return cfg.items().filter((p) => {
-    if (cfg.module && skipKey !== '__module' && state.module && isJpYes() && !(p.certs || []).includes(state.module)) return false;
+    // 計算 Japan Market 的選項數量時不套用模組條件：改選 No 會清除模組，結果應以清除後為準
+    if (cfg.module && skipKey !== '__module' && skipKey !== 'jp' && state.module && isJpYes() && !(p.certs || []).includes(state.module)) return false;
     for (const x of cfg.toggles) if (state.toggles[x.key] && !x.test(p)) return false;
     for (const f of cfg.facets) {
       if (f.key === skipKey || (f.when && !f.when())) continue;
@@ -981,9 +1096,10 @@ function renderQuick() {
     const total = filterItems(f.key).length;
     const opts = allValues(f).map((v) => {
       const n = c.get(v) || 0;
+      if (!n && v !== cur && isDesktop()) return '';
       return `<option value="${esc(v)}"${v === cur ? ' selected' : ''}${!n && v !== cur ? ' disabled' : ''}>${esc(valLabel(v))} (${n})</option>`;
     }).join('');
-    html += `<label>${esc(facetTitle(f))}
+    html += `<label>${labelHtml(facetTitle(f))}
       <select data-quick="${f.key}" class="${cur ? 'active' : ''}"><option value="">${esc(t('all'))} (${total})</option>${opts}</select></label>`;
     // TELEC 認證模組：緊接在 Japan Market 之後，且只在 Japan Market = Yes 時出現
     if (f.key === 'jp' && cfg.module && isJpYes()) html += moduleSelectHtml();
@@ -1014,9 +1130,8 @@ function moduleSelectHtml() {
    ========================================================================== */
 function renderFilters() {
   const cfg = PAGES[page];
-  let html = `<div class="fgroup"><label class="sr-only" for="q">${esc(t('searchAria'))}</label>
-    <input class="search" id="q" type="search" placeholder="${esc(t('search'))}" value="${esc(state.q)}"></div>`;
-  html += `<div class="fgroup"><p class="ftitle"><label for="maxL">${esc(t('f_size'))}</label></p>
+  if (document.activeElement !== $('q')) $('q').value = state.q;
+  let html = `<div class="fgroup"><p class="ftitle"><label for="maxL">${esc(t('f_size'))}</label></p>
     <div class="size-filter"><span>${esc(t('sizeLbl'))}</span>
       <input id="maxL" type="number" inputmode="decimal" min="0" step="any" value="${state.maxL ?? ''}" class="${state.maxL ? 'active' : ''}" placeholder="—">
       <span>${esc(t('sizeUnit'))}</span></div>
@@ -1029,12 +1144,14 @@ function renderFilters() {
       html += `<div class="fgroup"><p class="ftitle">${esc(facetTitle(f))}</p><div class="chips">` +
         vals.map((v) => {
           const n = c.get(v) || 0, on = sel.includes(v);
+          if (!n && !on && isDesktop()) return '';
           return `<button type="button" class="chip" data-facet="${f.key}" data-val="${esc(v)}" aria-pressed="${on}"${!n && !on ? ' disabled' : ''}>${esc(valLabel(v))} <small>${n}</small></button>`;
         }).join('') + `</div></div>`;
     } else {
       html += `<div class="fgroup"><details${sel.length ? ' open' : ''}><summary>${esc(facetTitle(f))}${sel.length ? `<span class="sel-count">${sel.length}</span>` : ''}</summary><div class="checks">` +
         vals.map((v) => {
           const n = c.get(v) || 0, on = sel.includes(v);
+          if (!n && !on && isDesktop()) return '';
           return `<label class="${n ? '' : 'zero'}"><input type="checkbox" data-facet="${f.key}" data-val="${esc(v)}"${on ? ' checked' : ''}> ${esc(valLabel(v))} <small>${n}</small></label>`;
         }).join('') + `</div></details></div>`;
     }
@@ -1042,12 +1159,14 @@ function renderFilters() {
   html += `<div class="fgroup">` + cfg.toggles.map((x) =>
     `<label class="toggle"><input type="checkbox" data-toggle="${x.key}"${state.toggles[x.key] ? ' checked' : ''}> ${esc(t(toggleLabel[x.key]))}</label>`).join('') + `</div>`;
 
-  // 重繪時保留搜尋框焦點與游標位置
   const fid = document.activeElement?.id;
-  const caret = fid === 'q' ? $('q').selectionStart : null;
   $('filterBody').innerHTML = html;
-  if (fid === 'q') { const el = $('q'); el.focus(); el.setSelectionRange(caret, caret); }
-  if (fid === 'maxL') { const el = $('maxL'); el.focus(); }
+  if (fid === 'maxL') $('maxL').focus();
+  // 「更多條件」已套用的數量
+  const n = cfg.facets.filter((f) => f.ui !== 'select').reduce((a, f) => a + (state.sel[f.key] || []).length, 0)
+    + (state.maxL ? 1 : 0) + cfg.toggles.filter((x) => state.toggles[x.key]).length;
+  $('moreCount').textContent = n ? String(n) : '';
+  if (n && !$('moreFilters').open && !renderFilters.opened) { $('moreFilters').open = true; renderFilters.opened = true; }
 }
 
 /* ==========================================================================
@@ -1117,6 +1236,44 @@ function badges(p) {
   if (p.jp) b += `<span class="badge jp">${esc(t('badgeJp'))}</span>`;
   return b;
 }
+/** 電腦版 (寬度 > 820px) 使用新版面；手機與平板維持原版面 */
+const DESKTOP_MQ = matchMedia('(min-width: 821px)');
+const isDesktop = () => DESKTOP_MQ.matches;
+/** 下拉選單位置：電腦版在左欄 (搜尋下方)，手機版在清單上方 (原位置) */
+function placeQuick() {
+  if (isDesktop()) $('q').after($('quick'));
+  else $('list').parentElement.querySelector('.results-bar').before($('quick'));
+  if (!isDesktop()) $('moreFilters').open = true;   // 手機抽屜內的條件一律展開
+}
+/** 清單的關鍵值：增益、尺寸、連接器 (含線材) 或安裝方式、IP 等級、LNA 增益 */
+function keyLine(p) {
+  const items = [];
+  const gain = p.techs?.[0]?.gain;
+  if (gain) items.push([t('s_gain'), gain]);
+  if (p.dim) items.push([t('kl_size'), `${p.dim} mm`]);
+  const cx = shortCx(p);
+  if (cx) items.push([t('s_conn'), cx]);
+  else if ((p.conn || []).length) items.push([t('s_conn'), p.conn.join(', ')]);
+  else if (p.mount) items.push([t('s_mount'), p.mount]);
+  if (p.ip) items.push([t('s_ip'), p.ip]);
+  if (p.lna) items.push([t('s_lna'), fmtLna(p.lna), 'lna']);
+  return `<dl class="keys">${items.map(([k, v, c]) => `<div class="${c || ''}"><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`).join('')}</dl>`;
+}
+/** 連接器＋線材的精簡寫法 (清單用)：IPEX MHF1 + RF1.13 (Φ1.13), 100 mm；多條線時加註 +N */
+function shortCx(p) {
+  if (!connCableInfo(p)) return '';
+  const cab = p.cables[0];
+  const c = (p.conn || [])[0] || '';
+  const d = (String(cab.type || '').match(/^RF\s*(\d+(?:\.\d+)?)/i) || [])[1];
+  const more = p.cables.length > 1 ? ` +${p.cables.length - 1}` : '';
+  return `${c} + ${cab.type}${d ? ` (Φ${d})` : ''}, ${cab.len} mm${more}`;
+}
+/** 清單上的 Datasheet：小圖示按鈕 */
+function dsIcon(p) {
+  if (!dsUrl(p)) return '<span></span>';
+  return `<button type="button" class="ds-icon" data-ds="${esc(p.oc)}" aria-label="${esc(t('dsAria', { oc: p.oc }))}" title="${esc(t('datasheet'))}">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6M9 13h6M9 17h6"/></svg></button>`;
+}
 function specCells(p) {
   const cx = connCableInfo(p);
   // [標籤, 值, 樣式]：wide = 佔滿整列
@@ -1143,7 +1300,16 @@ function renderList() {
     $('moreBtn').hidden = true;
     return;
   }
-  $('list').innerHTML = res.slice(0, shown).map((p) => `
+  $('list').innerHTML = res.slice(0, shown).map((p) => isDesktop() ? `
+    <div class="row r2" role="listitem" tabindex="0" data-oc="${esc(p.oc)}">
+      ${thumb(p.oc)}
+      <div class="r-main">
+        <div class="r-top"><span class="oc">${esc(p.oc)}</span>${badges(p)}</div>
+        <div class="pname">${esc(p.name || '')}</div>
+        ${keyLine(p)}
+      </div>
+      ${dsIcon(p)}
+    </div>` : `
     <div class="row" role="listitem" tabindex="0" data-oc="${esc(p.oc)}">
       ${thumb(p.oc)}
       <div><div class="oc">${esc(p.oc)} ${badges(p)} ${dsButton(p)}</div><div class="pname">${esc(p.name || [p.kind, p.tech].filter(Boolean).join(' '))}</div></div>
@@ -1461,6 +1627,10 @@ $('quick').addEventListener('change', (e) => {
 });
 
 let qTimer;
+$('q').addEventListener('input', (e) => {
+  state.q = e.target.value;
+  clearTimeout(qTimer); qTimer = setTimeout(update, 150);
+});
 $('filterBody').addEventListener('input', (e) => {
   if (e.target.id === 'q') {
     state.q = e.target.value;
@@ -1542,6 +1712,14 @@ $('themeBtn').addEventListener('click', () => {
   applyTheme(next); store.set('theme', next);
 });
 $('updateBtn').addEventListener('click', forceUpdate);
+function setMenu(open) {
+  $('toolMenu').hidden = !open;
+  $('menuBtn').setAttribute('aria-expanded', String(open));
+}
+$('menuBtn').addEventListener('click', (e) => { e.stopPropagation(); setMenu($('toolMenu').hidden); });
+$('toolMenu').addEventListener('click', (e) => { if (e.target.closest('button')) setTimeout(() => setMenu(false), 0); });
+document.addEventListener('click', (e) => { if (!e.target.closest('#menuWrap')) setMenu(false); });
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') setMenu(false); });
 $('verBtn').addEventListener('click', openVersion);
 matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change', renderThemeBtn);
 
@@ -2177,6 +2355,8 @@ setNet();
 // iOS 不支援安裝事件：未安裝時直接顯示「安裝 App」按鈕 (開啟說明)
 if (platform === 'ios') $('installBtn').dataset.manual = '1';
 refreshInstallBtn();
+placeQuick();
+DESKTOP_MQ.addEventListener?.('change', () => { placeQuick(); setFilters(false); applyStaticI18n(); renderAll(); });
 route();
 if (MODE === 'embed') runEmbed(PARAMS.get('embed'));
 if (MODE === 'guide') renderGuide();
