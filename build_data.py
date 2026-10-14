@@ -16,6 +16,10 @@ build_data.py — 將「Quectel Antenna Product and TELEC Certification」Excel
     - veryHidden 的各模組原始認證工作表 (內部資料)
     - "Histories" 的更新人員姓名
 
+選用：較清晰的產品照片來源 (只取照片，不取資料)
+    --photo-xlsx <其他 Excel>  可重複指定。依料號比對，某款天線在其他 Excel 的照片
+    比目前照片清晰 2 倍以上時，縮圖與放大檢視改用該照片。
+
 輸出:
     index.html    內嵌資料、圖片、字型、版本號的 App
     version.json  供 App 偵測伺服器新版本
@@ -232,6 +236,50 @@ def to_thumb(raw: bytes) -> str | None:
 
 
 # --------------------------------------------------------------------------- #
+# 其他 Excel 的照片 (選用)：只依料號取照片，不讀其他資料
+# --------------------------------------------------------------------------- #
+PHOTO_GAIN = 2.0   # 其他來源的照片至少清晰幾倍 (以裁白邊後的最長邊比較) 才替換
+
+
+def collect_alt_photos(paths: list[Path]) -> dict[str, bytes]:
+    """掃描每個 Excel 的所有工作表：找出前 5 列中含「OC」或「Quectel OC」的標題列，
+    以該欄料號對應同一列的圖片；同一料號有多張時取最清晰的一張。"""
+    best: dict[str, tuple[int, bytes]] = {}
+    for path in paths:
+        wb = load_workbook(path, read_only=True, data_only=True)
+        sheet_imgs = SheetImages(path)
+        for ws in wb.worksheets:
+            imgs = sheet_imgs.row_images(ws.title)
+            if not imgs:
+                continue
+            rows = list(ws.iter_rows(values_only=True))
+            oc_col = None
+            for hr in rows[:5]:
+                hdr = [clean(h) or "" for h in hr]
+                for name in ("OC", "Quectel OC"):
+                    if name in hdr:
+                        oc_col = hdr.index(name)
+                        break
+                if oc_col is not None:
+                    break
+            if oc_col is None:
+                continue
+            for r, raw in imgs.items():
+                if r >= len(rows) or oc_col >= len(rows[r]):
+                    continue
+                oc = clean(rows[r][oc_col])
+                if not oc:
+                    continue
+                try:
+                    size = max(_flatten_crop(raw).size)
+                except Exception:
+                    continue
+                if size > best.get(oc, (0, b""))[0]:
+                    best[oc] = (size, raw)
+    return {oc: raw for oc, (size, raw) in best.items()}
+
+
+# --------------------------------------------------------------------------- #
 # 讀取工作表
 # --------------------------------------------------------------------------- #
 def read_modules(wb) -> list[dict]:
@@ -330,6 +378,8 @@ def main():
     ap.add_argument("--template", default=Path("template.html"), type=Path)
     ap.add_argument("--out", default=Path("index.html"), type=Path)
     ap.add_argument("--sw", default=Path("sw.js"), type=Path)
+    ap.add_argument("--photo-xlsx", action="append", default=[], type=Path,
+                    help="選用：其他 Excel，僅用來取得較清晰的產品照片 (可重複指定)")
     ap.add_argument("--app-url", default="https://magicgrandpa8.github.io/Quectel-Antenna-Selector/",
                     help="工具正式網址 (安裝說明中的「開啟網頁 / 複製連結」)；傳空字串則使用目前頁面網址")
     a = ap.parse_args()
@@ -357,6 +407,22 @@ def main():
         if name not in {m["name"] for m in modules}:
             modules.append({"name": name, "date": None, "cat": "Other",
                             "n": sum(1 for p in products if name in p.get("certs", []))})
+
+    # ---- 較清晰的照片來源 (選用)：清晰 PHOTO_GAIN 倍以上才替換，縮圖與放大照片一起換 ----
+    swapped = []
+    if a.photo_xlsx:
+        alt = collect_alt_photos(a.photo_xlsx)
+        for p in products:
+            oc = p["oc"]
+            if oc not in alt or oc not in photos:
+                continue
+            cur_size = max(Image.open(io.BytesIO(photos[oc])).size)
+            alt_size = max(_flatten_crop(alt[oc]).size)
+            if alt_size >= PHOTO_GAIN * cur_size:
+                ph, th = to_photo(alt[oc]), to_thumb(alt[oc])
+                if ph and th:
+                    photos[oc], images[oc] = ph, th
+                    swapped.append((oc, cur_size, min(alt_size, PHOTO_PX)))
 
     # ---- 放大檢視用照片：全部打包成單一檔案 photos.json ({料號: WebP data URI}) ----
     # 單一檔案方便以 GitHub 網頁上傳 (一次上限 100 個檔案)，也不會留下過期的舊照片檔
@@ -419,6 +485,9 @@ def main():
     print(f"天線: {len(products)}  (有 TELEC 認證: {certified})  模組: {len(modules)}  "
           f"認證組合 (☑): {sum(len(p.get('certs', [])) for p in products)}  圖片: {len(images)}")
     print(f"放大檢視照片: {len(photo_files)} 張，打包為 photos.json ({photo_mb:.1f} MB)")
+    if a.photo_xlsx:
+        print(f"改用其他 Excel 的清晰照片: {len(swapped)} 款 "
+              + ", ".join(f"{oc} {c}→{n}px" for oc, c, n in swapped[:6]) + (" …" if len(swapped) > 6 else ""))
     print(f"Datasheet 連結: {sum(1 for p in products if p.get('ds'))}/{len(products)}  "
           f"尺寸可解析: {sum(1 for p in products if p.get('dimL'))}/{len(products)}")
     print(f"輸出: {a.out} ({a.out.stat().st_size / 1024:.0f} KB)")

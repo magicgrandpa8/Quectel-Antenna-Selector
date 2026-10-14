@@ -1,6 +1,6 @@
 # Quectel 天線選型 · TELEC 認證 PWA
 
-目前版本：**v3.14.1**
+目前版本：**v3.15.0**
 資料來源：`Quectel_Antenna_Product_and_TELEC_Certification_*.xlsx`（單一 Excel）
 
 ## 功能
@@ -49,6 +49,16 @@ Build 時會比對各模組認證數與 Excel 統計列，並警告矩陣中不�
 
 安裝後在有網路時開啟一次，之後即可完全離線使用。
 
+## 較清晰的產品照片（選用）
+TELEC Excel 中約一半的照片解析度偏低。若其他 Excel（例如 JP 天線表）有同一料號更清晰的照片，
+build 時加上 `--photo-xlsx`（可重複指定），清晰 2 倍以上的照片會自動替換（縮圖與放大檢視一起換）；
+其他 Excel 只用來取照片，不讀取任何資料。
+
+```bash
+python3 build_data.py --version X.Y.Z --xlsx <TELEC Excel> \
+  --photo-xlsx Quectel_Antenna_Product_for_JP_202604__-_update.xlsx
+```
+
 ## 發佈新版本（Excel 每季更新時）
 ```bash
 pip install openpyxl pillow
@@ -82,6 +92,7 @@ App 內不顯示更新紀錄；版本變更請記錄在本 README 的「更新�
 - 頻段預設邊界為一般公開配置，僅供初篩。
 
 ## 更新紀錄
+- **v3.15.0**：19 款天線改用 JP 天線表中更清晰的照片（`--photo-xlsx`）
 - **v3.14.1**：放大檢視用照片改為打包成單一檔案 `photos.json`（原本 `photos/` 資料夾有 320 個檔案，超過 GitHub 網頁一次上傳 100 個檔案的上限）
 - **v3.14.0**：所有天線照片可點擊放大檢視（清單與詳細資料皆可），使用原始解析度照片並可離線檢視
 - **v3.13.0**：電腦版（寬度 > 820px）版面整理：篩選集中左欄（搜尋 → 下拉選單 → 更多條件）、頁首精簡為語言／使用說明／「⋯」、清單每列改為一行關鍵值；手機與平板維持原版面，頁首按鈕依螢幕寬度平均分配；標題下方說明改為「使用下拉式選單篩選天線或是跟移遠天線Agent說明您的需求」
