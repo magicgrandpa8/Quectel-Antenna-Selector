@@ -20,6 +20,10 @@ build_data.py — 將「Quectel Antenna Product and TELEC Certification」Excel
     --photo-xlsx <其他 Excel>  可重複指定。依料號比對，某款天線在其他 Excel 的照片
     比目前照片清晰 2 倍以上時，縮圖與放大檢視改用該照片。
 
+手動指定照片 (最優先)
+    photo_overrides/<料號>.png|jpg|jpeg|webp  放在此資料夾的照片，會取代該料號的縮圖與放大照片
+    (優先於 Excel 與 --photo-xlsx)。用於 Excel 照片錯誤或解析度不足時。
+
 輸出:
     index.html    內嵌資料、圖片、字型、版本號的 App
     version.json  供 App 偵測伺服器新版本
@@ -378,6 +382,8 @@ def main():
     ap.add_argument("--template", default=Path("template.html"), type=Path)
     ap.add_argument("--out", default=Path("index.html"), type=Path)
     ap.add_argument("--sw", default=Path("sw.js"), type=Path)
+    ap.add_argument("--photo-dir", default=Path("photo_overrides"), type=Path,
+                    help="手動指定照片的資料夾 (檔名為料號)，最優先使用")
     ap.add_argument("--photo-xlsx", action="append", default=[], type=Path,
                     help="選用：其他 Excel，僅用來取得較清晰的產品照片 (可重複指定)")
     ap.add_argument("--app-url", default="https://magicgrandpa8.github.io/Quectel-Antenna-Selector/",
@@ -423,6 +429,23 @@ def main():
                 if ph and th:
                     photos[oc], images[oc] = ph, th
                     swapped.append((oc, cur_size, min(alt_size, PHOTO_PX)))
+
+    # ---- 手動指定照片 (最優先)：photo_overrides/<料號>.<副檔名> ----
+    overridden, unknown = [], []
+    if a.photo_dir.is_dir():
+        by_oc = {p["oc"]: p for p in products}
+        for f in sorted(a.photo_dir.iterdir()):
+            if f.suffix.lower() not in (".png", ".jpg", ".jpeg", ".webp"):
+                continue
+            oc = f.stem.strip()
+            if oc not in by_oc:
+                unknown.append(f.name)
+                continue
+            raw = f.read_bytes()
+            ph, th = to_photo(raw), to_thumb(raw)
+            if ph and th:
+                photos[oc], images[oc] = ph, th
+                overridden.append(oc)
 
     # ---- 放大檢視用照片：全部打包成單一檔案 photos.json ({料號: WebP data URI}) ----
     # 單一檔案方便以 GitHub 網頁上傳 (一次上限 100 個檔案)，也不會留下過期的舊照片檔
@@ -485,6 +508,11 @@ def main():
     print(f"天線: {len(products)}  (有 TELEC 認證: {certified})  模組: {len(modules)}  "
           f"認證組合 (☑): {sum(len(p.get('certs', [])) for p in products)}  圖片: {len(images)}")
     print(f"放大檢視照片: {len(photo_files)} 張，打包為 photos.json ({photo_mb:.1f} MB)")
+    if overridden:
+        print(f"手動指定照片 ({a.photo_dir}/): {', '.join(overridden)}")
+    if unknown:
+        print(f"警告：{a.photo_dir}/ 中找不到對應料號的檔案 (請確認檔名為料號)：{', '.join(unknown)}", file=sys.stderr)
+    swapped = [x for x in swapped if x[0] not in overridden]   # 手動指定者優先，不列入
     if a.photo_xlsx:
         print(f"改用其他 Excel 的清晰照片: {len(swapped)} 款 "
               + ", ".join(f"{oc} {c}→{n}px" for oc, c, n in swapped[:6]) + (" …" if len(swapped) > 6 else ""))

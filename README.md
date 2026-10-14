@@ -1,6 +1,6 @@
 # Quectel 天線選型 · TELEC 認證 PWA
 
-目前版本：**v3.15.0**
+目前版本：**v3.15.1**
 資料來源：`Quectel_Antenna_Product_and_TELEC_Certification_*.xlsx`（單一 Excel）
 
 ## 功能
@@ -49,6 +49,12 @@ Build 時會比對各模組認證數與 Excel 統計列，並警告矩陣中不�
 
 安裝後在有網路時開啟一次，之後即可完全離線使用。
 
+## 手動指定產品照片（最優先）
+Excel 照片錯誤或太模糊時，把正確的照片放進 `photo_overrides/` 資料夾，**檔名用料號**
+（例如 `YC0001CA.png`，支援 png / jpg / jpeg / webp），重新產生工具即可。
+這裡的照片優先於 Excel 與 `--photo-xlsx`，縮圖與放大檢視都會使用，之後每次更新都會保留。
+檔名找不到對應料號時，build 會顯示警告。
+
 ## 較清晰的產品照片（選用）
 TELEC Excel 中約一半的照片解析度偏低。若其他 Excel（例如 JP 天線表）有同一料號更清晰的照片，
 build 時加上 `--photo-xlsx`（可重複指定），清晰 2 倍以上的照片會自動替換（縮圖與放大檢視一起換）；
@@ -83,6 +89,7 @@ App 內不顯示更新紀錄；版本變更請記錄在本 README 的「更新�
 | `photos.json` | 產品照片（放大檢視用，原始解析度，全部打包成單一檔案，build 時自動產生） | ✅ |
 | `version.json` | 新版偵測 | ✅ |
 | `template.html`、`build_data.py`、`fonts/` | 產生 `index.html` 的原始碼 | 建議放在 repo |
+| `photo_overrides/` | 手動指定的產品照片（檔名為料號） | 建議放在 repo |
 | `tools/export_guides.py` | 將內建使用說明匯出為 PDF（選用） | 建議放在 repo |
 | `guides/*.pdf` | 已匯出的使用說明 PDF（四種語言） | 選用 |
 
@@ -92,6 +99,7 @@ App 內不顯示更新紀錄；版本變更請記錄在本 README 的「更新�
 - 頻段預設邊界為一般公開配置，僅供初篩。
 
 ## 更新紀錄
+- **v3.15.1**：新增 `photo_overrides/` 手動指定照片；YC0001CA、YC0002AA、YC0011AA 改用正確且較清晰的照片
 - **v3.15.0**：19 款天線改用 JP 天線表中更清晰的照片（`--photo-xlsx`）
 - **v3.14.1**：放大檢視用照片改為打包成單一檔案 `photos.json`（原本 `photos/` 資料夾有 320 個檔案，超過 GitHub 網頁一次上傳 100 個檔案的上限）
 - **v3.14.0**：所有天線照片可點擊放大檢視（清單與詳細資料皆可），使用原始解析度照片並可離線檢視
