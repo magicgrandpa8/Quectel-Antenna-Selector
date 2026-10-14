@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Quectel 天線選型工具</title>
-<meta name="theme-color" content="#0F766E">
+<meta name="theme-color" content="#F3F0E9">
 <meta name="description" content="Quectel 天線產品選型與 TELEC 認證查詢，可離線使用">
 <link rel="manifest" href="manifest.webmanifest">
 <!-- iOS：加入主畫面後以全螢幕 App 方式開啟 -->
@@ -15,7 +15,7 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <!-- Windows：釘選磚與標題列色彩 -->
-<meta name="msapplication-TileColor" content="#0F766E">
+<meta name="msapplication-TileColor" content="#FFFFFF">
 <meta name="msapplication-TileImage" content="icon-192.png">
 <meta name="format-detection" content="telephone=no">
 <style>
@@ -25,19 +25,20 @@
    Design tokens
    ====================================================================== */
 :root {
-  --paper: #F2F4F3;
-  --surface: #FFFFFF;
-  --ink: #17242E;
-  --muted: #5B6B76;
-  --rule: #D5DCDF;
-  --band: #E6EBEC;
-  --accent: #0F766E;          /* Global：青綠 */
-  --accent-soft: #D3ECE9;
+  /* 淺色模式：無印良品風格 (生成り麻布底、和紙白、墨色文字、牛皮紙／木質色強調) */
+  --paper: #F3F0E9;           /* 生成り (未漂白棉麻) */
+  --surface: #FBFAF7;         /* 和紙白 */
+  --ink: #3C3833;             /* 暖墨色 */
+  --muted: #73695F;           /* 暖灰 */
+  --rule: #DDD6CA;            /* 麻布線條 */
+  --band: #EAE5DB;
+  --accent: #7A6048;          /* 牛皮紙／木質 */
+  --accent-soft: #EEE6DA;
   --accent-ink: #FFFFFF;
-  --warn: #9A5B00;
-  --warn-soft: #FBEBD0;
-  --danger: #A8233A;
-  --danger-soft: #F7DCE1;
+  --warn: #8A6116;            /* 黃土 */
+  --warn-soft: #F3E7CF;
+  --danger: #8E2A2A;          /* 無印良品深紅 */
+  --danger-soft: #F2E1DC;
   --font: "IBM Plex Sans", "PingFang TC", "Heiti TC", "Microsoft JhengHei", "Noto Sans CJK TC", "Noto Sans TC", "Source Han Sans TC", system-ui, sans-serif;
   --r-sm: 4px;
   --r-md: 8px;
@@ -303,14 +304,14 @@ footer { max-width: 1360px; margin: 0 auto; padding: 0 20px 32px; font-size: 12p
 .tool-btn svg { flex: none; }
 .tool-btn.ver { color: var(--muted); }
 /* 使用說明視窗 (全螢幕) */
-dialog.guide-dlg { width: 100vw; height: 100%; max-width: none; max-height: none; margin: 0; padding: 0; border: 0; background: #DDE2E3; }
+dialog.guide-dlg { width: 100vw; height: 100%; max-width: none; max-height: none; margin: 0; padding: 0; border: 0; background: #E7E2D8; }
 dialog.guide-dlg[open] { display: flex; flex-direction: column; }
 dialog.guide-dlg::backdrop { background: rgba(10, 18, 24, .5); }
 .guide-bar { display: flex; align-items: center; gap: 8px; padding: calc(env(safe-area-inset-top, 0px) + 10px) 14px 10px;
   background: var(--surface); color: var(--ink); border-bottom: 1px solid var(--rule); }
 .guide-bar h2 { margin: 0 auto 0 0; font-size: 16px; }
 .guide-bar button:disabled { opacity: .5; cursor: progress; }
-#guideFrame { flex: 1; width: 100%; border: 0; background: #DDE2E3; }
+#guideFrame { flex: 1; width: 100%; border: 0; background: #E7E2D8; }
 .tool-btn.lang { padding: 0 0 0 10px; position: relative; }
 .tool-btn.lang select {
   appearance: none; -webkit-appearance: none; border: 0; background: transparent; color: inherit;
@@ -542,7 +543,7 @@ const I18N = {
     update: '強制更新', updateAria: '清除快取並重新載入最新版本', updating: '正在清除快取並重新載入…',
     newVersion: '伺服器有新版本 v{v}，按「強制更新」套用',
     verAria: '版本資訊',
-    mTitle: '天線選型與 TELEC 認證', mSub: '選擇模組查看已取得 TELEC 認證的天線，再用下拉選單與篩選條件縮小範圍',
+    mTitle: '天線選型與 TELEC 認證', mSub: '請用下拉式選單進行篩選天線，或是直接使用移遠天線Agent',
    
     filters: '篩選條件', done: '完成', resetAll: '清除所有條件', search: '搜尋料號、名稱、頻率…', searchAria: '搜尋',
     countOf: '/ {n} 項天線', filterBtn: '篩選', sort: '排序',
@@ -605,7 +606,7 @@ const I18N = {
     update: 'Force update', updateAria: 'Clear cache and reload the latest version', updating: 'Clearing cache and reloading…',
     newVersion: 'Version v{v} is available. Press "Force update" to apply.',
     verAria: 'Version info',
-    mTitle: 'Antenna selection & TELEC certification', mSub: 'Pick a module to see antennas TELEC-certified with it, then narrow down with the menus and filters.',
+    mTitle: 'Antenna selection & TELEC certification', mSub: 'Filter antennas with the dropdown menus, or ask Quectel Antenna Agent directly.',
    
     filters: 'Filters', done: 'Done', resetAll: 'Clear all filters', search: 'Search part no., name, frequency…', searchAria: 'Search',
     countOf: '/ {n} antennas', filterBtn: 'Filters', sort: 'Sort',
@@ -667,7 +668,7 @@ const I18N = {
     update: '強制更新', updateAria: 'キャッシュを削除して最新版を再読み込み', updating: 'キャッシュを削除して再読み込みしています…',
     newVersion: '新しいバージョン v{v} があります。「強制更新」を押して適用してください。',
     verAria: 'バージョン情報',
-    mTitle: 'アンテナ選定と TELEC 認証', mSub: 'モジュールを選ぶと TELEC 認証済みのアンテナを表示します。メニューや絞り込み条件でさらに絞り込めます。',
+    mTitle: 'アンテナ選定と TELEC 認証', mSub: 'ドロップダウンメニューでアンテナを絞り込むか、Quectel アンテナ Agent を直接ご利用ください。',
    
     filters: '絞り込み条件', done: '完了', resetAll: 'すべての条件をクリア', search: '品番・名称・周波数で検索…', searchAria: '検索',
     countOf: '/ {n} 件のアンテナ', filterBtn: '絞り込み', sort: '並べ替え',
@@ -728,7 +729,7 @@ const I18N = {
     update: '강제 업데이트', updateAria: '캐시를 지우고 최신 버전을 다시 불러오기', updating: '캐시를 지우고 다시 불러오는 중…',
     newVersion: '새 버전 v{v}을(를) 사용할 수 있습니다. "강제 업데이트"를 눌러 적용하세요.',
     verAria: '버전 정보',
-    mTitle: '안테나 선정 및 TELEC 인증', mSub: '모듈을 선택하면 TELEC 인증을 받은 안테나를 보여 줍니다. 메뉴와 필터로 범위를 좁힐 수 있습니다.',
+    mTitle: '안테나 선정 및 TELEC 인증', mSub: '드롭다운 메뉴로 안테나를 필터링하거나, Quectel 안테나 Agent를 바로 이용하세요.',
    
     filters: '필터', done: '완료', resetAll: '모든 조건 지우기', search: '품번, 이름, 주파수로 검색…', searchAria: '검색',
     countOf: '/ {n}개 안테나', filterBtn: '필터', sort: '정렬',
@@ -1930,8 +1931,8 @@ async function runEmbed(name) {
   document.documentElement.classList.add('embed');
   const css = document.createElement('style');
   css.textContent = `.toast{display:none!important} .net{display:none!important} html.embed{scrollbar-width:none} html.embed::-webkit-scrollbar{display:none}
-    .g-co-box{position:fixed;border:2px solid #D9480F;border-radius:8px;z-index:9998;pointer-events:none}
-    .g-co-num{position:fixed;width:22px;height:22px;border-radius:50%;background:#D9480F;color:#fff;font:700 13px/22px -apple-system,sans-serif;
+    .g-co-box{position:fixed;border:2px solid #A6332B;border-radius:8px;z-index:9998;pointer-events:none}
+    .g-co-num{position:fixed;width:22px;height:22px;border-radius:50%;background:#A6332B;color:#fff;font:700 13px/22px -apple-system,sans-serif;
       text-align:center;z-index:9999;box-shadow:0 0 0 2px #fff,0 1px 4px rgba(0,0,0,.35)}
     #detail .d-body h3{display:inline-block;padding-right:2px} #detail .d-actions{width:fit-content}
     ${name === 'install' ? '' : '#installBtn{display:none!important}'}`;
@@ -2042,7 +2043,7 @@ function renderGuide() {
 
 const GUIDE_CSS = `
   @page { size: A4; margin: 12mm 13mm 13mm; }
-  body.g-body-root { margin: 0; background: #DDE2E3; color: var(--ink); font: 13px/1.55 var(--font); -webkit-user-select: text; user-select: text; }
+  body.g-body-root { margin: 0; background: #E7E2D8; color: var(--ink); font: 13px/1.55 var(--font); -webkit-user-select: text; user-select: text; }
   .g-page { width: 794px; min-height: 1123px; margin: 18px auto; padding: 46px 50px 36px; background: #fff; box-sizing: border-box;
     box-shadow: 0 2px 14px rgba(0,0,0,.12); position: relative; display: flex; flex-direction: column; }
   .g-page > section { margin-bottom: 20px; }
@@ -2064,36 +2065,36 @@ const GUIDE_CSS = `
   .g-phone { margin: 0; display: flex; flex-direction: column; align-items: center; }
   .g-phone figcaption { font-size: 11.5px; font-weight: 700; color: var(--accent); margin-bottom: 6px; }
   .g-frame { padding: 6px; background: #1D1D1F; border-radius: 32px; box-shadow: 0 0 0 1.3px #3A3A3C inset; }
-  .g-screen { border-radius: 26px; overflow: hidden; background: #F2F4F3; }
+  .g-screen { border-radius: 26px; overflow: hidden; background: var(--paper); }
   .g-status { height: 25px; display: flex; align-items: center; justify-content: space-between; padding: 0 20px 0 24px;
     font: 600 9px/1 -apple-system, var(--font); color: #000; position: relative; }
   .g-island { position: absolute; left: 50%; top: 5px; transform: translateX(-50%); width: 64px; height: 14px; background: #000; border-radius: 99px; }
   .g-icons { display: flex; gap: 3px; align-items: center; }
   .g-icons svg { height: 7.5px; fill: currentColor; } .g-icons .sig { width: 11px; } .g-icons .wifi { width: 10px; } .g-icons .bat { width: 17px; }
   .g-view { position: relative; overflow: hidden; }
-  .g-view iframe { position: absolute; left: 0; top: 0; width: 393px; height: 772px; border: 0; transform-origin: 0 0; pointer-events: none; background: #F2F4F3; }
+  .g-view iframe { position: absolute; left: 0; top: 0; width: 393px; height: 772px; border: 0; transform-origin: 0 0; pointer-events: none; background: var(--paper); }
   .g-home { height: 18px; display: grid; place-items: center; } .g-home i { width: 76px; height: 3.5px; border-radius: 99px; background: #000; }
   .g-legend { list-style: none; margin: 14px 0 0; padding: 0; display: grid; gap: 7px 28px; }
   .g-legend li { display: grid; grid-template-columns: 19px 1fr; gap: 7px; font-size: 12.3px; line-height: 1.45; }
   .g-cols3 { grid-template-columns: 1fr 1fr; grid-template-rows: repeat(3, auto); grid-auto-flow: column; }
   .g-cols2 { grid-template-columns: 1fr 1fr; grid-template-rows: repeat(2, auto); grid-auto-flow: column; }
-  .g-num { display: inline-grid; place-items: center; width: 18px; height: 18px; border-radius: 50%; background: #D9480F; color: #fff; font-size: 10px; font-weight: 700; margin-top: 1px; }
+  .g-num { display: inline-grid; place-items: center; width: 18px; height: 18px; border-radius: 50%; background: #A6332B; color: #fff; font-size: 10px; font-weight: 700; margin-top: 1px; }
   .g-tip { margin: 14px 0 0; font-size: 12.3px; background: var(--accent-soft); border-radius: 8px; padding: 9px 12px; }
   .g-tbl { overflow-x: auto; }
   table { width: 100%; border-collapse: collapse; font-size: 12px; }
   th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--rule); vertical-align: top; }
-  th { background: #F2F4F3; color: var(--muted); font-weight: 700; }
+  th { background: var(--paper); color: var(--muted); font-weight: 700; }
   td:first-child { font-weight: 700; white-space: nowrap; }
   .g-tag { display: inline-block; font-size: 10.5px; font-weight: 700; padding: 1px 6px; border-radius: 4px; white-space: nowrap; }
-  .g-tag.cert { background: #0F766E; color: #fff; } .g-tag.jp { background: #F7DCE1; color: #A8233A; }
-  .g-tag.ds { border: 1px solid #0F766E; color: #0F766E; } .g-tag.btn { background: #0F766E; color: #fff; } .g-tag.btn2 { border: 1px solid var(--rule); background: #fff; }
-  .g-acc { color: #0F766E; }
+  .g-tag.cert { background: var(--accent); color: #fff; } .g-tag.jp { background: var(--danger-soft); color: var(--danger); }
+  .g-tag.ds { border: 1px solid var(--accent); color: var(--accent); } .g-tag.btn { background: var(--accent); color: #fff; } .g-tag.btn2 { border: 1px solid var(--rule); background: #fff; }
+  .g-acc { color: var(--accent); }
   .g-side { display: flex; gap: 24px; align-items: flex-start; } .g-body { flex: 1; min-width: 0; }
-  .g-callout { border-left: 3px solid #0F766E; background: var(--accent-soft); padding: 9px 12px; border-radius: 0 8px 8px 0; font-size: 12.3px; margin: 12px 0; }
+  .g-callout { border-left: 3px solid var(--accent); background: var(--accent-soft); padding: 9px 12px; border-radius: 0 8px 8px 0; font-size: 12.3px; margin: 12px 0; }
   .g-body p { margin: 0 0 8px; font-size: 12.8px; } .g-muted { color: var(--muted); font-size: 11.8px !important; }
   .g-faq { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 24px; margin: 0; }
   .g-faq dt { font-weight: 700; font-size: 12.5px; } .g-faq dd { margin: 0; font-size: 12px; }
-  .g-note { background: #FBEBD0; border-radius: 8px; padding: 10px 14px; font-size: 12px; }
+  .g-note { background: var(--warn-soft); border-radius: 8px; padding: 10px 14px; font-size: 12px; }
   .g-note ul { margin: 4px 0 0; padding-left: 18px; } .g-note li + li { margin-top: 3px; }
   html:lang(ko) body.g-body-root { word-break: keep-all; overflow-wrap: anywhere; }
   /* 窄螢幕 (手機檢視) */
