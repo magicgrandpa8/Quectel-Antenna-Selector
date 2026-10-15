@@ -57,8 +57,8 @@ from PIL import Image
 
 THUMB_PX = 160          # 縮圖最長邊 (px)
 THUMB_QUALITY = 72      # WebP 品質
-PHOTO_PX = 800          # 放大檢視用照片的最長邊上限 (px)；原圖較小時維持原尺寸，不放大
-PHOTO_QUALITY = 86
+PHOTO_PX = 720          # 放大檢視用照片的最長邊上限 (px)；原圖較小時維持原尺寸，不放大
+PHOTO_QUALITY = 82      # 720px / q82：畫質足夠，photos.json 約 2 MB
 MAIN_SHEET = "Antenna vs Cert"
 MODULE_SHEET = "Name"
 HISTORY_SHEET = "Histories"
@@ -498,8 +498,13 @@ def main():
 
     # ---- datasheet 擷取的照片 (最優先)：取代 Excel、--photo-xlsx 與手動指定照片 ----
     from_datasheet = []
+    ds_excl = set()
+    excl_path = Path("data/photo_datasheet_exclude.csv")
+    if excl_path.exists():
+        import csv as _csv
+        ds_excl = {r["PN"].strip() for r in _csv.DictReader(open(excl_path, encoding="utf-8-sig")) if r.get("PN")}
     if a.datasheet_photos.exists():
-        known = {p["oc"] for p in products}
+        known = {p["oc"] for p in products} - ds_excl
         for oc, uri in json.loads(a.datasheet_photos.read_text(encoding="utf8")).items():
             if oc not in known:
                 continue
@@ -580,7 +585,7 @@ def main():
         print(f"警告：{a.photo_dir}/ 中找不到對應料號的檔案 (請確認檔名為料號)：{', '.join(unknown)}", file=sys.stderr)
     swapped = [x for x in swapped if x[0] not in overridden and x[0] not in from_datasheet]   # 優先者不列入
     if from_datasheet:
-        print(f"datasheet 照片: {len(from_datasheet)} 款")
+        print(f"datasheet 照片: {len(from_datasheet)} 款" + (f"（排除清單 {len(ds_excl)} 款：{', '.join(sorted(ds_excl))}）" if ds_excl else ""))
     if a.photo_xlsx:
         print(f"改用其他 Excel 的清晰照片: {len(swapped)} 款 "
               + ", ".join(f"{oc} {c}→{n}px" for oc, c, n in swapped[:6]) + (" …" if len(swapped) > 6 else ""))

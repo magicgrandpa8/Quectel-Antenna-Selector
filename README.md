@@ -1,6 +1,6 @@
 # Quectel 天線選型 · TELEC 認證 PWA
 
-目前版本：**v3.20.0**
+目前版本：**v3.21.0**
 資料來源：`Quectel_Antenna_Product_and_TELEC_Certification_*.xlsx`（單一 Excel）
 
 ## 功能
@@ -72,7 +72,8 @@ pip install pymupdf pillow
 python3 tools/extract_datasheet_photos.py <PDF 資料夾或 .zip> --only-blurry
 ```
 - 自動略過 logo、各頁重複的頁首圖、滿版背景，取第 1～3 頁中的產品照片；透明背景補白底並裁白邊。
-- 結果存入 `photo_datasheet.json`（單一檔案），只採用比目前照片清晰的圖；之後執行 `build_data.py` 即會使用。
+- 結果存入 `photo_datasheet.json`（單一檔案，WebP、最長邊 800px）；之後執行 `build_data.py` 即會使用。
+- 不想採用 datasheet 照片的料號（例如封面是評估板），列在 `data/photo_datasheet_exclude.csv`（`PN, Reason`），擷取與 build 都會略過。
 - 請先檢查 `photo_datasheet_review.png`（擷取結果對照圖）與 `photo_datasheet_report.csv`（每份 PDF 的處理結果）。
 - 照片優先順序：**datasheet 照片** > `photo_overrides/` 手動照片 > `--photo-xlsx` > TELEC Excel。
 
@@ -110,6 +111,7 @@ App 內不顯示更新紀錄；版本變更請記錄在本 README 的「更新�
 | `photos.json` | 產品照片（放大檢視用，原始解析度，全部打包成單一檔案，build 時自動產生） | ✅ |
 | `version.json` | 新版偵測 | ✅ |
 | `template.html`、`build_data.py`、`fonts/` | 產生 `index.html` 的原始碼 | 建議放在 repo |
+| `data/photo_datasheet_exclude.csv` | 不採用 datasheet 照片的料號與原因 | ✅ |
 | `data/datasheet_links.csv` | Datasheet 連結對照表（PN → OneDrive 分享連結） | ✅ |
 | `photo_datasheet.json` | 從 datasheet 擷取的產品照片（`tools/extract_datasheet_photos.py` 產生） | ✅（有擷取時） |
 | `photo_overrides/` | 手動指定的產品照片（檔名為料號） | 建議放在 repo |
@@ -122,6 +124,7 @@ App 內不顯示更新紀錄；版本變更請記錄在本 README 的「更新�
 - 頻段預設邊界為一般公開配置，僅供初篩。
 
 ## 更新紀錄
+- **v3.21.0**：新增 127 款 datasheet 官方照片（合計 175 款）；photo_datasheet.json 改存 WebP（15 MB → 2.5 MB）；App 放大照片改為 720px；新增 datasheet 照片排除清單（YCGS010AA）
 - **v3.20.0**：Datasheet 按鈕改用 OneDrive 個別檔案分享連結（`data/datasheet_links.csv`），移除 repo 內 PDF 設計；48 款天線改用 datasheet 中的官方產品照片
 - **v3.19.1**：datasheet 照片改為最優先（取代手動照片）；YC0001CA 改用 datasheet 照片
 - **v3.19.0**：支援 `datasheets/` 資料夾（Datasheet 按鈕連到 repo 中的 PDF、開啟過的可離線閱讀）；修正 datasheet 照片擷取（透明背景、裝飾色條、重複出現的產品照）；5 款天線改用 datasheet 中的清晰照片；使用說明 PDF 改為固定檔名

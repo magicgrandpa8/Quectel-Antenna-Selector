@@ -18,7 +18,7 @@
 /** 開啟 App 時等待網路的上限 (毫秒)；超過即改用快取，確保開啟速度 */
 const NAV_TIMEOUT_MS = 3500;
 
-const CACHE_VERSION = 'antenna-selector-v3.20.0';
+const CACHE_VERSION = 'antenna-selector-v3.21.0';
 
 const APP_SHELL = [
   './',
