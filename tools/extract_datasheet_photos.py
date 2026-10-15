@@ -11,7 +11,8 @@ extract_datasheet_photos.py — 從天線 datasheet (PDF) 擷取產品照片，�
     2. 在前 3 頁中找出產品照片：略過太小的圖 (logo)、在多頁重複出現的圖 (頁首/頁尾)、
        幾乎滿版的背景圖，再取面積最大的一張 (優先第 1 頁)
     3. 透明背景一律補成白底，裁掉白邊
-    4. 結果寫入 photo_datasheet.json ({料號: PNG data URI})，build_data.py 會自動使用
+    4. 結果寫入 photo_datasheet.json ({料號: WebP data URI，最長邊 800px})，build_data.py 會自動使用
+       data/photo_datasheet_exclude.csv 中的料號一律略過 (例如封面是評估板而非天線本體)
        (優先順序：photo_overrides/ 手動照片 > datasheet 照片 > --photo-xlsx > TELEC Excel)
     5. 產生 photo_datasheet_report.csv 與 photo_datasheet_review.png (新舊照片對照) 供人工確認
 
@@ -38,7 +39,8 @@ from PIL import Image, ImageChops, ImageDraw, ImageStat
 
 ROOT = Path(__file__).resolve().parent.parent
 BLURRY_PX = 200
-MAX_PX = 1000            # 存檔時最長邊上限
+MAX_PX = 800             # 存檔時最長邊上限 (App 顯示不超過此尺寸)
+EXCLUDE = ROOT / "data" / "photo_datasheet_exclude.csv"   # 不採用 datasheet 照片的料號
 
 
 def load_app_data():
@@ -133,6 +135,9 @@ def main():
     a = ap.parse_args()
 
     ocs, cur_sizes = load_app_data()
+    excluded = set()
+    if EXCLUDE.exists():
+        excluded = {r["PN"].strip() for r in csv.DictReader(open(EXCLUDE, encoding="utf-8-sig")) if r.get("PN")}
     ocs_sorted = sorted(ocs, key=len, reverse=True)
     tmp = None
     src = a.source
@@ -153,6 +158,8 @@ def main():
         oc = find_oc(pdf, doc, ocs_sorted)
         if not oc:
             report.append([pdf.name, "", "找不到料號", "", "", ""]); continue
+        if oc in excluded:
+            report.append([pdf.name, oc, "略過 (排除清單)", "", cur_sizes.get(oc, 0), ""]); continue
         cur = cur_sizes.get(oc, 0)
         if a.only_blurry and cur >= BLURRY_PX:
             report.append([pdf.name, oc, "略過 (目前照片已清晰)", "", cur, ""]); continue
@@ -166,8 +173,8 @@ def main():
         # datasheet 為官方照片：達最低解析度即採用；比目前照片小時在報告中標註，供人工確認
         status = "採用" if size >= cur else "採用 (比目前照片小，請確認)"
         im.thumbnail((MAX_PX, MAX_PX), Image.LANCZOS)
-        buf = io.BytesIO(); im.save(buf, "PNG", optimize=True)
-        bundle[oc] = "data:image/png;base64," + base64.b64encode(buf.getvalue()).decode()
+        buf = io.BytesIO(); im.save(buf, "WEBP", quality=90, method=6)          # WebP：約為 PNG 的 1/6
+        bundle[oc] = "data:image/webp;base64," + base64.b64encode(buf.getvalue()).decode()
         report.append([pdf.name, oc, status, page, cur, size])
         review.append((oc, cur, size, im))
 
