@@ -4,7 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Quectel 天線選型工具</title>
-<meta name="theme-color" content="#F3F0E9">
+<meta name="theme-color" content="#F3F0E9" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#12191E" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" id="themeColor" content="#F3F0E9">
 <meta name="description" content="Quectel 天線產品選型與 TELEC 認證查詢，可離線使用">
 <link rel="manifest" href="manifest.webmanifest">
 <!-- iOS：加入主畫面後以全螢幕 App 方式開啟 -->
@@ -682,6 +684,12 @@ dialog.cmp-dlg { width: min(1040px, calc(100vw - 24px)); }
   .cmp-tbl.cmp-n3 { min-width: 470px; }      /* 3 款：左右捲動，左側欄位名稱固定 */
   .cmp-tbl th, .cmp-tbl td { padding: 7px 8px; overflow-wrap: anywhere; }
 }
+
+/* 頁面最底層也使用主題背景色：狀態列下方與彈性捲動時露出的區域不會是淺色 */
+html { background-color: var(--paper); }
+/* 手機「篩選」按鈕：沒有套用條件時隱藏空的數字標籤，文字保持置中 */
+#filterBadge:empty { display: none; }
+#openFilters { justify-content: center; }
 </style>
 </head>
 <body>
@@ -1941,7 +1949,15 @@ function applyTheme(th) {
   if (th) document.documentElement.dataset.theme = th; else delete document.documentElement.dataset.theme;
   renderThemeBtn();
 }
+/** 手機最上方狀態列 / 瀏覽器列的顏色 = 目前主題的背景色 (深色模式時跟著變深) */
+function syncThemeColor() {
+  const bg = getComputedStyle(document.documentElement).getPropertyValue('--paper').trim() || (isDark() ? '#12191E' : '#F3F0E9');
+  // 移除依系統設定的預設值，改由目前主題決定 (使用者手動切換時也會跟著變)
+  document.querySelectorAll('meta[name="theme-color"][media]').forEach((m) => m.remove());
+  $('themeColor').setAttribute('content', bg);
+}
 function renderThemeBtn() {
+  syncThemeColor();
   const dark = isDark();
   // 按鈕顯示「切換目標」
   $('themeIcon').innerHTML = dark ? ICON_SUN : ICON_MOON;

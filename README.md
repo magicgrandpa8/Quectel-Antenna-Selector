@@ -1,6 +1,6 @@
 # Quectel 天線選型 · TELEC 認證 PWA
 
-目前版本：**v3.21.0**
+目前版本：**v3.21.1**
 資料來源：`Quectel_Antenna_Product_and_TELEC_Certification_*.xlsx`（單一 Excel）
 
 ## 功能
@@ -124,6 +124,7 @@ App 內不顯示更新紀錄；版本變更請記錄在本 README 的「更新�
 - 頻段預設邊界為一般公開配置，僅供初篩。
 
 ## 更新紀錄
+- **v3.21.1**：修正手機深色模式時最上方狀態列仍為淺色；修正手機「篩選」按鈕文字未置中
 - **v3.21.0**：新增 127 款 datasheet 官方照片（合計 175 款）；photo_datasheet.json 改存 WebP（15 MB → 2.5 MB）；App 放大照片改為 720px；新增 datasheet 照片排除清單（YCGS010AA）
 - **v3.20.0**：Datasheet 按鈕改用 OneDrive 個別檔案分享連結（`data/datasheet_links.csv`），移除 repo 內 PDF 設計；48 款天線改用 datasheet 中的官方產品照片
 - **v3.19.1**：datasheet 照片改為最優先（取代手動照片）；YC0001CA 改用 datasheet 照片
