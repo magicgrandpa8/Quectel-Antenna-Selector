@@ -17,7 +17,8 @@ extract_datasheet_photos.py — 從天線 datasheet (PDF) 擷取產品照片，�
 
 選項：
     --only-blurry   只處理目前照片最長邊 < 200px 的料號
-    --min-px N      擷取到的照片最長邊至少 N px 才採用 (預設 300)
+    --min-px N      擷取到的照片最長邊至少 N px 才採用 (預設 300；未達但比目前照片清晰時仍採用)；
+                    datasheet 為官方照片，達此解析度即採用 (比目前照片小時會在報告中標註)
 """
 from __future__ import annotations
 
@@ -114,8 +115,8 @@ def extract_photo(doc) -> tuple[Image.Image, int] | None:
             except Exception:
                 continue
             w, h = im.size
-            if min(w, h) < 60 or max(w, h) < 150 or max(w, h) / max(1, min(w, h)) > 8:
-                continue                           # logo、細線、色條
+            if min(w, h) < 20 or max(w, h) < 150 or max(w, h) / max(1, min(w, h)) > 16:
+                continue                           # logo、細線 (細長的鞭狀天線仍保留，單色色條由下一條規則排除)
             if max(ImageStat.Stat(im.convert("L")).stddev) < 12:
                 continue                           # 幾乎單一顏色的裝飾圖 (例如側邊色條)
             score = w * h * (1.25 if pno == 0 else 1.0)
@@ -160,12 +161,14 @@ def main():
             report.append([pdf.name, oc, "找不到產品照片", "", cur, ""]); continue
         im, page = res
         size = max(im.size)
-        if size < a.min_px or size <= cur:
-            report.append([pdf.name, oc, "未採用 (不比目前清晰)", page, cur, size]); continue
+        if size < a.min_px and size <= cur:
+            report.append([pdf.name, oc, f"未採用 (小於 {a.min_px}px 且不比目前清晰)", page, cur, size]); continue
+        # datasheet 為官方照片：達最低解析度即採用；比目前照片小時在報告中標註，供人工確認
+        status = "採用" if size >= cur else "採用 (比目前照片小，請確認)"
         im.thumbnail((MAX_PX, MAX_PX), Image.LANCZOS)
         buf = io.BytesIO(); im.save(buf, "PNG", optimize=True)
         bundle[oc] = "data:image/png;base64," + base64.b64encode(buf.getvalue()).decode()
-        report.append([pdf.name, oc, "採用", page, cur, size])
+        report.append([pdf.name, oc, status, page, cur, size])
         review.append((oc, cur, size, im))
 
     out_path.write_text(json.dumps(bundle, separators=(",", ":")), encoding="utf8")
@@ -183,7 +186,7 @@ def main():
             sheet.paste(t, (x + (cw - t.width) // 2, y + 30 + (ch - 40 - t.height) // 2))
             d.text((x + 8, y + 8), f"{oc}  {cur}px -> {size}px", fill="black")
         sheet.save(ROOT / "photo_datasheet_review.png")
-    ok = sum(1 for r in report if r[2] == "採用")
+    ok = sum(1 for r in report if str(r[2]).startswith("採用"))
     print(f"PDF {len(pdfs)} 份；採用 {ok} 張；photo_datasheet.json 共 {len(bundle)} 款")
     print("請檢查 photo_datasheet_review.png 與 photo_datasheet_report.csv，再執行 build_data.py")
     if tmp:
