@@ -1,6 +1,6 @@
 # Quectel 天線選型 · TELEC 認證 PWA
 
-目前版本：**v3.22.1**
+目前版本：**v3.23.0**
 資料來源：`Quectel_Antenna_Product_and_TELEC_Certification_*.xlsx`（單一 Excel）
 
 ## 功能
@@ -124,6 +124,7 @@ App 內不顯示更新紀錄；版本變更請記錄在本 README 的「更新�
 - 頻段預設邊界為一般公開配置，僅供初篩。
 
 ## 更新紀錄
+- **v3.23.0**：強化 Liquid Glass（液態玻璃）效果：動態流動的色彩桌布、隨光源移動的鏡面高光（電腦跟隨滑鼠、手機自動流動）、更強的折射與邊緣光；版本資訊新增「製作者：王柏寒 andy.wang@pactw.com」（email 可點擊寄信）
 
 - **v3.22.1**：移遠天線Agent按鈕改連結至Gemini天線Agent；同步更新離線快取版本。
 
