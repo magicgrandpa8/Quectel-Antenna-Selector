@@ -1,6 +1,6 @@
 # Quectel 天線選型 · TELEC 認證 PWA
 
-目前版本：**v3.19.0**
+目前版本：**v3.20.0**
 資料來源：`Quectel_Antenna_Product_and_TELEC_Certification_*.xlsx`（單一 Excel）
 
 ## 功能
@@ -52,18 +52,21 @@ Build 時會比對各模組認證數與 Excel 統計列，並警告矩陣中不�
 ## 手動指定產品照片（最優先）
 Excel 照片錯誤或太模糊時，把正確的照片放進 `photo_overrides/` 資料夾，**檔名用料號**
 （例如 `YC0001CA.png`，支援 png / jpg / jpeg / webp），重新產生工具即可。
-這裡的照片優先於 Excel 與 `--photo-xlsx`，縮圖與放大檢視都會使用，之後每次更新都會保留。
+這裡的照片優先於 Excel 與 `--photo-xlsx`（若該料號有 datasheet 照片，則以 datasheet 為準），縮圖與放大檢視都會使用。
 檔名找不到對應料號時，build 會顯示警告。
 
-## Datasheet 檔案（客戶可直接開啟、下載）
-把 datasheet PDF 放在 repo 的 `datasheets/` 資料夾（檔名含料號即可，不需改名），重新 build：
-- 各天線的 Datasheet 按鈕自動連到對應的 PDF；同一料號多份時，優先英文版、再取版本最新者。
-- 沒有對應檔案的天線沿用 Excel 中的連結；找不到料號的 PDF 會在 build 時列出警告。
-- App 不會預先下載 datasheet；客戶開啟過的 datasheet 會保存在裝置上，離線時可再開啟。
-- GitHub 網頁一次最多上傳 100 個檔案、單檔 25 MB；GitHub Pages 網站總容量建議 1 GB 以內。
+## Datasheet 連結（OneDrive）
+`data/datasheet_links.csv`（欄位：`PN, Type, Datasheet_File, OneDrive_URL`）是每個料號的 datasheet 對照表，
+連結為 OneDrive 個別檔案分享連結（任何人可檢視、不需登入）。build 時：
+- 各天線的 Datasheet 按鈕改用 `OneDrive_URL`，於新分頁開啟（取代 Excel 中的連結）。
+- `OneDrive_URL` 空白（例如 YENA00L5AH 沒有 datasheet）或不在表中的料號，不顯示 Datasheet 按鈕。
+- 只接受 `https://` 連結；表中有、工具中沒有的料號會顯示警告。
+- Service Worker 不快取外部連結；離線時按 Datasheet 會提示需要網路。
+
+新增或更新 datasheet：在 OneDrive 建立分享連結，更新 CSV 對應列，重新 build 即可。
 
 ## 從 datasheet 擷取清晰照片（建議）
-把 datasheet PDF 放在一個資料夾（或壓成 .zip），檔名含料號最佳（沒有時會讀 PDF 第 1 頁文字找料號）：
+擷取工具使用本機的 datasheet PDF（資料夾或 .zip），檔名含料號最佳（沒有時會讀 PDF 第 1 頁文字找料號）：
 ```bash
 pip install pymupdf pillow
 python3 tools/extract_datasheet_photos.py <PDF 資料夾或 .zip> --only-blurry
@@ -71,7 +74,7 @@ python3 tools/extract_datasheet_photos.py <PDF 資料夾或 .zip> --only-blurry
 - 自動略過 logo、各頁重複的頁首圖、滿版背景，取第 1～3 頁中的產品照片；透明背景補白底並裁白邊。
 - 結果存入 `photo_datasheet.json`（單一檔案），只採用比目前照片清晰的圖；之後執行 `build_data.py` 即會使用。
 - 請先檢查 `photo_datasheet_review.png`（擷取結果對照圖）與 `photo_datasheet_report.csv`（每份 PDF 的處理結果）。
-- 照片優先順序：`photo_overrides/` 手動照片 > datasheet 照片 > `--photo-xlsx` > TELEC Excel。
+- 照片優先順序：**datasheet 照片** > `photo_overrides/` 手動照片 > `--photo-xlsx` > TELEC Excel。
 
 ## 較清晰的產品照片（選用）
 TELEC Excel 中約一半的照片解析度偏低。若其他 Excel（例如 JP 天線表）有同一料號更清晰的照片，
@@ -107,6 +110,7 @@ App 內不顯示更新紀錄；版本變更請記錄在本 README 的「更新�
 | `photos.json` | 產品照片（放大檢視用，原始解析度，全部打包成單一檔案，build 時自動產生） | ✅ |
 | `version.json` | 新版偵測 | ✅ |
 | `template.html`、`build_data.py`、`fonts/` | 產生 `index.html` 的原始碼 | 建議放在 repo |
+| `data/datasheet_links.csv` | Datasheet 連結對照表（PN → OneDrive 分享連結） | ✅ |
 | `photo_datasheet.json` | 從 datasheet 擷取的產品照片（`tools/extract_datasheet_photos.py` 產生） | ✅（有擷取時） |
 | `photo_overrides/` | 手動指定的產品照片（檔名為料號） | 建議放在 repo |
 | `tools/export_guides.py` | 將內建使用說明匯出為 PDF（選用） | 建議放在 repo |
@@ -118,6 +122,8 @@ App 內不顯示更新紀錄；版本變更請記錄在本 README 的「更新�
 - 頻段預設邊界為一般公開配置，僅供初篩。
 
 ## 更新紀錄
+- **v3.20.0**：Datasheet 按鈕改用 OneDrive 個別檔案分享連結（`data/datasheet_links.csv`），移除 repo 內 PDF 設計；48 款天線改用 datasheet 中的官方產品照片
+- **v3.19.1**：datasheet 照片改為最優先（取代手動照片）；YC0001CA 改用 datasheet 照片
 - **v3.19.0**：支援 `datasheets/` 資料夾（Datasheet 按鈕連到 repo 中的 PDF、開啟過的可離線閱讀）；修正 datasheet 照片擷取（透明背景、裝飾色條、重複出現的產品照）；5 款天線改用 datasheet 中的清晰照片；使用說明 PDF 改為固定檔名
 - **v3.18.0**：手機版結果優先（篩選改為底部面板＋浮動「篩選」按鈕）；天線比較（最多 3 款、差異標色、只看差異、共同認證模組）；TELEC 認證模組可多選（共同認證）
 - **v3.17.0**：介面改為 Liquid Glass（液態玻璃）風格；移除所有 AI 修飾照片；新增 datasheet 產品照片擷取工具

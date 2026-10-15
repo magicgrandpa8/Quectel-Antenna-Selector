@@ -928,7 +928,7 @@ const I18N = {
     moreFilters: '更多條件', kl_size: '尺寸',
     s_ip: 'IP 等級',
     agent: '移遠天線Agent', agentOffline: '移遠天線Agent 需要網路連線',
-    datasheet: 'Datasheet', dsAria: '開啟 {oc} 的 Datasheet', dsOffline: 'Datasheet 需要網路連線 (並登入公司帳號)',
+    datasheet: 'Datasheet', dsAria: '開啟 {oc} 的 Datasheet', dsOffline: 'Datasheet 需要網路連線',
   },
   en: {
     brand: 'Quectel Antenna Selector · TELEC',
@@ -995,7 +995,7 @@ const I18N = {
     moreFilters: 'More filters', kl_size: 'Size',
     s_ip: 'IP rating',
     agent: 'Quectel Antenna Agent', agentOffline: 'Quectel Antenna Agent needs a network connection',
-    datasheet: 'Datasheet', dsAria: 'Open datasheet for {oc}', dsOffline: 'Datasheets need a network connection (and company sign-in)',
+    datasheet: 'Datasheet', dsAria: 'Open datasheet for {oc}', dsOffline: 'Datasheets need a network connection',
   },
   ja: {
     brand: 'Quectel アンテナ選定 · TELEC', langAria: '言語',
@@ -1060,7 +1060,7 @@ const I18N = {
     moreFilters: 'その他の条件', kl_size: '寸法',
     s_ip: 'IP 等級',
     agent: 'Quectel アンテナ Agent', agentOffline: 'Quectel アンテナ Agent の利用にはネットワーク接続が必要です',
-    datasheet: 'Datasheet', dsAria: '{oc} のデータシートを開く', dsOffline: 'データシートの表示にはネットワーク接続（と社内アカウントでのサインイン）が必要です',
+    datasheet: 'Datasheet', dsAria: '{oc} のデータシートを開く', dsOffline: 'データシートの表示にはネットワーク接続が必要です',
   },
   ko: {
     brand: 'Quectel 안테나 선정 · TELEC', langAria: '언어',
@@ -1125,7 +1125,7 @@ const I18N = {
     moreFilters: '추가 조건', kl_size: '크기',
     s_ip: 'IP 등급',
     agent: 'Quectel 안테나 Agent', agentOffline: 'Quectel 안테나 Agent를 사용하려면 네트워크 연결이 필요합니다',
-    datasheet: 'Datasheet', dsAria: '{oc} 데이터시트 열기', dsOffline: '데이터시트를 보려면 네트워크 연결(및 회사 계정 로그인)이 필요합니다',
+    datasheet: 'Datasheet', dsAria: '{oc} 데이터시트 열기', dsOffline: '데이터시트를 보려면 네트워크 연결이 필요합니다',
   },
 };
 let lang = 'en';
@@ -1432,9 +1432,8 @@ function openDatasheet(oc) {
   const p = PAGES[page].items().find((x) => x.oc === oc);
   const url = dsUrl(p);
   if (!url) return;
-  // 離線時：放在本工具的 datasheet (datasheets/) 若開啟過仍可從快取開啟；外部連結則提示需要網路
-  const local = !/^https?:/i.test(url);
-  if (!navigator.onLine && !local) { toast(t('dsOffline'), 3000); return; }
+  // Datasheet 為 OneDrive 分享連結：離線時無法開啟，提示需要網路
+  if (!navigator.onLine) { toast(t('dsOffline'), 3000); return; }
   // noopener / noreferrer：新分頁無法回頭存取本 App，也不帶來源網址
   window.open(url, '_blank', 'noopener,noreferrer');
 }
@@ -2146,7 +2145,7 @@ const GUIDE = {
   "P1": "已認證天線",
   "P2": "主動式 GNSS 天線",
   "D": [
-   "<b>複製料號</b>與 <b>Datasheet</b>（需要網路連線並登入公司帳號）。點產品照片可放大檢視。",
+   "<b>複製料號</b>與 <b>Datasheet</b>（在新分頁開啟，可閱讀與下載，需要網路連線）。點產品照片可放大檢視。",
    "<b>TELEC 認證模組</b>：依類別列出並附認證日期，目前選定的模組以綠色標示。",
    "<b>射頻效能</b>：效率、峰值增益、場型、極化。主動式 GNSS 天線另外顯示 <b>LNA 增益</b>。",
    "<b>連接器與線材</b>：使用 IPEX MHF 連接器或 RG174 線材的天線，會將連接器、線材型號與線長合併描述（IPEX 另含線徑）。"
@@ -2194,7 +2193,7 @@ const GUIDE = {
    ],
    [
     "Datasheet 打不開？",
-    "Datasheet 存放在公司 SharePoint，需要網路連線並登入公司帳號。"
+    "Datasheet 放在 OneDrive，不需要登入即可閱讀與下載，但需要網路連線。少數料號沒有 datasheet，不會顯示按鈕。"
    ]
   ],
   "notes_t": "注意事項",
@@ -2230,7 +2229,7 @@ const GUIDE = {
   "P1": "Certified antenna",
   "P2": "Active GNSS antenna",
   "D": [
-   "<b>Copy part no.</b> and <b>Datasheet</b> (needs a network connection and company sign-in). Tap the product photo to enlarge it.",
+   "<b>Copy part no.</b> and <b>Datasheet</b> (opens in a new tab to view or download; needs a network connection). Tap the product photo to enlarge it.",
    "<b>TELEC-certified modules</b>, grouped by category with cert dates. The module you selected is highlighted.",
    "<b>RF performance</b>: efficiency, peak gain, pattern, polarization. Active GNSS antennas also show their <b>LNA gain</b>.",
    "<b>Connector &amp; cable</b>: for IPEX MHF connectors and RG174 cables, the connector, cable type and length are described together (IPEX also shows the cable diameter)."
@@ -2278,7 +2277,7 @@ const GUIDE = {
    ],
    [
     "The datasheet won't open?",
-    "Datasheets are stored on the company SharePoint and need a network connection and company sign-in."
+    "Datasheets are hosted on OneDrive and can be viewed or downloaded without signing in, but need a network connection. A few parts have no datasheet, so no button is shown."
    ]
   ],
   "notes_t": "Notes",
@@ -2314,7 +2313,7 @@ const GUIDE = {
   "P1": "認証済みアンテナ",
   "P2": "アクティブ GNSS アンテナ",
   "D": [
-   "<b>品番をコピー</b>と<b>データシート</b>（ネットワーク接続と社内アカウントでのサインインが必要）。製品写真をタップすると拡大表示できます。",
+   "<b>品番をコピー</b>と<b>データシート</b>（新しいタブで表示・ダウンロード。ネットワーク接続が必要）。製品写真をタップすると拡大表示できます。",
    "<b>TELEC 認証モジュール</b>：カテゴリ別に認証日とともに表示されます。選択中のモジュールは緑色で強調されます。",
    "<b>RF 性能</b>：効率、ピークゲイン、放射パターン、偏波。アクティブ GNSS アンテナは <b>LNA ゲイン</b>も表示されます。",
    "<b>コネクタとケーブル</b>：IPEX MHF コネクタまたは RG174 ケーブルのアンテナは、コネクタ、ケーブルの型番、長さをまとめて表示します（IPEX は線径も表示）。"
@@ -2362,7 +2361,7 @@ const GUIDE = {
    ],
    [
     "データシートが開かない",
-    "データシートは社内 SharePoint にあり、ネットワーク接続と社内アカウントでのサインインが必要です。"
+    "データシートは OneDrive にあり、サインインなしで表示・ダウンロードできますが、ネットワーク接続が必要です。データシートがない一部の品番にはボタンが表示されません。"
    ]
   ],
   "notes_t": "注意事項",
@@ -2398,7 +2397,7 @@ const GUIDE = {
   "P1": "인증된 안테나",
   "P2": "액티브 GNSS 안테나",
   "D": [
-   "<b>품번 복사</b>와 <b>데이터시트</b> (네트워크 연결과 회사 계정 로그인 필요). 제품 사진을 누르면 크게 볼 수 있습니다.",
+   "<b>품번 복사</b>와 <b>데이터시트</b> (새 탭에서 보기·다운로드, 네트워크 연결 필요). 제품 사진을 누르면 크게 볼 수 있습니다.",
    "<b>TELEC 인증 모듈</b>: 분류별로 인증일과 함께 표시됩니다. 선택한 모듈은 초록색으로 강조됩니다.",
    "<b>RF 성능</b>: 효율, 피크 이득, 방사 패턴, 편파. 액티브 GNSS 안테나는 <b>LNA 이득</b>도 표시됩니다.",
    "<b>커넥터 및 케이블</b>: IPEX MHF 커넥터 또는 RG174 케이블을 사용하는 안테나는 커넥터, 케이블 모델, 길이를 함께 표시합니다 (IPEX는 지름도 표시)."
@@ -2446,7 +2445,7 @@ const GUIDE = {
    ],
    [
     "데이터시트가 열리지 않습니다",
-    "데이터시트는 회사 SharePoint에 있으며, 네트워크 연결과 회사 계정 로그인이 필요합니다."
+    "데이터시트는 OneDrive에 있어 로그인 없이 보거나 다운로드할 수 있지만 네트워크 연결이 필요합니다. 데이터시트가 없는 일부 품번에는 버튼이 표시되지 않습니다."
    ]
   ],
   "notes_t": "참고 사항",

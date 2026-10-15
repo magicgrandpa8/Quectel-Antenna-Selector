@@ -20,18 +20,17 @@ build_data.py — 將「Quectel Antenna Product and TELEC Certification」Excel
     --photo-xlsx <其他 Excel>  可重複指定。依料號比對，某款天線在其他 Excel 的照片
     比目前照片清晰 2 倍以上時，縮圖與放大檢視改用該照片。
 
-datasheet 檔案 (選用)
-    datasheets/*.pdf  檔名含料號的 datasheet (例如 Quectel_4G_Antenna_YC0001CA_Datasheet_V2_4.pdf)。
-    各天線的 Datasheet 按鈕改連到這裡的檔案；同一料號有多份時，優先英文版、再取版本最新者。
-    沒有對應檔案的天線沿用 Excel 中的 Datasheet 連結。
+Datasheet 連結對照表
+    data/datasheet_links.csv  (PN, Type, Datasheet_File, OneDrive_URL)。存在時，各天線的 Datasheet 按鈕
+    改連到對應的 OneDrive 分享連結 (取代 Excel 中的連結)；URL 空白或不在表中的料號不顯示按鈕。
 
-datasheet 照片 (選用)
+datasheet 照片 (選用，最優先)
     photo_datasheet.json  由 tools/extract_datasheet_photos.py 從 datasheet PDF 擷取的產品照片，
-    優先於 Excel 與 --photo-xlsx，僅次於 photo_overrides/ 手動照片。
+    優先於 photo_overrides/ 手動照片、--photo-xlsx 與 TELEC Excel。
 
-手動指定照片 (最優先)
+手動指定照片
     photo_overrides/<料號>.png|jpg|jpeg|webp  放在此資料夾的照片，會取代該料號的縮圖與放大照片
-    (優先於 Excel 與 --photo-xlsx)。用於 Excel 照片錯誤或解析度不足時。
+    (優先於 Excel 與 --photo-xlsx；若該料號有 datasheet 照片，則以 datasheet 為準)。
 
 輸出:
     index.html    內嵌資料、圖片、字型、版本號的 App
@@ -249,35 +248,24 @@ def to_thumb(raw: bytes) -> str | None:
 
 
 # --------------------------------------------------------------------------- #
-# datasheet 檔案 (選用)：依檔名對應料號
+# Datasheet 連結對照表 (data/datasheet_links.csv)
 # --------------------------------------------------------------------------- #
-CN_MARK = ("规格书", "規格書", "天线", "天線")
-
-
-def map_datasheets(folder: Path, ocs: list[str]) -> tuple[dict[str, str], list[str]]:
-    """回傳 ({料號: 相對網址}, [無法對應料號的檔名])。
-    同一料號多份時排序：英文版 > 中文版，版本號大者優先，再以修改時間新者優先。"""
-    from urllib.parse import quote
-    if not folder.is_dir():
-        return {}, []
-    ocs_sorted = sorted(ocs, key=len, reverse=True)
-    best: dict[str, tuple] = {}
-    unmatched = []
-    for f in sorted(folder.rglob("*.pdf")):
-        name = f.name.upper()
-        oc = next((o for o in ocs_sorted
-                   if re.search(rf"(?<![A-Z0-9]){re.escape(o)}(?![A-Z0-9])", name)), None)
-        if not oc:
-            unmatched.append(f.name)
-            continue
-        m = re.search(r"V(\d+)(?:[._](\d+))?(?:[._](\d+))?", f.stem, re.I)
-        ver = tuple(int(x or 0) for x in m.groups()) if m else (0, 0, 0)
-        english = not any(k in f.name for k in CN_MARK)
-        key = (english, ver, f.stat().st_mtime)
-        if oc not in best or key > best[oc][0]:
-            rel = f.relative_to(folder.parent).as_posix()
-            best[oc] = (key, quote(rel))
-    return {oc: url for oc, (key, url) in best.items()}, unmatched
+def read_datasheet_links(path: Path) -> dict[str, str]:
+    """讀取 PN → OneDrive_URL 對照表 (欄位：PN, Type, Datasheet_File, OneDrive_URL)。
+    URL 空白代表沒有 datasheet；只接受 https:// 連結。"""
+    import csv
+    links: dict[str, str] = {}
+    with open(path, encoding="utf-8-sig", newline="") as f:
+        for row in csv.DictReader(f):
+            pn = (row.get("PN") or "").strip()
+            url = (row.get("OneDrive_URL") or "").strip()
+            if not pn:
+                continue
+            if url and not url.lower().startswith("https://"):
+                print(f"警告：{pn} 的 datasheet 連結不是 https://，已略過", file=sys.stderr)
+                url = ""
+            links[pn] = url
+    return links
 
 
 # --------------------------------------------------------------------------- #
@@ -423,8 +411,8 @@ def main():
     ap.add_argument("--template", default=Path("template.html"), type=Path)
     ap.add_argument("--out", default=Path("index.html"), type=Path)
     ap.add_argument("--sw", default=Path("sw.js"), type=Path)
-    ap.add_argument("--datasheet-dir", default=Path("datasheets"), type=Path,
-                    help="datasheet PDF 資料夾 (隨工具一起放在 GitHub)，Datasheet 按鈕改連到這裡的檔案")
+    ap.add_argument("--datasheet-links", default=Path("data/datasheet_links.csv"), type=Path,
+                    help="Datasheet 連結對照表 (PN → OneDrive_URL)；存在時取代 Excel 中的連結")
     ap.add_argument("--datasheet-photos", default=Path("photo_datasheet.json"), type=Path,
                     help="datasheet 擷取的照片 (tools/extract_datasheet_photos.py 產生)")
     ap.add_argument("--photo-dir", default=Path("photo_overrides"), type=Path,
@@ -459,11 +447,21 @@ def main():
             modules.append({"name": name, "date": None, "cat": "Other",
                             "n": sum(1 for p in products if name in p.get("certs", []))})
 
-    # ---- datasheet 檔案：Datasheet 按鈕改連到 datasheets/ 中對應的 PDF ----
-    ds_map, ds_unmatched = map_datasheets(a.datasheet_dir, [p["oc"] for p in products])
-    for p in products:
-        if p["oc"] in ds_map:
-            p["ds"] = ds_map[p["oc"]]
+    # ---- Datasheet 連結：依對照表改用 OneDrive 個別檔案分享連結 (取代 Excel 中的連結) ----
+    ds_links = read_datasheet_links(a.datasheet_links) if a.datasheet_links.exists() else None
+    ds_missing, ds_none = [], []
+    if ds_links is not None:
+        for p in products:
+            url = ds_links.get(p["oc"])
+            if url is None:
+                ds_missing.append(p["oc"])           # 對照表中沒有此料號
+                p.pop("ds", None)
+            elif not url:
+                ds_none.append(p["oc"])              # 沒有 datasheet：不顯示按鈕
+                p.pop("ds", None)
+            else:
+                p["ds"] = url
+        ds_extra = sorted(set(ds_links) - {p["oc"] for p in products})
 
     # ---- 較清晰的照片來源 (選用)：清晰 PHOTO_GAIN 倍以上才替換，縮圖與放大照片一起換 ----
     swapped = []
@@ -481,20 +479,7 @@ def main():
                     photos[oc], images[oc] = ph, th
                     swapped.append((oc, cur_size, min(alt_size, PHOTO_PX)))
 
-    # ---- datasheet 擷取的照片：優先於 Excel 與 --photo-xlsx ----
-    from_datasheet = []
-    if a.datasheet_photos.exists():
-        known = {p["oc"] for p in products}
-        for oc, uri in json.loads(a.datasheet_photos.read_text(encoding="utf8")).items():
-            if oc not in known:
-                continue
-            raw = base64.b64decode(uri.split(",", 1)[1])
-            ph, th = to_photo(raw), to_thumb(raw)
-            if ph and th:
-                photos[oc], images[oc] = ph, th
-                from_datasheet.append(oc)
-
-    # ---- 手動指定照片 (最優先)：photo_overrides/<料號>.<副檔名> ----
+    # ---- 手動指定照片：photo_overrides/<料號>.<副檔名> (datasheet 照片仍優先) ----
     overridden, unknown = [], []
     if a.photo_dir.is_dir():
         by_oc = {p["oc"]: p for p in products}
@@ -510,6 +495,22 @@ def main():
             if ph and th:
                 photos[oc], images[oc] = ph, th
                 overridden.append(oc)
+
+    # ---- datasheet 擷取的照片 (最優先)：取代 Excel、--photo-xlsx 與手動指定照片 ----
+    from_datasheet = []
+    if a.datasheet_photos.exists():
+        known = {p["oc"] for p in products}
+        for oc, uri in json.loads(a.datasheet_photos.read_text(encoding="utf8")).items():
+            if oc not in known:
+                continue
+            raw = base64.b64decode(uri.split(",", 1)[1])
+            ph, th = to_photo(raw), to_thumb(raw)
+            if ph and th:
+                photos[oc], images[oc] = ph, th
+                from_datasheet.append(oc)
+                for x in products:
+                    if x["oc"] == oc:
+                        x.pop("ai", None)
 
     # ---- 放大檢視用照片：全部打包成單一檔案 photos.json ({料號: WebP data URI}) ----
     # 單一檔案方便以 GitHub 網頁上傳 (一次上限 100 個檔案)，也不會留下過期的舊照片檔
@@ -572,23 +573,25 @@ def main():
     print(f"天線: {len(products)}  (有 TELEC 認證: {certified})  模組: {len(modules)}  "
           f"認證組合 (☑): {sum(len(p.get('certs', [])) for p in products)}  圖片: {len(images)}")
     print(f"放大檢視照片: {len(photo_files)} 張，打包為 photos.json ({photo_mb:.1f} MB)")
+    overridden = [oc for oc in overridden if oc not in from_datasheet]                        # datasheet 照片優先
     if overridden:
-        print(f"手動指定照片 ({a.photo_dir}/): {', '.join(overridden)}")
+        print(f"手動指定照片 ({a.photo_dir}/，有 datasheet 照片者除外): {', '.join(overridden)}")
     if unknown:
         print(f"警告：{a.photo_dir}/ 中找不到對應料號的檔案 (請確認檔名為料號)：{', '.join(unknown)}", file=sys.stderr)
     swapped = [x for x in swapped if x[0] not in overridden and x[0] not in from_datasheet]   # 優先者不列入
-    from_datasheet = [oc for oc in from_datasheet if oc not in overridden]
     if from_datasheet:
         print(f"datasheet 照片: {len(from_datasheet)} 款")
     if a.photo_xlsx:
         print(f"改用其他 Excel 的清晰照片: {len(swapped)} 款 "
               + ", ".join(f"{oc} {c}→{n}px" for oc, c, n in swapped[:6]) + (" …" if len(swapped) > 6 else ""))
-    if a.datasheet_dir.is_dir():
-        print(f"datasheet 檔案 ({a.datasheet_dir}/): {len(ds_map)} 款天線連到此資料夾，"
-              f"其餘 {len(products) - len(ds_map)} 款沿用 Excel 連結")
-        if ds_unmatched:
-            print(f"警告：{len(ds_unmatched)} 個 PDF 找不到對應料號 (請確認檔名含料號)：{', '.join(ds_unmatched[:8])}"
-                  + (" …" if len(ds_unmatched) > 8 else ""), file=sys.stderr)
+    if ds_links is not None:
+        n_ok = sum(1 for p in products if p.get("ds"))
+        print(f"Datasheet 連結 ({a.datasheet_links}): {n_ok} 款使用 OneDrive 連結"
+              + (f"；無 datasheet (隱藏按鈕): {', '.join(ds_none)}" if ds_none else ""))
+        if ds_missing:
+            print(f"警告：對照表中沒有 {len(ds_missing)} 個料號 (隱藏按鈕)：{', '.join(ds_missing[:10])}", file=sys.stderr)
+        if ds_extra:
+            print(f"警告：對照表中有 {len(ds_extra)} 個料號不在工具中：{', '.join(ds_extra[:10])}", file=sys.stderr)
     print(f"Datasheet 連結: {sum(1 for p in products if p.get('ds'))}/{len(products)}  "
           f"尺寸可解析: {sum(1 for p in products if p.get('dimL'))}/{len(products)}")
     print(f"輸出: {a.out} ({a.out.stat().st_size / 1024:.0f} KB)")

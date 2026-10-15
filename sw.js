@@ -8,7 +8,7 @@
  *    發佈新版後第一次開啟即生效；使用說明的示範畫面直接使用快取。
  *  - 其他同源檔案：cache-first，背景更新。
  *  - 產品照片 (photos.json)：安裝時預先快取，離線也能放大檢視。
- *  - Datasheet (datasheets/)：不預先下載；開啟過的檔案保存在 antenna-datasheets 快取，離線可再開啟。
+ *  - Datasheet：連到外部 OneDrive 分享連結，Service Worker 不攔截也不快取 (外部網域一律不處理)。
  *  - version.json：一律走網路，供 App 偵測新版本；離線時回 503。
  *  - 不使用任何外部網域資源。
  *
@@ -18,10 +18,7 @@
 /** 開啟 App 時等待網路的上限 (毫秒)；超過即改用快取，確保開啟速度 */
 const NAV_TIMEOUT_MS = 3500;
 
-/** 已開啟過的 datasheet 另存於此 (不隨 App 版本清除，離線時可再次開啟) */
-const DS_CACHE = 'antenna-datasheets';
-
-const CACHE_VERSION = 'antenna-selector-v3.19.0';
+const CACHE_VERSION = 'antenna-selector-v3.20.0';
 
 const APP_SHELL = [
   './',
@@ -50,7 +47,7 @@ self.addEventListener('install', (event) => {
 self.addEventListener('activate', (event) => {
   event.waitUntil((async () => {
     const keys = await caches.keys();
-    await Promise.all(keys.filter((k) => k !== CACHE_VERSION && k !== DS_CACHE).map((k) => caches.delete(k)));
+    await Promise.all(keys.filter((k) => k !== CACHE_VERSION).map((k) => caches.delete(k)));
     await self.clients.claim();
   })());
 });
@@ -77,27 +74,6 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(
       fetch(req, { cache: 'no-store' }).catch(() => new Response('{}', { status: 503, headers: { 'Content-Type': 'application/json' } }))
     );
-    return;
-  }
-
-  // Datasheet (datasheets/*.pdf)：不預先下載；有網路時直接取得並保存完整檔案，離線時使用保存的版本
-  if (url.pathname.includes('/datasheets/')) {
-    event.respondWith((async () => {
-      const cache = await caches.open(DS_CACHE);
-      try {
-        const res = await fetch(req);
-        if (res.status === 200) event.waitUntil(cache.put(url.pathname, res.clone()));   // 只保存完整檔案 (不保存部分內容 206)
-        return res;
-      } catch {
-        const cached = await cache.match(url.pathname);
-        return cached || new Response(
-          '<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">' +
-          '<body style="font:16px/1.6 sans-serif;padding:32px;color:#3C3833;background:#F3F0E9">' +
-          '<h2>需要網路連線 / Network connection required</h2><p>這份 datasheet 尚未下載過，請連上網路後再開啟。<br>' +
-          'This datasheet has not been downloaded yet. Please connect to the internet and try again.</p></body>',
-          { status: 503, headers: { 'Content-Type': 'text/html; charset=utf-8' } });
-      }
-    })());
     return;
   }
 
