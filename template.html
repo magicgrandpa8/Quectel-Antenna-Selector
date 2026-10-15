@@ -4,9 +4,26 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Quectel 天線選型工具</title>
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" id="themeColor" content="#F3F0E9">
 <meta name="theme-color" content="#F3F0E9" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#12191E" media="(prefers-color-scheme: dark)">
-<meta name="theme-color" id="themeColor" content="#F3F0E9">
+<script>
+/* 在畫面繪製前套用使用者儲存的深淺色主題，並同步「手機最上方狀態列」的顏色。
+   iOS Safari 只在載入時讀取 theme-color，之後刪除/新增標籤不會反映，
+   因此必須在這裡就決定正確的顏色 (後續切換時只更新 content，不刪除標籤)。 */
+(function () {
+  try {
+    var t = localStorage.getItem('antsel:theme');
+    var dark = t === 'dark' || (t !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches);
+    if (t === 'dark' || t === 'light') document.documentElement.setAttribute('data-theme', t);
+    var c = dark ? '#12191E' : '#F3F0E9';
+    var ms = document.querySelectorAll('meta[name="theme-color"]');
+    for (var i = 0; i < ms.length; i++) ms[i].setAttribute('content', c);
+    document.documentElement.style.colorScheme = dark ? 'dark' : 'light';
+  } catch (e) { /* 無法讀取 storage 時維持依系統設定 */ }
+})();
+</script>
 <meta name="description" content="Quectel 天線產品選型與 TELEC 認證查詢，可離線使用">
 <link rel="manifest" href="manifest.webmanifest">
 <!-- iOS：加入主畫面後以全螢幕 App 方式開啟 -->
@@ -452,7 +469,7 @@ html.offline .net { display: inline-flex; }
     flex: 1 1 0; min-width: 0; justify-content: center; height: 38px; padding: 0 6px; box-sizing: border-box;
   }
   .tool-btn.lang { order: 1; padding: 0 4px; }
-  #themeBtn { order: 2; } #updateBtn { order: 3; } #guideBtn { order: 4; } #verBtn { order: 5; }
+  #themeBtn { order: 2; } #guideBtn { order: 3; } #verBtn { order: 4; }
   /* 「安裝 App」(僅 iPhone Safari 等尚未安裝時出現)：獨立一整列，不擠壓上面 5 個按鈕 */
   .tool-menu > #installBtn:not([hidden]) { order: 6; flex: 1 1 100%; }
   .tool-btn.lang > svg { display: none; }                       /* 語言：省略地球圖示 */
@@ -690,6 +707,10 @@ html { background-color: var(--paper); }
 /* 手機「篩選」按鈕：沒有套用條件時隱藏空的數字標籤，文字保持置中 */
 #filterBadge:empty { display: none; }
 #openFilters { justify-content: center; }
+
+/* 有新版本時版本按鈕右上角的紅點 */
+#verBtn { position: relative; }
+#verBtn.has-update .dot { display: block; position: absolute; top: 4px; right: 6px; width: 8px; height: 8px; border-radius: 50%; background: var(--danger); }
 </style>
 </head>
 <body>
@@ -735,14 +756,9 @@ html { background-color: var(--paper); }
         <svg id="themeIcon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"></svg>
         <span class="lbl" id="themeLbl"></span>
       </button>
-      <!-- 強制更新 -->
-      <button class="tool-btn" id="updateBtn" type="button">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/></svg>
-        <span class="lbl" data-i18n="update"></span><span class="dot" aria-hidden="true"></span>
-      </button>
       <!-- 版本資訊 -->
       <button class="tool-btn ver" id="verBtn" type="button">
-        <span class="lbl"><span data-i18n="verAria"></span> <span id="verLbl"></span></span>
+        <span class="lbl"><span data-i18n="verAria"></span> <span id="verLbl"></span></span><span class="dot" aria-hidden="true"></span>
       </button>
         </div>
       </div>
@@ -878,7 +894,7 @@ const I18N = {
     update: '強制更新', updateAria: '清除快取並重新載入最新版本', updating: '正在清除快取並重新載入…',
     newVersion: '伺服器有新版本 v{v}，按「強制更新」套用',
     verAria: '版本資訊',
-    mTitle: '天線選型與 TELEC 認證', mSub: '使用下拉式選單篩選天線或是跟移遠天線Agent說明您的需求',
+    mTitle: '天線選型與 TELEC 認證', mSub: '用篩選條件找出合適的天線，或直接向移遠天線Agent說明您的需求',
    
     filters: '篩選條件', done: '完成', resetAll: '清除所有條件', search: '搜尋料號、名稱、頻率…', searchAria: '搜尋',
     countOf: '/ {n} 項天線', filterBtn: '篩選', sort: '排序',
@@ -945,7 +961,7 @@ const I18N = {
     update: 'Force update', updateAria: 'Clear cache and reload the latest version', updating: 'Clearing cache and reloading…',
     newVersion: 'Version v{v} is available. Press "Force update" to apply.',
     verAria: 'Version info',
-    mTitle: 'Antenna selection & TELEC certification', mSub: 'Filter antennas with the dropdown menus, or tell Quectel Antenna Agent what you need.',
+    mTitle: 'Antenna selection & TELEC certification', mSub: 'Use the filters to find the right antenna, or describe what you need to Quectel Antenna Agent.',
    
     filters: 'Filters', done: 'Done', resetAll: 'Clear all filters', search: 'Search part no., name, frequency…', searchAria: 'Search',
     countOf: '/ {n} antennas', filterBtn: 'Filters', sort: 'Sort',
@@ -1011,7 +1027,7 @@ const I18N = {
     update: '強制更新', updateAria: 'キャッシュを削除して最新版を再読み込み', updating: 'キャッシュを削除して再読み込みしています…',
     newVersion: '新しいバージョン v{v} があります。「強制更新」を押して適用してください。',
     verAria: 'バージョン情報',
-    mTitle: 'アンテナ選定と TELEC 認証', mSub: 'ドロップダウンメニューでアンテナを絞り込むか、Quectel アンテナ Agent にご要望をお伝えください。',
+    mTitle: 'アンテナ選定と TELEC 認証', mSub: '絞り込み条件で最適なアンテナを探すか、Quectel アンテナ Agent にご要望をお伝えください。',
    
     filters: '絞り込み条件', done: '完了', resetAll: 'すべての条件をクリア', search: '品番・名称・周波数で検索…', searchAria: '検索',
     countOf: '/ {n} 件のアンテナ', filterBtn: '絞り込み', sort: '並べ替え',
@@ -1076,7 +1092,7 @@ const I18N = {
     update: '강제 업데이트', updateAria: '캐시를 지우고 최신 버전을 다시 불러오기', updating: '캐시를 지우고 다시 불러오는 중…',
     newVersion: '새 버전 v{v}을(를) 사용할 수 있습니다. "강제 업데이트"를 눌러 적용하세요.',
     verAria: '버전 정보',
-    mTitle: '안테나 선정 및 TELEC 인증', mSub: '드롭다운 메뉴로 안테나를 필터링하거나, Quectel 안테나 Agent에게 필요한 내용을 알려 주세요.',
+    mTitle: '안테나 선정 및 TELEC 인증', mSub: '필터로 알맞은 안테나를 찾거나, Quectel 안테나 Agent에게 필요한 내용을 알려 주세요.',
    
     filters: '필터', done: '완료', resetAll: '모든 조건 지우기', search: '품번, 이름, 주파수로 검색…', searchAria: '검색',
     countOf: '/ {n}개 안테나', filterBtn: '필터', sort: '정렬',
@@ -1160,8 +1176,6 @@ function applyStaticI18n() {
   $('langSel').value = lang;
   $('langSel').querySelector('option[value="en"]').textContent = isDesktop() ? 'English' : 'EN';
   $('langSel').setAttribute('aria-label', t('langAria'));
-  $('updateBtn').setAttribute('aria-label', t('updateAria'));
-  $('updateBtn').title = t('updateAria');
   $('verLbl').textContent = 'v' + APP_VERSION;
   $('guideBtn').setAttribute('aria-label', t('guide'));
   $('menuBtn').setAttribute('aria-label', t('menu'));
@@ -1789,7 +1803,7 @@ async function checkForUpdate() {
   if (MODE !== 'app') return null;
   const latest = await fetchLatest();
   const has = !!latest && cmpVer(latest.version, APP_VERSION) > 0;
-  $('updateBtn').classList.toggle('has-update', has);
+  $('verBtn').classList.toggle('has-update', has);   // 有新版本：版本按鈕顯示紅點 (點開即可強制更新)
   if (has) toast(t('newVersion', { v: latest.version }), 5000);
   return latest;
 }
@@ -1832,10 +1846,11 @@ async function openVersion() {
 async function forceUpdate() {
   // 離線或伺服器無回應時絕不清除快取，否則 App 將無法開啟
   if (!navigator.onLine) { toast(t('offlineNoUpdate'), 3500); return; }
-  $('updateBtn').classList.add('spin');
+  const btn = document.querySelector('[data-force]');
+  btn?.classList.add('spin');
   const latest = await fetchLatest();
   if (!latest && location.protocol !== 'file:') {
-    $('updateBtn').classList.remove('spin');
+    btn?.classList.remove('spin');
     toast(t('serverUnreachable'), 3500);
     return;
   }
@@ -1949,12 +1964,13 @@ function applyTheme(th) {
   if (th) document.documentElement.dataset.theme = th; else delete document.documentElement.dataset.theme;
   renderThemeBtn();
 }
-/** 手機最上方狀態列 / 瀏覽器列的顏色 = 目前主題的背景色 (深色模式時跟著變深) */
+/** 手機最上方狀態列 / 瀏覽器列的顏色 = 目前主題的背景色 (深色模式時跟著變深)
+ *  所有 theme-color 標籤一律更新 content (不刪除)：瀏覽器無論讀哪一個都是目前主題的顏色 */
 function syncThemeColor() {
-  const bg = getComputedStyle(document.documentElement).getPropertyValue('--paper').trim() || (isDark() ? '#12191E' : '#F3F0E9');
-  // 移除依系統設定的預設值，改由目前主題決定 (使用者手動切換時也會跟著變)
-  document.querySelectorAll('meta[name="theme-color"][media]').forEach((m) => m.remove());
-  $('themeColor').setAttribute('content', bg);
+  const dark = isDark();
+  const bg = getComputedStyle(document.documentElement).getPropertyValue('--paper').trim() || (dark ? '#12191E' : '#F3F0E9');
+  document.querySelectorAll('meta[name="theme-color"]').forEach((m) => m.setAttribute('content', bg));
+  document.documentElement.style.colorScheme = dark ? 'dark' : 'light';
 }
 function renderThemeBtn() {
   syncThemeColor();
@@ -2105,7 +2121,6 @@ $('themeBtn').addEventListener('click', () => {
   const next = isDark() ? 'light' : 'dark';
   applyTheme(next); store.set('theme', next);
 });
-$('updateBtn').addEventListener('click', forceUpdate);
 function setMenu(open) {
   $('toolMenu').hidden = !open;
   $('menuBtn').setAttribute('aria-expanded', String(open));
@@ -2145,7 +2160,7 @@ const GUIDE = {
   ],
   "lead": "可快速查詢 <b>{a} 款 Quectel 天線</b>的規格，以及它們與 <b>{m} 款模組</b>的 <b>TELEC 認證</b>組合。可依模組、類型、尺寸等條件篩選，手機、平板、電腦都能使用；安裝後<b>不需網路</b>也能查詢。",
   "url": "開啟網址",
-  "h01": "下拉選單說明",
+  "h01": "篩選條件說明",
   "S1": "日本市場 = Yes",
   "S2": "技術類別 = GNSS",
   "M": [
@@ -2205,7 +2220,7 @@ const GUIDE = {
    ],
    [
     "資料好像不是最新的？",
-    "連網後按「強制更新」，或在版本資訊中比對伺服器版本。"
+    "連上網路後，點右上角的版本號，在版本資訊中按「強制更新」。"
    ],
    [
     "Datasheet 打不開？",
@@ -2229,7 +2244,7 @@ const GUIDE = {
   ],
   "lead": "Look up specifications for <b>{a} Quectel antennas</b> and their <b>TELEC certifications</b> with <b>{m} modules</b>. Filter by module, type, size and more on a phone, tablet or computer. Once installed, it works <b>without a network connection</b>.",
   "url": "Web address",
-  "h01": "Dropdown menus",
+  "h01": "Filters",
   "S1": "Japan Market = Yes",
   "S2": "Tech = GNSS",
   "M": [
@@ -2289,7 +2304,7 @@ const GUIDE = {
    ],
    [
     "The data looks out of date?",
-    "Go online and tap Force update, or compare versions in Version info."
+    "Go online, tap the version number at the top right, then tap Force update in Version info."
    ],
    [
     "The datasheet won't open?",
@@ -2313,7 +2328,7 @@ const GUIDE = {
   ],
   "lead": "<b>{a} 種類の Quectel アンテナ</b>の仕様と、<b>{m} 種類のモジュール</b>との <b>TELEC 認証</b>の組み合わせを検索できます。モジュール、タイプ、サイズなどで絞り込めます。スマートフォン、タブレット、パソコンで使え、インストール後は<b>ネットワークなし</b>でも利用できます。",
   "url": "Web アドレス",
-  "h01": "ドロップダウンメニュー",
+  "h01": "絞り込み条件",
   "S1": "日本市場 = Yes",
   "S2": "技術タイプ = GNSS",
   "M": [
@@ -2373,7 +2388,7 @@ const GUIDE = {
    ],
    [
     "データが古いようだ",
-    "オンラインで「強制更新」をタップするか、バージョン情報でサーバーのバージョンを確認してください。"
+    "オンラインで右上のバージョン番号をタップし、バージョン情報の「強制更新」を押してください。"
    ],
    [
     "データシートが開かない",
@@ -2397,7 +2412,7 @@ const GUIDE = {
   ],
   "lead": "<b>Quectel 안테나 {a}종</b>의 사양과 <b>모듈 {m}종</b>과의 <b>TELEC 인증</b> 조합을 조회할 수 있습니다. 모듈, 유형, 크기 등으로 필터링할 수 있으며 휴대폰, 태블릿, PC에서 사용할 수 있습니다. 설치한 뒤에는 <b>네트워크 없이도</b> 사용할 수 있습니다.",
   "url": "웹 주소",
-  "h01": "드롭다운 메뉴",
+  "h01": "필터",
   "S1": "일본 시장 = Yes",
   "S2": "기술 유형 = GNSS",
   "M": [
@@ -2457,7 +2472,7 @@ const GUIDE = {
    ],
    [
     "데이터가 최신이 아닌 것 같습니다",
-    "온라인 상태에서 \"강제 업데이트\"를 누르거나, 버전 정보에서 서버 버전을 확인하세요."
+    "온라인 상태에서 오른쪽 위의 버전 번호를 누르고, 버전 정보에서 \"강제 업데이트\"를 누르세요."
    ],
    [
     "데이터시트가 열리지 않습니다",
@@ -2791,7 +2806,7 @@ if (MODE === 'app' && 'serviceWorker' in navigator && (location.protocol === 'ht
       reg.addEventListener('updatefound', () => {
         const nw = reg.installing;
         nw?.addEventListener('statechange', () => {
-          if (nw.state === 'installed' && navigator.serviceWorker.controller) $('updateBtn').classList.add('has-update');
+          if (nw.state === 'installed' && navigator.serviceWorker.controller) $('verBtn').classList.add('has-update');
         });
       });
     }).catch(() => { /* 無 sw.js (例如預覽環境) 時忽略 */ });
