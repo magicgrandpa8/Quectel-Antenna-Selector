@@ -221,6 +221,7 @@ select.module {
 .specs dd { margin: 0; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .specs div { min-width: 0; }
 .specs .wide { grid-column: 1 / -1; }
+.specs .col2 { grid-column: 2; }   /* 固定在右欄 */
 .specs .wide dd { font-weight: 600; white-space: normal; }
 .specs .lna dd, .lna-line b { color: var(--accent); font-weight: 700; }
 .lna-line { margin: 8px 0 0; font-size: 14px; }
@@ -1741,8 +1742,11 @@ function specCells(p) {
   const cells = [['s_form', p.form], ['s_mount', p.mount]];
   if (!cx) cells.push(['s_conn', (p.conn || []).join(', ')]);
   cells.push(['s_gain', p.techs?.[0]?.gain]);
-  cells.push(['s_ip', p.ip]);   // IP 等級 (內嵌天線無此規格，顯示「—」)
-  if (p.lna) cells.push(['s_lna', fmtLna(p.lna), 'lna']);
+  // IP 等級固定放在右欄：若會落在左欄，先放 LNA 增益 (有的話)，否則讓 IP 靠右對齊
+  const ipLeft = cells.length % 2 === 0;
+  if (ipLeft && p.lna) cells.push(['s_lna', fmtLna(p.lna), 'lna']);
+  cells.push(['s_ip', p.ip, ipLeft && !p.lna ? 'col2' : '']);   // 內嵌天線無此規格，顯示「—」
+  if (!ipLeft && p.lna) cells.push(['s_lna', fmtLna(p.lna), 'lna']);
   if (cx) cells.push(['s_cx', cx, 'wide']);
   cells.push(['s_dim', p.dim, 'wide']);
   return `<dl class="specs">${cells.map(([k, v, cls]) => `<div class="${cls || ''}"><dt>${esc(t(k))}</dt><dd title="${esc(v || '')}">${esc(v || '—')}</dd></div>`).join('')}</dl>`;
