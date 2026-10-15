@@ -1,6 +1,6 @@
 # Quectel 天線選型 · TELEC 認證 PWA
 
-目前版本：**v3.22.0**
+目前版本：**v3.22.1**
 資料來源：`Quectel_Antenna_Product_and_TELEC_Certification_*.xlsx`（單一 Excel）
 
 ## 功能
@@ -10,7 +10,7 @@
 - 詳細資料列出所有認證模組（依類別、附認證日期）、射頻效能、完整規格
 - 快速選單（由上到下）：Tech → Japan Market（Yes / No）→ TELEC 認證模組（僅 Japan Market = Yes 時出現，可多選：只列出全部通過認證的天線）→ GNSS 天線類型（僅 Tech = GNSS 時出現：Passive / Active / Dipole）→ Product Type → Form（型態）；側欄：安裝、連接器、IP、埠數、銷售區域、尺寸上限
 - 篩選：僅顯示有 TELEC 認證；日本市場相容改由 Japan Market 下拉選單篩選
-- 「移遠天線Agent」按鈕：位於頁面標題右側，開啟 https://applink.feishu.cn/T9ao3zlnY4j5（`template.html` 的 `AGENT_URL`）
+- 「移遠天線Agent」按鈕：位於頁面標題右側，開啟 https://gemini.google.com/gem/54870e5583f8（`template.html` 的 `AGENT_URL`）
 - 介面語言：中文 / English / 日本語 / 한국어（首次開啟預設為英文，之後記住使用者的選擇；預設值為 `template.html` 的 `DEFAULT_LANG`）
 - 深色 / 淺色、版本資訊、強制更新
 - 完全離線、可安裝為 App（iOS / Android / Windows / macOS）
@@ -124,6 +124,9 @@ App 內不顯示更新紀錄；版本變更請記錄在本 README 的「更新�
 - 頻段預設邊界為一般公開配置，僅供初篩。
 
 ## 更新紀錄
+
+- **v3.22.1**：移遠天線Agent按鈕改連結至Gemini天線Agent；同步更新離線快取版本。
+
 - **v3.22.0**：移除主畫面的「強制更新」按鈕（改在版本資訊視窗中更新，有新版本時版本按鈕顯示紅點）；標題下方說明改為「用篩選條件找出合適的天線…」；使用說明 01 章改為「篩選條件說明」
 - **v3.21.2**：再修正手機深色模式時最上方狀態列為淺色（載入前即套用主題、theme-color 標籤只更新不刪除、加入 color-scheme）
 - **v3.21.1**：修正手機深色模式時最上方狀態列仍為淺色；修正手機「篩選」按鈕文字未置中

@@ -870,8 +870,8 @@ const DATASHEET_URL = '';
  */
 const APP_URL = /*__APP_URL__*/'';
 
-/** 移遠天線 Agent (飛書應用連結；手機上若已安裝飛書會直接開啟 App) */
-const AGENT_URL = 'https://applink.feishu.cn/T9ao3zlnY4j5';
+/** 移遠天線 Agent (Gemini Gem 對外選型助手) */
+const AGENT_URL = 'https://gemini.google.com/gem/54870e5583f8';
 function appUrl() {
   if (APP_URL) return APP_URL;
   return /^https?:$/.test(location.protocol) ? location.origin + location.pathname : '';
