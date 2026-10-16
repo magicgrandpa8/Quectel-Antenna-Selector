@@ -53,12 +53,12 @@ import zipfile
 from pathlib import Path
 
 from openpyxl import load_workbook
-from PIL import Image
+from PIL import Image, ImageOps
 
-THUMB_PX = 160          # 縮圖最長邊 (px)
-THUMB_QUALITY = 72      # WebP 品質
-PHOTO_PX = 720          # 放大檢視用照片的最長邊上限 (px)；原圖較小時維持原尺寸，不放大
-PHOTO_QUALITY = 82      # 720px / q82：畫質足夠，photos.json 約 2 MB
+THUMB_PX = 256          # 縮圖最長邊 (px)
+THUMB_QUALITY = 88      # WebP 品質
+PHOTO_PX = 1200          # 放大檢視用照片的最長邊上限 (px)；原圖較小時維持原尺寸，不放大
+PHOTO_QUALITY = 94      # 保留 datasheet 原圖細節，僅縮小、不放大
 MAIN_SHEET = "Antenna vs Cert"
 MODULE_SHEET = "Name"
 HISTORY_SHEET = "Histories"
@@ -216,7 +216,8 @@ def _flatten_crop(raw: bytes) -> Image.Image:
     im = Image.open(io.BytesIO(raw)).convert("RGBA")
     flat = Image.alpha_composite(Image.new("RGBA", im.size, (255, 255, 255, 255)), im).convert("RGB")
     bbox = Image.eval(flat, lambda p: 255 - p).point(lambda p: 255 if p > 12 else 0).getbbox()
-    return flat.crop(bbox) if bbox else flat
+    flat = flat.crop(bbox) if bbox else flat
+    return ImageOps.expand(flat, border=max(8, round(max(flat.size) * .025)), fill="white")
 
 
 def to_photo(raw: bytes) -> bytes | None:
@@ -239,6 +240,7 @@ def to_thumb(raw: bytes) -> str | None:
         bbox = Image.eval(flat, lambda p: 255 - p).point(lambda p: 255 if p > 12 else 0).getbbox()
         if bbox:
             flat = flat.crop(bbox)
+        flat = ImageOps.expand(flat, border=max(8, round(max(flat.size) * .025)), fill="white")
         flat.thumbnail((THUMB_PX, THUMB_PX), Image.LANCZOS)
         buf = io.BytesIO()
         flat.save(buf, "WEBP", quality=THUMB_QUALITY, method=6)

@@ -1594,7 +1594,7 @@ function thumb(oc) {
 }
 
 /* ==========================================================================
-   產品照片放大檢視：先顯示縮圖，原始解析度照片 (photos/) 載入後替換；最多放大到原圖 2 倍
+   產品照片放大檢視：先顯示縮圖，原始解析度照片 (photos/) 載入後替換；保留原始像素尺寸
    ========================================================================== */
 /** 原始解析度照片包 (photos.json)：第一次放大檢視時載入一次，之後重複使用 */
 let photoBundle = null;
@@ -1625,7 +1625,7 @@ async function openPhoto(oc) {
   big.onload = () => {
     if ($('photoTitle').textContent !== p.oc) return;
     img.src = src;
-    img.style.width = Math.max(big.naturalWidth * 2, 240) + 'px';   // 由 CSS 的 max-width / max-height 限制在畫面內
+    img.style.width = big.naturalWidth + 'px';   // 由 CSS 的 max-width / max-height 限制在畫面內
   };
   big.src = src;
 }
