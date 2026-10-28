@@ -644,16 +644,18 @@ dialog.detail::backdrop, dialog.photo-dlg::backdrop {
 .cmp-bar[hidden] { display: none; }
 .cmp-go { border: 0; border-radius: 999px; padding: 9px 20px; font-weight: 700; font-size: 14px; background: var(--accent); color: var(--accent-ink); cursor: pointer; }
 .cmp-go:disabled { opacity: .45; cursor: not-allowed; }
-dialog.cmp-dlg { width: min(1040px, calc(100vw - 24px)); }
+dialog.cmp-dlg { width: min(1280px, calc(100vw - 24px)); }
+.cmp-tbl.cmp-n4 { min-width: 760px; } .cmp-tbl.cmp-n5 { min-width: 900px; } .cmp-tbl.cmp-n6 { min-width: 1040px; }   /* 4～6 款 */
 .cmp-top { display: flex; align-items: center; gap: 12px; padding: 16px 18px 12px; border-bottom: 1px solid var(--glass-line); flex-wrap: wrap; }
 .cmp-top h2 { margin: 0 auto 0 0; font-size: 18px; }
 .cmp-seg { display: inline-flex; padding: 3px; gap: 2px; border-radius: 999px; background: var(--glass-btn); border: 1px solid var(--glass-edge); }
 .cmp-seg button { border: 0; background: none; border-radius: 999px; padding: 6px 14px; font: inherit; font-size: 13px; color: var(--muted); cursor: pointer; }
 .cmp-seg button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); font-weight: 600; }
-.cmp-scroll { overflow-x: auto; padding: 4px 18px 0; }
+.cmp-scroll { overflow-x: auto; padding: 4px 18px 0 0; }
 .cmp-tbl { width: 100%; min-width: 560px; border-collapse: collapse; font-size: 13px; }
 .cmp-tbl th, .cmp-tbl td { text-align: left; vertical-align: top; padding: 8px 10px; border-bottom: 1px solid var(--glass-line); }
-.cmp-tbl tbody th { color: var(--muted); font-weight: 500; width: 130px; position: sticky; left: 0; background: var(--glass-strong); }
+.cmp-tbl tbody th { color: var(--muted); font-weight: 500; width: 130px; position: sticky; left: 0; z-index: 1; padding-left: 18px;
+  background: var(--surface); box-shadow: 1px 0 0 var(--rule); }   /* 不透明：左右捲動時規格文字不會透到欄位名稱底下 */
 .cmp-tbl td.diff { background: color-mix(in srgb, var(--accent-soft) 80%, transparent); font-weight: 700; }
 .cmp-tbl td.cmp-same { text-align: center; color: var(--muted); padding: 18px; }
 .cmp-head { display: grid; gap: 6px; justify-items: start; }
@@ -696,10 +698,11 @@ dialog.cmp-dlg { width: min(1040px, calc(100vw - 24px)); }
   .layout { padding-bottom: 150px; }
   .cmp-head .thumb { width: 72px; height: 72px; }
   .cmp-tbl tbody th { width: 84px; }
-  .cmp-scroll { padding: 4px 12px 0; }
+  .cmp-scroll { padding: 4px 12px 0 0; }
   .cmp-tbl { font-size: 12.5px; table-layout: fixed; }
   .cmp-tbl.cmp-n2 { min-width: 0; }          /* 2 款：剛好放進螢幕寬度 */
   .cmp-tbl.cmp-n3 { min-width: 470px; }      /* 3 款：左右捲動，左側欄位名稱固定 */
+  .cmp-tbl.cmp-n4 { min-width: 600px; } .cmp-tbl.cmp-n5 { min-width: 730px; } .cmp-tbl.cmp-n6 { min-width: 860px; }   /* 4～6 款：左右滑動 */
   .cmp-tbl th, .cmp-tbl td { padding: 7px 8px; overflow-wrap: anywhere; }
 }
 
@@ -1031,7 +1034,7 @@ const I18N = {
     f_gnss: 'GNSS 天線類型',
     guide: '使用說明', guidePrint: '列印 / 存成 PDF',
     photoAria: '放大檢視 {oc} 的照片',
-    modMulti: '可選多個', modAdd: '＋ 新增模組', modBoth: '同時通過 {k} 個模組 TELEC 認證的天線：<b>{n}</b> 款', modNoneMulti: '沒有同時通過這些模組認證的天線', cmpAdd: '比較', cmpAria: '將 {oc} 加入比較', cmpBar: '已選 {n} 款', cmpGo: '比較', cmpClear: '清除', cmpMax: '最多比較 3 款天線', cmpNeed2: '至少選 2 款才能比較', cmpTitle: '比較 {n} 款天線', cmpAll: '全部欄位', cmpDiff: '只看差異', cmpCommon: '共同 TELEC 認證模組（{n}）', cmpNone: '沒有共同的 TELEC 認證模組', cmpRm: '從比較中移除 {oc}', cmpCerts: 'TELEC 認證模組數', cmpCertsN: '{n} 個', cmpSame: '所有欄位都相同',
+    modMulti: '可選多個', modAdd: '＋ 新增模組', modBoth: '同時通過 {k} 個模組 TELEC 認證的天線：<b>{n}</b> 款', modNoneMulti: '沒有同時通過這些模組認證的天線', cmpAdd: '比較', cmpAria: '將 {oc} 加入比較', cmpBar: '已選 {n} 款', cmpGo: '比較', cmpClear: '清除', cmpMax: '最多比較 6 款天線', cmpNeed2: '至少選 2 款才能比較', cmpTitle: '比較 {n} 款天線', cmpAll: '全部欄位', cmpDiff: '只看差異', cmpCommon: '共同 TELEC 認證模組（{n}）', cmpNone: '沒有共同的 TELEC 認證模組', cmpRm: '從比較中移除 {oc}', cmpCerts: 'TELEC 認證模組數', cmpCertsN: '{n} 個', cmpSame: '所有欄位都相同',
     v_author: '製作者',
     menu: '更多功能',
     moreFilters: '更多條件', kl_size: '尺寸',
@@ -1099,7 +1102,7 @@ const I18N = {
     f_gnss: 'GNSS antenna type',
     guide: 'User guide', guidePrint: 'Print / Save as PDF',
     photoAria: 'View a larger photo of {oc}',
-    modMulti: 'select several', modAdd: '+ Add module', modBoth: 'Antennas certified with all {k} modules: <b>{n}</b>', modNoneMulti: 'No antenna is certified with all of these modules', cmpAdd: 'Compare', cmpAria: 'Add {oc} to compare', cmpBar: '{n} selected', cmpGo: 'Compare', cmpClear: 'Clear', cmpMax: 'You can compare up to 3 antennas', cmpNeed2: 'Select at least 2 antennas to compare', cmpTitle: 'Compare {n} antennas', cmpAll: 'All rows', cmpDiff: 'Differences only', cmpCommon: 'Common TELEC-certified modules ({n})', cmpNone: 'No TELEC-certified module in common', cmpRm: 'Remove {oc} from compare', cmpCerts: 'TELEC-certified modules', cmpCertsN: '{n}', cmpSame: 'All rows are identical',
+    modMulti: 'select several', modAdd: '+ Add module', modBoth: 'Antennas certified with all {k} modules: <b>{n}</b>', modNoneMulti: 'No antenna is certified with all of these modules', cmpAdd: 'Compare', cmpAria: 'Add {oc} to compare', cmpBar: '{n} selected', cmpGo: 'Compare', cmpClear: 'Clear', cmpMax: 'You can compare up to 6 antennas', cmpNeed2: 'Select at least 2 antennas to compare', cmpTitle: 'Compare {n} antennas', cmpAll: 'All rows', cmpDiff: 'Differences only', cmpCommon: 'Common TELEC-certified modules ({n})', cmpNone: 'No TELEC-certified module in common', cmpRm: 'Remove {oc} from compare', cmpCerts: 'TELEC-certified modules', cmpCertsN: '{n}', cmpSame: 'All rows are identical',
     v_author: 'Created by',
     menu: 'More',
     moreFilters: 'More filters', kl_size: 'Size',
@@ -1165,7 +1168,7 @@ const I18N = {
     f_gnss: 'GNSS アンテナタイプ',
     guide: 'ユーザーガイド', guidePrint: '印刷 / PDF に保存',
     photoAria: '{oc} の写真を拡大表示',
-    modMulti: '複数選択可', modAdd: '＋ モジュールを追加', modBoth: '{k} つのモジュールすべてで TELEC 認証済みのアンテナ：<b>{n}</b> 件', modNoneMulti: 'これらすべてのモジュールで認証済みのアンテナはありません', cmpAdd: '比較', cmpAria: '{oc} を比較に追加', cmpBar: '{n} 件選択中', cmpGo: '比較', cmpClear: 'クリア', cmpMax: '比較できるのは 3 件までです', cmpNeed2: '比較するには 2 件以上選んでください', cmpTitle: '{n} 件のアンテナを比較', cmpAll: 'すべての項目', cmpDiff: '違いのみ', cmpCommon: '共通の TELEC 認証モジュール（{n}）', cmpNone: '共通の TELEC 認証モジュールはありません', cmpRm: '{oc} を比較から外す', cmpCerts: 'TELEC 認証モジュール数', cmpCertsN: '{n} 件', cmpSame: 'すべての項目が同じです',
+    modMulti: '複数選択可', modAdd: '＋ モジュールを追加', modBoth: '{k} つのモジュールすべてで TELEC 認証済みのアンテナ：<b>{n}</b> 件', modNoneMulti: 'これらすべてのモジュールで認証済みのアンテナはありません', cmpAdd: '比較', cmpAria: '{oc} を比較に追加', cmpBar: '{n} 件選択中', cmpGo: '比較', cmpClear: 'クリア', cmpMax: '比較できるのは 6 件までです', cmpNeed2: '比較するには 2 件以上選んでください', cmpTitle: '{n} 件のアンテナを比較', cmpAll: 'すべての項目', cmpDiff: '違いのみ', cmpCommon: '共通の TELEC 認証モジュール（{n}）', cmpNone: '共通の TELEC 認証モジュールはありません', cmpRm: '{oc} を比較から外す', cmpCerts: 'TELEC 認証モジュール数', cmpCertsN: '{n} 件', cmpSame: 'すべての項目が同じです',
     v_author: '制作者',
     menu: 'その他',
     moreFilters: 'その他の条件', kl_size: '寸法',
@@ -1231,7 +1234,7 @@ const I18N = {
     f_gnss: 'GNSS 안테나 유형',
     guide: '사용자 가이드', guidePrint: '인쇄 / PDF로 저장',
     photoAria: '{oc} 사진 크게 보기',
-    modMulti: '여러 개 선택 가능', modAdd: '+ 모듈 추가', modBoth: '모듈 {k}개 모두 TELEC 인증을 받은 안테나: <b>{n}</b>개', modNoneMulti: '이 모듈 모두와 인증된 안테나가 없습니다', cmpAdd: '비교', cmpAria: '{oc} 비교에 추가', cmpBar: '{n}개 선택됨', cmpGo: '비교', cmpClear: '지우기', cmpMax: '최대 3개까지 비교할 수 있습니다', cmpNeed2: '비교하려면 2개 이상 선택하세요', cmpTitle: '안테나 {n}개 비교', cmpAll: '모든 항목', cmpDiff: '차이만 보기', cmpCommon: '공통 TELEC 인증 모듈 ({n})', cmpNone: '공통 TELEC 인증 모듈이 없습니다', cmpRm: '{oc} 비교에서 제거', cmpCerts: 'TELEC 인증 모듈 수', cmpCertsN: '{n}개', cmpSame: '모든 항목이 같습니다',
+    modMulti: '여러 개 선택 가능', modAdd: '+ 모듈 추가', modBoth: '모듈 {k}개 모두 TELEC 인증을 받은 안테나: <b>{n}</b>개', modNoneMulti: '이 모듈 모두와 인증된 안테나가 없습니다', cmpAdd: '비교', cmpAria: '{oc} 비교에 추가', cmpBar: '{n}개 선택됨', cmpGo: '비교', cmpClear: '지우기', cmpMax: '최대 6개까지 비교할 수 있습니다', cmpNeed2: '비교하려면 2개 이상 선택하세요', cmpTitle: '안테나 {n}개 비교', cmpAll: '모든 항목', cmpDiff: '차이만 보기', cmpCommon: '공통 TELEC 인증 모듈 ({n})', cmpNone: '공통 TELEC 인증 모듈이 없습니다', cmpRm: '{oc} 비교에서 제거', cmpCerts: 'TELEC 인증 모듈 수', cmpCertsN: '{n}개', cmpSame: '모든 항목이 같습니다',
     v_author: '제작자',
     menu: '더보기',
     moreFilters: '추가 조건', kl_size: '크기',
@@ -1645,7 +1648,7 @@ function placeQuick() {
   $('q').after($('quick'));
 }
 /* ---------- 天線比較 (最多 CMP_MAX 款) ---------- */
-const CMP_MAX = 3;
+const CMP_MAX = 6;
 function cmpBtn(p) {
   const on = (state.cmp || []).includes(p.oc);
   return `<button type="button" class="cmp-btn" data-cmp="${esc(p.oc)}" aria-pressed="${on}" aria-label="${esc(t('cmpAria', { oc: p.oc }))}"><span class="cb" aria-hidden="true">${on ? '✓' : ''}</span>${esc(t('cmpAdd'))}</button>`;
@@ -2328,7 +2331,7 @@ const GUIDE = {
   "faq": [
    [
     "如何比較幾款天線？",
-    "在清單中按各天線的「比較」（最多 3 款），再按畫面下方的「比較」。數值不同的欄位會標色，也可切換「只看差異」，並列出共同的 TELEC 認證模組。"
+    "在清單中按各天線的「比較」（最多 6 款），再按畫面下方的「比較」。數值不同的欄位會標色，也可切換「只看差異」，並列出共同的 TELEC 認證模組。"
    ],
    [
     "顯示「此模組目前沒有已認證的天線」？",
@@ -2412,7 +2415,7 @@ const GUIDE = {
   "faq": [
    [
     "How do I compare antennas?",
-    "Tap Compare on up to 3 antennas in the list, then tap Compare at the bottom of the screen. Rows that differ are highlighted, you can switch to Differences only, and the common TELEC-certified modules are listed."
+    "Tap Compare on up to 6 antennas in the list, then tap Compare at the bottom of the screen. Rows that differ are highlighted, you can switch to Differences only, and the common TELEC-certified modules are listed."
    ],
    [
     "\"No antenna is certified with this module yet\"?",
@@ -2496,7 +2499,7 @@ const GUIDE = {
   "faq": [
    [
     "アンテナを比較するには？",
-    "一覧で各アンテナの「比較」を押し（最大 3 件）、画面下部の「比較」を押します。違いのある項目は色付きで表示され、「違いのみ」に切り替えたり、共通の TELEC 認証モジュールを確認したりできます。"
+    "一覧で各アンテナの「比較」を押し（最大 6 件）、画面下部の「比較」を押します。違いのある項目は色付きで表示され、「違いのみ」に切り替えたり、共通の TELEC 認証モジュールを確認したりできます。"
    ],
    [
     "「このモジュールで認証済みのアンテナはまだありません」と表示される",
@@ -2580,7 +2583,7 @@ const GUIDE = {
   "faq": [
    [
     "안테나를 비교하려면?",
-    "목록에서 안테나의 \"비교\"를 누르고(최대 3개) 화면 아래쪽의 \"비교\"를 누르세요. 값이 다른 항목은 색으로 표시되며, \"차이만 보기\"로 전환하거나 공통 TELEC 인증 모듈을 확인할 수 있습니다."
+    "목록에서 안테나의 \"비교\"를 누르고(최대 6개) 화면 아래쪽의 \"비교\"를 누르세요. 값이 다른 항목은 색으로 표시되며, \"차이만 보기\"로 전환하거나 공통 TELEC 인증 모듈을 확인할 수 있습니다."
    ],
    [
     "\"이 모듈로 인증된 안테나가 아직 없습니다\"라고 표시됩니다",
