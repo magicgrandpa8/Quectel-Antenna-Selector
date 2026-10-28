@@ -412,6 +412,10 @@ html.offline .net { display: inline-flex; }
 .keys dt { color: var(--muted); font-size: 12px; white-space: nowrap; }
 .keys dd { margin: 0; font-weight: 600; }
 .keys .lna dd { color: var(--accent); }
+.r-freq { margin-top: 6px; }
+.r-freq div { align-items: baseline; }
+.r-freq dd { font-weight: 500; line-height: 1.45; }
+.r-freq .sep { color: var(--rule); margin: 0 8px; }
 .ds-icon { width: 40px; height: 40px; display: grid; place-items: center; border-radius: 10px; border: 1px solid var(--rule);
   background: var(--surface); color: var(--accent); cursor: pointer; }
 .ds-icon:hover { border-color: var(--accent); }
@@ -1709,6 +1713,12 @@ function openCompare() {
 }
 
 /** 清單的關鍵值：增益、尺寸、連接器 (含線材) 或安裝方式、IP 等級、LNA 增益 */
+/** 電腦版：支援頻率範圍 (多技術天線以「｜」分隔，完整顯示不截斷) */
+function freqLine(p) {
+  const parts = String(p.freq || '').split('\n').map((x) => x.trim()).filter(Boolean);
+  if (!parts.length) return '';
+  return `<dl class="keys r-freq"><div><dt>${esc(t('th_freq'))}</dt><dd>${parts.map(esc).join('<span class="sep" aria-hidden="true">｜</span>')}</dd></div></dl>`;
+}
 function keyLine(p) {
   const items = [];
   const gain = p.techs?.[0]?.gain;
@@ -1770,6 +1780,7 @@ function renderList() {
       <div class="r-main">
         <div class="r-top"><span class="oc">${esc(p.oc)}</span>${badges(p)}${cmpBtn(p)}</div>
         <div class="pname">${esc(p.name || '')}</div>
+        ${freqLine(p)}
         ${keyLine(p)}
       </div>
       ${dsIcon(p)}
