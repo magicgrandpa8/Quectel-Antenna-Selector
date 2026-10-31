@@ -1,6 +1,6 @@
 # Quectel 天線選型 · TELEC 認證 PWA
 
-目前版本：**v3.25.2**
+目前版本：**v3.25.3**
 資料來源：`Quectel_Antenna_Product_and_TELEC_Certification_*.xlsx`（單一 Excel）
 
 ## v3.23.3 圖片檢查
@@ -17,7 +17,7 @@
 - 詳細資料列出所有認證模組（依類別、附認證日期）、射頻效能、完整規格
 - 快速選單（由上到下）：Tech → Japan Market（Yes / No）→ TELEC 認證模組（僅 Japan Market = Yes 時出現，可多選：只列出全部通過認證的天線）→ GNSS 天線類型（僅 Tech = GNSS 時出現：Passive / Active / Dipole）→ Product Type → Form（型態）；側欄：安裝、連接器、IP、埠數、銷售區域、尺寸上限
 - 篩選：僅顯示有 TELEC 認證；日本市場相容改由 Japan Market 下拉選單篩選
-- 「移遠天線Agent」按鈕：位於頁面標題右側，開啟 https://gemini.google.com/gem/54870e5583f8（`template.html` 的 `AGENT_URL`）
+- 「移遠天線Agent」按鈕：位於頁面標題右側，開啟飛書 Agent https://applink.feishu.cn/T9ao3zlnY4j5（`template.html` 的 `AGENT_URL`）
 - 介面語言：中文 / English / 日本語 / 한국어（首次開啟預設為英文，之後記住使用者的選擇；預設值為 `template.html` 的 `DEFAULT_LANG`）
 - 深色 / 淺色、版本資訊、強制更新
 - 完全離線、可安裝為 App（iOS / Android / Windows / macOS）
@@ -143,6 +143,7 @@ App 內不顯示更新紀錄；版本變更請記錄在本 README 的「更新�
 - 頻段預設邊界為一般公開配置，僅供初篩。
 
 ## 更新紀錄
+- **v3.25.3**：移遠天線Agent按鈕改回飛書 Agent（https://applink.feishu.cn/T9ao3zlnY4j5）
 - **v3.25.2**：328 份 datasheet 連結以未登入方式全部驗證可開啟（連結不變）；新增 tools/create_and_verify_all_links.ps1、tools/apply_datasheet_links.py；版本更新流程加入「未登入驗證」，NG 的連結不會放上工具
 - **v3.25.1**：資料來源 Excel 改用標準檔名（Quectel Antenna Product and TELEC Certification_V3.71_20261029_Rev26.10.xlsx）；新增版本更新自動化（tools/release_prepare.py、tools/release_finalize.py、docs/RELEASE_PLAYBOOK.md）
 - **v3.25.0**：資料更新為 Rev26.10（PRO-26.10，330 款天線，新增 11 款、刪除 0 款；EG21-G 新增 6 筆認證；4 款 GNSS 天線安裝方式更正為 Screw；新增 11 款天線的 datasheet 照片與 Datasheet 連結）。build_data.py 支援新版 Excel 結構（自動採用最新的 PRO-YY.MM 頁面、ModuleList、Histories 取最新一筆），照片來源僅為 Excel 時沿用上一版較清晰的照片
