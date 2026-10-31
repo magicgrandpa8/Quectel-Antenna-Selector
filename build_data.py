@@ -8,8 +8,8 @@ build_data.py — 將「Quectel Antenna Product and TELEC Certification」Excel
         --xlsx Quectel_Antenna_Product_and_TELEC_Certification_V3_7_20260916_Rev26_Q3_for_CU.xlsx
 
 資料來源 (僅使用可見工作表):
-    "Antenna vs Cert" : 天線規格 + 模組 TELEC 認證矩陣 (☑)
-    "Name"            : 模組清單、認證日期、類別 (類別欄為合併儲存格，向下填補)
+    "PRO-YY.MM"       : 天線規格 + 模組 TELEC 認證矩陣 (☑)；有多頁時取最新一頁 (舊版為 "Antenna vs Cert")
+    "ModuleList"      : 模組清單、認證日期、類別 (舊版為 "Name"；類別欄為合併儲存格，向下填補)
     "Histories"       : 版次資訊 (取最新一筆的 Version 與 Updated Date)
 
 刻意不使用:
@@ -59,9 +59,21 @@ THUMB_PX = 256          # 縮圖最長邊 (px)
 THUMB_QUALITY = 88      # WebP 品質
 PHOTO_PX = 1200          # 放大檢視用照片的最長邊上限 (px)；原圖較小時維持原尺寸，不放大
 PHOTO_QUALITY = 94      # 保留 datasheet 原圖細節，僅縮小、不放大
-MAIN_SHEET = "Antenna vs Cert"
-MODULE_SHEET = "Name"
+MAIN_SHEET_USED = MODULE_SHEET_USED = None   # 實際使用的工作表 (main() 依 Excel 內容決定)
+MAIN_SHEET = "Antenna vs Cert"      # 舊版 Excel；新版改用最新的 PRO-YY.MM 頁面 (自動偵測)
+MODULE_SHEET = "Name"                # 舊版；新版為 ModuleList
 HISTORY_SHEET = "Histories"
+
+
+def pick_sheets(names: list[str]) -> tuple[str, str]:
+    """回傳 (天線資料工作表, 模組清單工作表)。
+    新版 Excel：天線資料為 PRO-YY.MM (取最新一頁，例如 PRO-26.10)，模組清單為 ModuleList；
+    舊版 Excel：Antenna vs Cert / Name。"""
+    pro = sorted((n for n in names if re.fullmatch(r"PRO-\d{2}\.\d{2}", n)),
+                 key=lambda n: tuple(int(x) for x in n[4:].split(".")))
+    main = pro[-1] if pro else MAIN_SHEET
+    mod = "ModuleList" if "ModuleList" in names else MODULE_SHEET
+    return main, mod
 CERT_MARKS = {"☑", "√", "✓", "✔", "V", "v", "Y", "YES"}
 # 規格欄最後一欄；其後皆為模組認證矩陣
 LAST_SPEC_COL = "Compatible with Japan Market"
@@ -319,7 +331,7 @@ def collect_alt_photos(paths: list[Path]) -> dict[str, bytes]:
 # --------------------------------------------------------------------------- #
 def read_modules(wb) -> list[dict]:
     """Name 工作表：模組名稱、認證日期、類別 (合併儲存格向下填補)。"""
-    rows = list(wb[MODULE_SHEET].iter_rows(values_only=True))
+    rows = list(wb[MODULE_SHEET_USED].iter_rows(values_only=True))
     hdr_i = next(i for i, r in enumerate(rows) if r and "Module Name" in [clean(c) for c in r])
     hdr = [clean(c) for c in rows[hdr_i]]
     ci = {h: i for i, h in enumerate(hdr) if h}
@@ -334,28 +346,31 @@ def read_modules(wb) -> list[dict]:
 
 
 def read_revision(wb) -> dict:
-    """Histories：取最上方 (最新) 一筆的版次與日期；不讀取人員姓名。"""
+    """Histories：取最新一筆的版次與日期 (依更新日期，日期相同或缺少時取最後一筆)；不讀取人員姓名。
+    舊版 Excel 最新在最上方，新版由舊到新排列，兩者都能正確判斷。"""
     rows = list(wb[HISTORY_SHEET].iter_rows(values_only=True))
     hdr_i = next(i for i, r in enumerate(rows) if r and "Version" in [clean(c) for c in r])
     hdr = [clean(c) for c in rows[hdr_i]]
     ci = {h: i for i, h in enumerate(hdr) if h}
-    for r in rows[hdr_i + 1:]:
-        ver = clean(r[ci["Version"]])
+    found = []
+    for k, r in enumerate(rows[hdr_i + 1:]):
+        ver = clean(r[ci["Version"]]) if ci["Version"] < len(r) else None
         if ver:
-            return {"rev": ver, "date": fmt_date(r[ci.get("Updated Date")]) if "Updated Date" in ci else None,
-                    "remark": clean(r[ci["Remark"]]) if "Remark" in ci else None}
-    return {}
+            date = fmt_date(r[ci["Updated Date"]]) if "Updated Date" in ci and ci["Updated Date"] < len(r) else None
+            found.append(((date or "", k), {"rev": ver, "date": date,
+                          "remark": clean(r[ci["Remark"]]) if "Remark" in ci else None}))
+    return max(found, key=lambda x: x[0])[1] if found else {}
 
 
 def read_products(wb, imgs: dict[int, bytes], images: dict, photos: dict, module_names: list[str]):
-    rows = list(wb[MAIN_SHEET].iter_rows(values_only=True))
+    rows = list(wb[MAIN_SHEET_USED].iter_rows(values_only=True))
     hdr = [clean(h) for h in rows[0]]
     idx = {h: i for i, h in enumerate(hdr) if h}
     first_mod = idx[LAST_SPEC_COL] + 1
     mod_cols = {i: hdr[i] for i in range(first_mod, len(hdr)) if hdr[i]}
     unknown = [m for m in mod_cols.values() if m not in module_names]
     if unknown:
-        print(f"警告：矩陣中的模組不在 Name 工作表：{unknown}", file=sys.stderr)
+        print(f"警告：矩陣中的模組不在 {MODULE_SHEET_USED} 工作表：{unknown}", file=sys.stderr)
 
     products = []
     # rows[1] 為各欄統計列，資料自 rows[2] 起
@@ -431,17 +446,20 @@ def main():
     built = dt.datetime.now().astimezone().strftime("%Y-%m-%d %H:%M %z")
 
     wb = load_workbook(a.xlsx, read_only=True, data_only=True)
-    for s in (MAIN_SHEET, MODULE_SHEET, HISTORY_SHEET):
+    global MAIN_SHEET_USED, MODULE_SHEET_USED
+    MAIN_SHEET_USED, MODULE_SHEET_USED = pick_sheets(wb.sheetnames)
+    for s in (MAIN_SHEET_USED, MODULE_SHEET_USED, HISTORY_SHEET):
         if s not in wb.sheetnames:
             sys.exit(f"Excel 缺少工作表：{s}")
+    print(f"工作表: 天線資料 {MAIN_SHEET_USED}／模組清單 {MODULE_SHEET_USED}／版次 {HISTORY_SHEET}")
 
     modules = read_modules(wb)
     images: dict[str, str] = {}
     photos: dict[str, bytes] = {}
     products, matrix_mods = read_products(
-        wb, SheetImages(a.xlsx).row_images(MAIN_SHEET), images, photos, [m["name"] for m in modules])
+        wb, SheetImages(a.xlsx).row_images(MAIN_SHEET_USED), images, photos, [m["name"] for m in modules])
 
-    # 模組清單以 Name 工作表順序為準，附上認證天線數
+    # 模組清單以 ModuleList (舊版 Name) 工作表順序為準，附上認證天線數
     for m in modules:
         m["n"] = sum(1 for p in products if m["name"] in p.get("certs", []))
     for name in matrix_mods:
@@ -519,6 +537,22 @@ def main():
                     if x["oc"] == oc:
                         x.pop("ai", None)
 
+    # ---- 沿用上一版較清晰的照片：照片來源僅為 Excel 時，若上一版 photos.json 的照片更清晰則保留
+    #      (例如先前以 --photo-xlsx 換過的照片，在這次沒有提供該 Excel 時不會退回模糊原圖)
+    kept_prev = []
+    prev_path = a.out.parent / "photos.json"
+    if prev_path.exists():
+        prev = json.loads(prev_path.read_text(encoding="utf8"))
+        protected = set(overridden) | set(from_datasheet)
+        for p in products:
+            oc = p["oc"]
+            if oc in protected or oc not in prev or oc not in photos:
+                continue
+            old = base64.b64decode(prev[oc].split(",", 1)[1])
+            if max(Image.open(io.BytesIO(old)).size) > max(Image.open(io.BytesIO(photos[oc])).size):
+                photos[oc], images[oc] = old, to_thumb(old)
+                kept_prev.append(oc)
+
     # ---- 放大檢視用照片：全部打包成單一檔案 photos.json ({料號: WebP data URI}) ----
     # 單一檔案方便以 GitHub 網頁上傳 (一次上限 100 個檔案)，也不會留下過期的舊照片檔
     old_dir = a.out.parent / "photos"            # v3.14.0 曾使用的資料夾，若存在則清除
@@ -588,6 +622,8 @@ def main():
     swapped = [x for x in swapped if x[0] not in overridden and x[0] not in from_datasheet]   # 優先者不列入
     if from_datasheet:
         print(f"datasheet 照片: {len(from_datasheet)} 款" + (f"（排除清單 {len(ds_excl)} 款：{', '.join(sorted(ds_excl))}）" if ds_excl else ""))
+    if kept_prev:
+        print(f"沿用上一版較清晰的照片: {len(kept_prev)} 款 ({', '.join(kept_prev[:8])}{' …' if len(kept_prev) > 8 else ''})")
     if a.photo_xlsx:
         print(f"改用其他 Excel 的清晰照片: {len(swapped)} 款 "
               + ", ".join(f"{oc} {c}→{n}px" for oc, c, n in swapped[:6]) + (" …" if len(swapped) > 6 else ""))
