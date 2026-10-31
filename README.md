@@ -1,6 +1,6 @@
 # Quectel 天線選型 · TELEC 認證 PWA
 
-目前版本：**v3.25.0**
+目前版本：**v3.25.1**
 資料來源：`Quectel_Antenna_Product_and_TELEC_Certification_*.xlsx`（單一 Excel）
 
 ## v3.23.3 圖片檢查
@@ -62,6 +62,16 @@ Excel 照片錯誤或太模糊時，把正確的照片放進 `photo_overrides/` 
 這裡的照片優先於 Excel 與 `--photo-xlsx`（若該料號有 datasheet 照片，則以 datasheet 為準），縮圖與放大檢視都會使用。
 檔名找不到對應料號時，build 會顯示警告。
 
+## 版本更新（新版 Excel，例如 Rev26.11）
+
+完整流程見 **[docs/RELEASE_PLAYBOOK.md](docs/RELEASE_PLAYBOOK.md)**。摘要：
+
+1. `python3 tools/release_prepare.py --xlsx <新版 Excel> --out <輸出 Excel> --kit <Windows 程式 zip> --json <比對結果>`
+   比對 PRO 頁面（新增／刪除 OC，分有／無 TELEC；原有 OC 無 → 有 TELEC），寫入 Histories，並產生 Windows 一鍵程式。
+2. 在 Windows 執行一鍵程式：複製新 datasheet 到客戶分享資料夾、建立「任何人可檢視」連結、收集新 PDF 與連結 CSV。
+3. `python3 tools/release_finalize.py --xlsx <輸出 Excel> --version <版本> --links <CSV> --pdf-dir <PDF 資料夾> --diff <比對結果>`
+   合併連結、擷取照片、建置，並檢查每款新天線；再執行 `python3 tools/export_guides.py` 匯出使用說明。
+
 ## Datasheet 連結（OneDrive）
 `data/datasheet_links.csv`（欄位：`PN, Type, Datasheet_File, OneDrive_URL`）是每個料號的 datasheet 對照表，
 連結為 OneDrive 個別檔案分享連結（任何人可檢視、不需登入）。build 時：
@@ -118,6 +128,7 @@ App 內不顯示更新紀錄；版本變更請記錄在本 README 的「更新�
 | `photos.json` | 產品照片（放大檢視用，原始解析度，全部打包成單一檔案，build 時自動產生） | ✅ |
 | `version.json` | 新版偵測 | ✅ |
 | `template.html`、`build_data.py`、`fonts/` | 產生 `index.html` 的原始碼 | 建議放在 repo |
+| `tools/release_prepare.py`、`tools/release_finalize.py` | 版本更新自動化（見 docs/RELEASE_PLAYBOOK.md） | ✅ |
 | `data/photo_datasheet_exclude.csv` | 不採用 datasheet 照片的料號與原因 | ✅ |
 | `data/datasheet_links.csv` | Datasheet 連結對照表（PN → OneDrive 分享連結） | ✅ |
 | `photo_datasheet.json` | 從 datasheet 擷取的產品照片（`tools/extract_datasheet_photos.py` 產生） | ✅（有擷取時） |
@@ -131,6 +142,7 @@ App 內不顯示更新紀錄；版本變更請記錄在本 README 的「更新�
 - 頻段預設邊界為一般公開配置，僅供初篩。
 
 ## 更新紀錄
+- **v3.25.1**：資料來源 Excel 改用標準檔名（Quectel Antenna Product and TELEC Certification_V3.71_20261029_Rev26.10.xlsx）；新增版本更新自動化（tools/release_prepare.py、tools/release_finalize.py、docs/RELEASE_PLAYBOOK.md）
 - **v3.25.0**：資料更新為 Rev26.10（PRO-26.10，330 款天線，新增 11 款、刪除 0 款；EG21-G 新增 6 筆認證；4 款 GNSS 天線安裝方式更正為 Screw；新增 11 款天線的 datasheet 照片與 Datasheet 連結）。build_data.py 支援新版 Excel 結構（自動採用最新的 PRO-YY.MM 頁面、ModuleList、Histories 取最新一筆），照片來源僅為 Excel 時沿用上一版較清晰的照片
 - **v3.24.0**：電腦版天線清單新增顯示支援頻率範圍（產品名稱下方，多技術天線以「｜」分隔）
 - **v3.23.4**：天線比較上限由 3 款改為 6 款（比較視窗加寬，4～6 款時可左右捲動，欄位名稱固定在左側）
