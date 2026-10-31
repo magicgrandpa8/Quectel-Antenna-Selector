@@ -39,6 +39,10 @@ def merge_links(src: Path) -> list[str]:
         pn, url = (r.get("PN") or "").strip(), (r.get("OneDrive_URL") or "").strip()
         if not pn:
             continue
+        chk = (r.get("Anonymous_Check") or "").strip().upper()
+        if url and chk and chk != "OK":                  # 未登入無法開啟：不放上工具
+            print(f"  略過 {pn}：未登入驗證 {chk}，連結不寫入工具 (請確認分享設定為「任何人」)")
+            url = ""
         row = [pn, (r.get("Type") or "").strip(), (r.get("Datasheet_File") or "").strip(), url]
         if pn in idx:
             if url and body[idx[pn]][3].strip() != url:      # 空白連結不覆蓋既有連結

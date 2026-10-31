@@ -304,7 +304,7 @@ PS_TEMPLATE = r'''# ============================================================
 #  1) 在「01 Antenna Datasheet」(含子資料夾) 依料號尋找 datasheet：
 #     英文版優先 (Datasheet)、正式版優先 (排除 Preliminary)、版本號最新
 #  2) 複製到客戶分享資料夾 (已存在則略過，不覆蓋)
-#  3) 以你的 Microsoft 365 帳號登入，為每份檔案建立「任何人可檢視」連結
+#  3) 以你的 Microsoft 365 帳號登入，為每份檔案建立「任何人可檢視」連結，並以未登入身分驗證可開啟
 #  4) 結果：桌面「{REV}_for_Claude」資料夾 = 新 PDF + datasheet_links CSV，全部上傳給 Claude 即可
 # ============================================================================
 $ErrorActionPreference = 'Stop'
@@ -327,6 +327,16 @@ function Find-Datasheet([string]$oc) {{
          Select-Object -First 1
 }}
 function Encode-Path([string]$p) {{ ($p -split '/' | ForEach-Object {{ [uri]::EscapeDataString($_) }}) -join '/' }}
+# 未登入驗證：全新工作階段 (沒有 cookie、沒有帳號) 開啟連結；最後停在登入頁 = 不是公開連結
+function Test-Anonymous([string]$url) {{
+    try {{
+        $s = New-Object Microsoft.PowerShell.Commands.WebRequestSession
+        $r = Invoke-WebRequest -Uri $url -WebSession $s -UseBasicParsing -MaximumRedirection 10 -TimeoutSec 60
+        $final = if ($r.BaseResponse.ResponseUri) {{ $r.BaseResponse.ResponseUri.AbsoluteUri }} else {{ $r.BaseResponse.RequestMessage.RequestUri.AbsoluteUri }}
+        if ($final -match 'login\.microsoftonline\.com|_layouts/15/Authenticate|AccessDenied') {{ return 'NG' }}
+        if ($r.StatusCode -eq 200) {{ return 'OK' }} else {{ return 'NG' }}
+    }} catch {{ return 'NG' }}
+}}
 
 Write-Host ''
 Write-Host '=== {REV} datasheet：複製 + 建立連結 ===' -ForegroundColor Cyan
@@ -349,7 +359,7 @@ foreach ($it in $Items) {{
 }}
 
 # 3. 建立連結 (Microsoft Graph；第一次執行會自動安裝登入模組)
-$links = @{{}}
+$links = @{{}}; $checks = @{{}}
 try {{
     if (-not (Get-Module -ListAvailable -Name Microsoft.Graph.Authentication)) {{
         Write-Host '第一次執行：安裝 Microsoft.Graph.Authentication 模組 (約 1 分鐘)…'
@@ -369,7 +379,11 @@ try {{
                 $links[$it.PN] = $r.link.webUrl; $ok = $true; break
             }} catch {{ Start-Sleep -Seconds 10 }}
         }}
-        if ($ok) {{ Write-Host "  [連結] $($it.PN)" -ForegroundColor Green }} else {{ Write-Host "  [連結失敗] $($it.PN) (可能尚未同步，稍後再執行一次即可)" -ForegroundColor Red }}
+        if ($ok) {{
+            $checks[$it.PN] = Test-Anonymous $links[$it.PN]
+            if ($checks[$it.PN] -eq 'OK') {{ Write-Host "  [連結 + 未登入可開啟] $($it.PN)" -ForegroundColor Green }}
+            else {{ Write-Host "  [連結已建立，但未登入無法開啟] $($it.PN)" -ForegroundColor Red }}
+        }} else {{ Write-Host "  [連結失敗] $($it.PN) (可能尚未同步，稍後再執行一次即可)" -ForegroundColor Red }}
     }}
     Disconnect-MgGraph | Out-Null
 }} catch {{
@@ -379,10 +393,10 @@ try {{
 
 # 4. 輸出 CSV
 $csv = Join-Path $UploadDir 'datasheet_links_{REV}.csv'
-$Items | ForEach-Object {{ [pscustomobject]@{{ PN = $_.PN; Type = $_.Type; Datasheet_File = $_.File; OneDrive_URL = $links[$_.PN] }} }} |
+$Items | ForEach-Object {{ [pscustomobject]@{{ PN = $_.PN; Type = $_.Type; Datasheet_File = $_.File; OneDrive_URL = $links[$_.PN]; Anonymous_Check = $checks[$_.PN] }} }} |
     Export-Csv -Path $csv -NoTypeInformation -Encoding UTF8
 Write-Host ''
-Write-Host "完成：找到 $($found.Count)/$($Items.Count) 份 datasheet，建立 $($links.Count) 條連結" -ForegroundColor Cyan
+Write-Host "完成：找到 $($found.Count)/$($Items.Count) 份 datasheet，建立 $($links.Count) 條連結，未登入可開啟 $(@($checks.Values | Where-Object {{ $_ -eq 'OK' }}).Count) 條" -ForegroundColor Cyan
 Write-Host "請把「$UploadDir」裡的所有檔案 (PDF + CSV) 上傳給 Claude。"
 Start-Process explorer.exe $UploadDir
 Read-Host '按 Enter 結束'

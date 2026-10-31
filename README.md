@@ -1,6 +1,6 @@
 # Quectel 天線選型 · TELEC 認證 PWA
 
-目前版本：**v3.25.1**
+目前版本：**v3.25.2**
 資料來源：`Quectel_Antenna_Product_and_TELEC_Certification_*.xlsx`（單一 Excel）
 
 ## v3.23.3 圖片檢查
@@ -128,6 +128,7 @@ App 內不顯示更新紀錄；版本變更請記錄在本 README 的「更新�
 | `photos.json` | 產品照片（放大檢視用，原始解析度，全部打包成單一檔案，build 時自動產生） | ✅ |
 | `version.json` | 新版偵測 | ✅ |
 | `template.html`、`build_data.py`、`fonts/` | 產生 `index.html` 的原始碼 | 建議放在 repo |
+| `tools/create_and_verify_all_links.ps1`、`tools/apply_datasheet_links.py` | 全部 datasheet 連結建立與未登入驗證、產生對照 Excel | ✅ |
 | `tools/release_prepare.py`、`tools/release_finalize.py` | 版本更新自動化（見 docs/RELEASE_PLAYBOOK.md） | ✅ |
 | `data/photo_datasheet_exclude.csv` | 不採用 datasheet 照片的料號與原因 | ✅ |
 | `data/datasheet_links.csv` | Datasheet 連結對照表（PN → OneDrive 分享連結） | ✅ |
@@ -142,6 +143,7 @@ App 內不顯示更新紀錄；版本變更請記錄在本 README 的「更新�
 - 頻段預設邊界為一般公開配置，僅供初篩。
 
 ## 更新紀錄
+- **v3.25.2**：328 份 datasheet 連結以未登入方式全部驗證可開啟（連結不變）；新增 tools/create_and_verify_all_links.ps1、tools/apply_datasheet_links.py；版本更新流程加入「未登入驗證」，NG 的連結不會放上工具
 - **v3.25.1**：資料來源 Excel 改用標準檔名（Quectel Antenna Product and TELEC Certification_V3.71_20261029_Rev26.10.xlsx）；新增版本更新自動化（tools/release_prepare.py、tools/release_finalize.py、docs/RELEASE_PLAYBOOK.md）
 - **v3.25.0**：資料更新為 Rev26.10（PRO-26.10，330 款天線，新增 11 款、刪除 0 款；EG21-G 新增 6 筆認證；4 款 GNSS 天線安裝方式更正為 Screw；新增 11 款天線的 datasheet 照片與 Datasheet 連結）。build_data.py 支援新版 Excel 結構（自動採用最新的 PRO-YY.MM 頁面、ModuleList、Histories 取最新一筆），照片來源僅為 Excel 時沿用上一版較清晰的照片
 - **v3.24.0**：電腦版天線清單新增顯示支援頻率範圍（產品名稱下方，多技術天線以「｜」分隔）

@@ -64,7 +64,7 @@ python3 tools/release_prepare.py --xlsx <新版 Excel> --out <輸出資料夾> \
    - **選檔規則**：英文版（Datasheet）優先於中文規格書；正式版優先於 Preliminary；版本號取最新。
    - **相似料號**：比對時要求料號前後是 `_` 或 `&`，所以 YECM001L1AH 不會誤選到 YECM001L1AH-C。
 2. **複製到客戶分享資料夾**：`Customer\Antenna FAE\0.For Customer\Quectel_Antenna_Selector\V3.7_20260916_Rev26.Q3`。已有的檔案會略過，不覆蓋。
-3. **建立分享連結**：用使用者自己的帳號登入 Microsoft Graph，為每份檔案建立「**任何人可檢視**」連結。第一次執行會自動安裝登入模組。
+3. **建立分享連結並驗證**：用使用者自己的帳號登入 Microsoft Graph，為每份檔案建立「**任何人可檢視**」連結；接著用**完全沒有登入資訊的全新連線**打開每條連結，被導向登入頁的標記為 NG。CSV 會記錄驗證結果（Anonymous_Check）。第一次執行會自動安裝登入模組。
 4. **收集檔案**：把新 PDF 和 `datasheet_links_RevYY.MM.csv` 放到桌面的「RevYY.MM_for_Claude」資料夾。
 
 使用者把該資料夾內的**所有檔案上傳到對話中**。
@@ -81,7 +81,7 @@ python3 tools/release_finalize.py --xlsx <階段 1 輸出的 Excel> --version 3.
 python3 tools/export_guides.py          # 匯出四種語言的使用說明 PDF (會自己啟動網頁伺服器)
 ```
 `release_finalize.py` 會依序完成：
-1. **合併連結**：把連結合併進 `data/datasheet_links.csv`。同料號以新連結取代，空白連結不會覆蓋既有連結。
+1. **合併連結**：把連結合併進 `data/datasheet_links.csv`。同料號以新連結取代，空白連結不會覆蓋既有連結；**未登入驗證為 NG 的連結不會放上工具**，並列出料號。
 2. **擷取照片**：用 `tools/extract_datasheet_photos.py` 從 PDF 封面擷取照片。
 3. **建置工具**：執行 `build_data.py`，自動採用最新的 PRO 頁面、ModuleList 和 Histories 的最新一筆。
 4. **檢查新天線**：逐款列出 datasheet 照片、照片像素、Datasheet 按鈕，並回報缺少的項目。
@@ -94,6 +94,21 @@ python3 tools/export_guides.py          # 匯出四種語言的使用說明 PDF 
 **打包**：把 repo 的完整檔案（約 30 個）打包成 zip，排除 `tools/models/`、`datasheets/`。上傳前要和 GitHub 比對檔案清單，確認沒有需要刪除的檔案。
 
 ---
+
+## 全面檢查所有 datasheet 連結（懷疑外部人士打不開時）
+
+1. 使用者執行 `tools/create_and_verify_all_links.ps1`（以 .bat 啟動）：
+   - 為客戶分享資料夾的**每一份** PDF 建立「任何人可檢視」連結（已存在則沿用同一條）。
+   - 用未登入的全新連線逐一驗證。
+   - 輸出 `datasheet_links_all.csv`，上傳給 Claude。
+2. Claude 執行 `python3 tools/apply_datasheet_links.py --csv datasheet_links_all.csv --xlsx-out "Quectel Antenna Selector Datasheet Links_RevYY.MM.xlsx"`：
+   - 產生每份 datasheet 對應網址的 Excel。
+   - 只把驗證 OK 的網址寫進 `data/datasheet_links.csv`，NG 的另外列出。
+   - 依檔名對應料號，共用 datasheet 的料號（例如 YEGB000Q1A／YEGN000Q1A）會一起處理。
+3. 重新建置並發佈。
+
+Rev26.10（2026-10-31）的實際結果：328 份全部驗證 OK，而且網址和工具原本的連結完全相同，也就是原本的連結本來就是「任何人」連結。
+外部人士回報打不開時，先請對方用**無痕視窗**測試，排除瀏覽器登入了其他帳號的情況。
 
 ## 經驗與注意事項（Rev26.10 實際踩過的坑）
 
@@ -108,4 +123,5 @@ python3 tools/export_guides.py          # 匯出四種語言的使用說明 PDF 
 | 原有天線新增模組認證（例如 EG21-G）不等於「無 → 有 TELEC」 | 前者只列在報告中，Histories 的 K 欄只記錄 TELEC 狀態真正改變的天線 |
 | 沒有提供 JP 天線表時，先前換過的清晰照片可能退回模糊 | `build_data.py` 會沿用上一版較清晰的照片（只限照片來源為 Excel 的天線） |
 | OneDrive 搜尋索引常常查不到新檔案 | 以讀取資料夾清單為準（每頁 200 筆，依檔名排序） |
+| 資料夾的「任何人」連結，不保證能直接打開資料夾裡的個別檔案 | 每份檔案使用自己的「任何人」連結，並在使用者電腦上以未登入的方式驗證（Claude 的沙箱連不到 SharePoint，連接器也查不到分享權限） |
 | 沙箱環境可能被重置 | 一切以 GitHub 為準；Excel 由使用者重新提供；套件需要重新安裝 |
