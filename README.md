@@ -1,6 +1,6 @@
 # Quectel 天線選型 · TELEC 認證 PWA
 
-目前版本：**v3.25.4**
+目前版本：**v3.25.5**
 資料來源：`Quectel_Antenna_Product_and_TELEC_Certification_*.xlsx`（單一 Excel）
 
 ## v3.23.3 圖片檢查
@@ -143,6 +143,7 @@ App 內不顯示更新紀錄；版本變更請記錄在本 README 的「更新�
 - 頻段預設邊界為一般公開配置，僅供初篩。
 
 ## 更新紀錄
+- **v3.25.5**：版本資訊的「強制更新／Force update」按鈕改名為「檢查最新版本／Check Latest Version」（含新版本提示與使用說明）
 - **v3.25.4**：手機篩選面板：右上角改為「清除」，底部改為「Go (符合數量)」按鈕（固定在面板底部）
 - **v3.25.3**：移遠天線Agent按鈕改回飛書 Agent（https://applink.feishu.cn/T9ao3zlnY4j5）
 - **v3.25.2**：328 份 datasheet 連結以未登入方式全部驗證可開啟（連結不變）；新增 tools/create_and_verify_all_links.ps1、tools/apply_datasheet_links.py；版本更新流程加入「未登入驗證」，NG 的連結不會放上工具
