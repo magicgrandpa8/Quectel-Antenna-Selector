@@ -797,6 +797,19 @@ html.lg-still .lg-wallpaper i, html.lg-idle .lg-wallpaper i { animation-play-sta
   .lg-wallpaper { display: none; }
 }
 html.embed .lg-wallpaper i { animation: none !important; }
+
+/* 手機篩選面板：右上角「清除」、底部「Go」(固定在面板底部，永遠看得到) */
+.go-btn { display: none; }
+@media (max-width: 820px) {
+  .filters .reset { display: none; }
+  .go-btn {
+    display: block; position: sticky; bottom: 0; z-index: 2; width: 100%; margin-top: 14px; padding: 13px 16px;
+    border: 0; border-radius: 999px; background: var(--accent); color: #fff; font: inherit; font-size: 16px; font-weight: 700;
+    letter-spacing: .02em; cursor: pointer; box-shadow: 0 6px 18px rgba(0, 0, 0, .18), 0 0 0 6px var(--glass-strong);
+  }
+  .go-btn:active { transform: scale(.98); }
+  #resetTop { font-weight: 500; }
+}
 </style>
 </head>
 <body>
@@ -868,7 +881,7 @@ html.embed .lg-wallpaper i { animation: none !important; }
 
 <main class="layout">
   <aside class="filters" id="filters">
-    <div class="filters-head"><span data-i18n="filters"></span><button class="icon-btn" id="closeFilters" type="button" data-i18n="done"></button></div>
+    <div class="filters-head"><span data-i18n="filters"></span><button class="icon-btn" id="resetTop" type="button" data-i18n="clearShort"></button></div>
     <label class="sr-only" for="q" data-i18n="searchAria"></label>
     <input class="search" id="q" type="search" data-i18n-ph="search">
     <!-- 下拉選單：Tech → Japan Market → [TELEC 模組] → [GNSS 天線類型] → Product Type → Form -->
@@ -878,6 +891,8 @@ html.embed .lg-wallpaper i { animation: none !important; }
       <div id="filterBody"></div>
     </details>
     <button class="icon-btn reset" id="resetBtn" type="button" data-i18n="resetAll"></button>
+<!-- 手機：底部「Go」按鈕 (關閉篩選面板、查看結果，顯示符合數量) -->
+<button class="go-btn" id="closeFilters" type="button"></button>
   </aside>
 
   <section>
@@ -987,7 +1002,7 @@ const I18N = {
     verAria: '版本資訊',
     mTitle: '天線選型與 TELEC 認證', mSub: '用篩選條件找出合適的天線，或直接向移遠天線Agent說明您的需求',
    
-    filters: '篩選條件', done: '完成', resetAll: '清除所有條件', search: '搜尋料號、名稱、頻率…', searchAria: '搜尋',
+    filters: '篩選條件', go: '查看結果', clearShort: '清除', resetAll: '清除所有條件', search: '搜尋料號、名稱、頻率…', searchAria: '搜尋',
     countOf: '/ {n} 項天線', filterBtn: '篩選', sort: '排序',
     sortOc: '依料號排序', sortGain: '依峰值增益 (高→低)', sortSpan: '依頻寬覆蓋 (寬→窄)',
     copyList: '複製料號清單', more: '顯示更多 (尚有 {n} 項)',
@@ -1055,7 +1070,7 @@ const I18N = {
     verAria: 'Version info',
     mTitle: 'Antenna selection & TELEC certification', mSub: 'Use the filters to find the right antenna, or describe what you need to Quectel Antenna Agent.',
    
-    filters: 'Filters', done: 'Done', resetAll: 'Clear all filters', search: 'Search part no., name, frequency…', searchAria: 'Search',
+    filters: 'Filters', go: 'Go', clearShort: 'Clear all', resetAll: 'Clear all filters', search: 'Search part no., name, frequency…', searchAria: 'Search',
     countOf: '/ {n} antennas', filterBtn: 'Filters', sort: 'Sort',
     sortOc: 'Sort by part no.', sortGain: 'Sort by peak gain (high→low)', sortSpan: 'Sort by bandwidth (wide→narrow)',
     copyList: 'Copy part numbers', more: 'Show more ({n} left)',
@@ -1122,7 +1137,7 @@ const I18N = {
     verAria: 'バージョン情報',
     mTitle: 'アンテナ選定と TELEC 認証', mSub: '絞り込み条件で最適なアンテナを探すか、Quectel アンテナ Agent にご要望をお伝えください。',
    
-    filters: '絞り込み条件', done: '完了', resetAll: 'すべての条件をクリア', search: '品番・名称・周波数で検索…', searchAria: '検索',
+    filters: '絞り込み条件', go: '結果を見る', clearShort: 'クリア', resetAll: 'すべての条件をクリア', search: '品番・名称・周波数で検索…', searchAria: '検索',
     countOf: '/ {n} 件のアンテナ', filterBtn: '絞り込み', sort: '並べ替え',
     sortOc: '品番順', sortGain: 'ピークゲイン順（高→低）', sortSpan: '帯域幅順（広→狭）',
     copyList: '品番リストをコピー', more: 'さらに表示（残り {n} 件）',
@@ -1188,7 +1203,7 @@ const I18N = {
     verAria: '버전 정보',
     mTitle: '안테나 선정 및 TELEC 인증', mSub: '필터로 알맞은 안테나를 찾거나, Quectel 안테나 Agent에게 필요한 내용을 알려 주세요.',
    
-    filters: '필터', done: '완료', resetAll: '모든 조건 지우기', search: '품번, 이름, 주파수로 검색…', searchAria: '검색',
+    filters: '필터', go: '결과 보기', clearShort: '초기화', resetAll: '모든 조건 지우기', search: '품번, 이름, 주파수로 검색…', searchAria: '검색',
     countOf: '/ {n}개 안테나', filterBtn: '필터', sort: '정렬',
     sortOc: '품번순', sortGain: '피크 이득순 (높음→낮음)', sortSpan: '대역폭순 (넓음→좁음)',
     copyList: '품번 목록 복사', more: '더 보기 ({n}개 남음)',
@@ -1765,6 +1780,7 @@ function renderList() {
   const res = sorted(filterItems());
   lastResults = res;
   $('count').textContent = res.length;
+  $('closeFilters').textContent = `${t('go')} (${res.length})`;   // 手機篩選面板底部的 Go 按鈕
   $('countOf').textContent = t('countOf', { n: PAGES[page].items().length });
   if (!res.length) {
     const mods = selMods();
@@ -2191,6 +2207,7 @@ $('activeTags').addEventListener('click', (e) => {
 });
 function resetAll() { state = freshState(page); $('sortSel').value = state.sort; update(); }
 $('resetBtn').addEventListener('click', resetAll);
+$('resetTop').addEventListener('click', resetAll);   // 手機篩選面板右上角「清除」
 $('sortSel').addEventListener('change', (e) => { state.sort = e.target.value; update(); });
 $('moreBtn').addEventListener('click', () => { shown += PAGE_SIZE; renderList(); });
 $('copyBtn').addEventListener('click', () => {
@@ -2350,7 +2367,7 @@ const GUIDE = {
    ],
    [
     "沒有結果，或顯示 0 項？",
-    "條件可能太多。點條件標籤上的 × 移除，或使用「清除所有條件」。"
+    "條件可能太多。點條件標籤上的 × 移除，或使用「清除所有條件」（手機版：篩選面板右上角的「清除」）。"
    ],
    [
     "資料好像不是最新的？",
@@ -2434,7 +2451,7 @@ const GUIDE = {
    ],
    [
     "No results, or 0 antennas?",
-    "Too many filters may be active. Tap × on the filter tags, or use Clear all filters."
+    "Too many filters may be active. Tap × on the filter tags, or use Clear all filters (on phones: Clear all at the top right of the Filters panel)."
    ],
    [
     "The data looks out of date?",
@@ -2518,7 +2535,7 @@ const GUIDE = {
    ],
    [
     "結果が表示されない／0 件になる",
-    "条件が多すぎる可能性があります。条件タグの × をタップするか、「すべての条件をクリア」を使ってください。"
+    "条件が多すぎる可能性があります。条件タグの × をタップするか、「すべての条件をクリア」を使ってください（スマートフォンでは絞り込みパネル右上の「クリア」）。"
    ],
    [
     "データが古いようだ",
@@ -2602,7 +2619,7 @@ const GUIDE = {
    ],
    [
     "결과가 없거나 0개로 표시됩니다",
-    "조건이 너무 많을 수 있습니다. 조건 태그의 ×를 누르거나 \"모든 조건 지우기\"를 사용하세요."
+    "조건이 너무 많을 수 있습니다. 조건 태그의 ×를 누르거나 \"모든 조건 지우기\"를 사용하세요(휴대폰: 필터 패널 오른쪽 위의 \"초기화\")."
    ],
    [
     "데이터가 최신이 아닌 것 같습니다",
