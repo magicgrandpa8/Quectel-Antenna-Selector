@@ -198,7 +198,10 @@ select.module {
   width: 64px; height: 64px; border-radius: var(--r-sm); background: #fff; display: grid; place-items: center; overflow: hidden;
   border: 1px solid var(--rule);
 }
-.thumb img { width: 100%; height: 100%; object-fit: contain; }
+.thumb { position: relative; }
+/* 圖片以絕對定位撐滿縮圖框再等比例縮放：縮圖框是 <button> 時，瀏覽器不一定換算 height: 100%，
+   瘦長的天線會被放大裁切；改用 inset: 0 可確保完整顯示 */
+.thumb img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
 .thumb svg { color: #9AA8B0; }
 .oc { font-weight: 700; font-size: 15px; letter-spacing: .01em; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 .pname { color: var(--muted); font-size: 13px; margin-top: 2px; line-height: 1.4; }
