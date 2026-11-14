@@ -10,7 +10,7 @@
 - 版本號要同步四處：`version.json`、`sw.js` 的 `CACHE_VERSION`、`index.html` 內 DATA 的 `"version"`（由 build 產生）、README 的「目前版本」。資料更新用次版號 +1，介面小修用修訂號 +1。
 - `sw.js` 一定和其他檔案在同一次 commit 推送（避免使用者拿到不完整的版本）。
 - **每個版本都打 git tag**：發版 push 完成後，在該版本最後一個 commit 建立 annotated tag 並推送，用 tag 區分版本、避免混淆：
-  `git tag -a vX.Y.Z -m "vX.Y.Z: <摘要>"`，接著 `git push origin vX.Y.Z`。版本紀錄以 git tag / commit 為準，不寫在 README。
+  `git tag -a vX.Y.Z -m "vX.Y.Z (YYYY-MM-DD)"`（tag 訊息只寫版本與日期，不寫變更內容），接著 `git push origin vX.Y.Z`。版本紀錄以 git tag / commit 為準，不寫在 README。
   查詢某版內容：`git show vX.Y.Z:version.json`；比較兩版：`git diff vA.B.C vX.Y.Z --stat`。
 
 ## 專案結構
