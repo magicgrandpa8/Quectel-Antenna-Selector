@@ -5,7 +5,7 @@
 
 ## 最重要的規則
 - **這是公開 repo**：不可 commit 公司內部 Excel（`.xlsx`，已列在 `.gitignore`）或任何內部資料。Excel 放在 repo 以外的資料夾，或 repo 內的 `work/`（已忽略）。
-- **README 不寫版本更新紀錄**：不要新增「更新紀錄」或任何版本歷史；只更新開頭「目前版本：**vX.Y.Z**」一行。
+- **任何地方都不呈現版本更新紀錄**：README、App 畫面（含版本資訊、使用說明）、匯出的使用說明 PDF、GitHub 頁面（不建立 GitHub Release / release notes）、程式註解都不寫「更新紀錄」、版本歷史或「vX.Y 起…」這類字樣。只顯示目前版本：README 只更新開頭「目前版本：**vX.Y.Z**」一行。
 - 每次修改前先 `git pull`；修改後要測試再 commit。commit 訊息用英文、簡短，例如 `v3.26.0: data update Rev26.11`。
 - 版本號要同步四處：`version.json`、`sw.js` 的 `CACHE_VERSION`、`index.html` 內 DATA 的 `"version"`（由 build 產生）、README 的「目前版本」。資料更新用次版號 +1，介面小修用修訂號 +1。
 - `sw.js` 一定和其他檔案在同一次 commit 推送（避免使用者拿到不完整的版本）。

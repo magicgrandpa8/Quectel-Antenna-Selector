@@ -314,7 +314,7 @@ footer { max-width: 1360px; margin: 0 auto; padding: 0 20px 32px; font-size: 12p
 }
 
 /* ======================================================================
-   v2.0 新增：頂部工具列、快速選單、版本資訊
+   頂部工具列、快速選單、版本資訊
    ====================================================================== */
 .tools { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
 .tool-btn {
@@ -405,7 +405,7 @@ html.offline .net { display: inline-flex; }
 }
 
 /* ======================================================================
-   v3.13 版面整理 (電腦版，寬度 > 820px)：篩選集中左欄、頁首精簡、清單精簡
+   版面整理 (電腦版，寬度 > 820px)：篩選集中左欄、頁首精簡、清單精簡
    手機與平板 (≤ 820px) 維持原版面，只把頁首按鈕依螢幕寬度平均分配
    ====================================================================== */
 .menu-wrap { position: relative; }
@@ -1666,7 +1666,7 @@ const DESKTOP_MQ = matchMedia('(min-width: 821px)');
 const isDesktop = () => DESKTOP_MQ.matches;
 /** 下拉選單位置：電腦版在左欄 (搜尋下方)，手機版在清單上方 (原位置) */
 function placeQuick() {
-  // v3.18 起手機也將下拉選單放在篩選面板內 (搜尋下方)，畫面打開先看到天線清單
+  // 手機也將下拉選單放在篩選面板內 (搜尋下方)，畫面打開先看到天線清單
   $('q').after($('quick'));
 }
 /* ---------- 天線比較 (最多 CMP_MAX 款) ---------- */
@@ -2912,19 +2912,19 @@ function route() {
   page = 'main';
   if (location.hash) history.replaceState(null, '', location.pathname + location.search);
   state = Object.assign(freshState(page), MODE === 'app' ? (store.load(page) || {}) : {});
-  // v3.18 起模組可多選：舊版單一模組 (module) 轉為 modules
+  // 模組可多選：舊版單一模組 (module) 轉為 modules
   if (typeof state.module === 'string' && state.module && !(state.modules || []).length) state.modules = [state.module];
   delete state.module;
   state.modules = (state.modules || []).filter((n) => DATA.modules.some((m) => m.name === n));
   state.cmp = (state.cmp || []).filter((oc) => DATA.items.some((p) => p.oc === oc)).slice(0, CMP_MAX);
   if (state.toggles?.jpOnly) { state.sel.jp = ['Yes']; }
   if (state.toggles) delete state.toggles.jpOnly;
-  delete state.bands; delete state.custom;   // v3.5 起移除頻段尺
-  if (!isGnss()) state.sel.atype = [];        // v3.6 起天線類型只用於 GNSS
-  // v3.7 起 TELEC 模組只在 Japan Market = Yes 時使用
+  delete state.bands; delete state.custom;   // 已移除頻段尺：清除舊設定
+  if (!isGnss()) state.sel.atype = [];        // 天線類型只用於 GNSS
+  // TELEC 模組只在 Japan Market = Yes 時使用
   if (state.modules.length && !(state.sel.jp || []).length) state.sel.jp = ['Yes'];
   if (!isJpYes()) state.modules = [];
-  // v3.9 起 Form 改為下拉選單 (單選)：舊版多選只保留第一個
+  // Form 為下拉選單 (單選)：舊版多選只保留第一個
   if ((state.sel.form || []).length > 1) state.sel.form = state.sel.form.slice(0, 1);
   $('sortSel').value = state.sort;
   renderPageText();
