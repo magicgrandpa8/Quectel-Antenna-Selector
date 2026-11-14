@@ -3,10 +3,10 @@
 目前版本：**v3.25.6**
 資料來源：`Quectel_Antenna_Product_and_TELEC_Certification_*.xlsx`（單一 Excel）
 
-## v3.23.3 圖片檢查
+## 產品圖片檢查
 - 已檢查 319 款天線圖片與全部 318 份連結文件；更新 235 款圖片，保留 84 款較合適的現有圖。
 - 完整保留產品、線材、接頭及正反面視圖，加入白邊；縮圖上限 256px / q88、放大圖 1200px / q94，僅縮小不放大。
-- 放大檢視取消強制放大至原圖兩倍，保留 v3.23.2 的手機兩欄三列規格排版。
+- 放大檢視不強制放大照片；手機版規格維持兩欄排版。
 - 各 OC 檢查結果與來源記錄於 `data/photo_review.csv`。
 - YENA00L5AH 無 datasheet；YCGS010AA 封面是 EVB；YFGA010E3AM 連結文件實際為 YFGA225E3AM，這三款保留原圖。
 
@@ -115,7 +115,7 @@ python3 build_data.py --version 3.2.1 \
 發佈後，使用者有網路時**第一次開啟**就會載入新版（等待網路上限 3.5 秒，逾時或離線則使用快取）；App 從背景切回時也會重新檢查新版本。
 
 接著 commit / push：`index.html`、`version.json`、`sw.js`（有修改時再加上 `template.html`）。
-App 內不顯示更新紀錄；版本變更請記錄在本 README 的「更新紀錄」。
+App 與 README 都不顯示版本更新紀錄。
 
 版本號：X 大改版 ／ Y 新功能 ／ Z 僅更新 Excel 資料或修正。
 

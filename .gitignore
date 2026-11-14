@@ -1,0 +1,18 @@
+# 公司內部資料：絕對不要 commit 到公開 repo
+*.xlsx
+*.xlsm
+*.xls
+~$*
+work/
+*_for_Claude/
+
+# 暫存與建置產物
+__pycache__/
+*.pyc
+tools/models/
+datasheets/
+photo_datasheet_review.png
+photo_datasheet_report.csv
+release_*.json
+.DS_Store
+Thumbs.db
