@@ -338,9 +338,11 @@ function Pick([object[]]$c) {{
 }}
 function Find-Datasheet([string]$oc) {{
     $exact = '(?:^|[_&])' + [regex]::Escape($oc) + '(?:[_&-])'
+    # 合併檔名：例如 YLUX013XQD&E&F 同時涵蓋 YLUX013XQD / XQE / XQF
+    $combo = if ($oc.Length -gt 4) {{ '(?:^|[_&])' + [regex]::Escape($oc.Substring(0, $oc.Length - 1)) + '(?:[A-Za-z0-9]&)*' + [regex]::Escape($oc.Substring($oc.Length - 1)) + '(?:&[A-Za-z0-9])*(?:[_-])' }} else {{ $null }}
     $series = if ($oc.Length -gt 4) {{ '(?:^|[_&])' + [regex]::Escape($oc.Substring(0, $oc.Length - 2)) + '[xX]{{2}}(?:[_&-])' }} else {{ $null }}
     $dirs = @($Sources | ForEach-Object {{ Join-Path $Root $_ }} | Where-Object {{ Test-Path -LiteralPath $_ }}) + @($Root)
-    foreach ($pat in @($exact, $series)) {{
+    foreach ($pat in @($exact, $combo, $series)) {{
         if (-not $pat) {{ continue }}
         foreach ($d in $dirs) {{
             $hit = Pick (Get-Pdfs $d | Where-Object {{ $_.Name -match $pat -and $_.FullName -notlike "$Destination*" }})
