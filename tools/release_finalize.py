@@ -22,6 +22,7 @@ import io
 import json
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -88,20 +89,20 @@ def main():
                 pdf_dir = stage
                 print(f"照片擷取：依連結 CSV 對應 {n} 個料號的 datasheet")
         r = subprocess.run([sys.executable, str(ROOT / "tools" / "extract_datasheet_photos.py"), str(pdf_dir)],
-                           cwd=ROOT, capture_output=True, text=True)
+                           cwd=ROOT, capture_output=True, text=True, encoding="utf-8", errors="replace")
         print("照片擷取：" + "\n".join(l for l in r.stdout.splitlines() if l.startswith("PDF")))
         if r.returncode:
             sys.exit(r.stderr)
         for f in ("photo_datasheet_review.png", "photo_datasheet_report.csv"):
             p = ROOT / f
             if p.exists():
-                p.replace(Path("/tmp") / f)                 # 檢查用檔案移出 repo (保留在 /tmp 供檢視)
+                p.replace(Path(tempfile.gettempdir()) / f)  # 檢查用檔案移出 repo (保留在系統暫存資料夾供檢視)
     cmd = [sys.executable, str(ROOT / "build_data.py"), "--version", a.version, "--xlsx", str(a.xlsx)]
     if a.photo_xlsx:
         cmd += ["--photo-xlsx", str(a.photo_xlsx)]
     if a.cable_xlsx:
         cmd += ["--cable-xlsx", str(a.cable_xlsx)]
-    r = subprocess.run(cmd, cwd=ROOT, capture_output=True, text=True)
+    r = subprocess.run(cmd, cwd=ROOT, capture_output=True, text=True, encoding="utf-8", errors="replace")
     print("\n".join(l for l in r.stdout.splitlines() if l.strip()))
     if r.returncode:
         sys.exit(r.stderr)
