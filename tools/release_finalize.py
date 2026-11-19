@@ -65,6 +65,7 @@ def main():
     ap.add_argument("--pdf-dir", type=Path)
     ap.add_argument("--diff", type=Path, help="release_prepare.py 輸出的 json (用來檢查新天線)")
     ap.add_argument("--photo-xlsx", type=Path, help="(選用) 其他 Excel 的清晰照片")
+    ap.add_argument("--cable-xlsx", type=Path, help="(選用) 線材與接頭的 Excel；不提供時沿用 data/cables.json")
     a = ap.parse_args()
 
     if a.links:
@@ -83,6 +84,8 @@ def main():
     cmd = [sys.executable, str(ROOT / "build_data.py"), "--version", a.version, "--xlsx", str(a.xlsx)]
     if a.photo_xlsx:
         cmd += ["--photo-xlsx", str(a.photo_xlsx)]
+    if a.cable_xlsx:
+        cmd += ["--cable-xlsx", str(a.cable_xlsx)]
     r = subprocess.run(cmd, cwd=ROOT, capture_output=True, text=True)
     print("\n".join(l for l in r.stdout.splitlines() if l.strip()))
     if r.returncode:

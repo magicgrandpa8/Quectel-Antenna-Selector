@@ -314,7 +314,7 @@ footer { max-width: 1360px; margin: 0 auto; padding: 0 20px 32px; font-size: 12p
 }
 
 /* ======================================================================
-   頂部工具列、快速選單、版本資訊
+   v2.0 新增：頂部工具列、快速選單、版本資訊
    ====================================================================== */
 .tools { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
 .tool-btn {
@@ -405,7 +405,7 @@ html.offline .net { display: inline-flex; }
 }
 
 /* ======================================================================
-   版面整理 (電腦版，寬度 > 820px)：篩選集中左欄、頁首精簡、清單精簡
+   v3.13 版面整理 (電腦版，寬度 > 820px)：篩選集中左欄、頁首精簡、清單精簡
    手機與平板 (≤ 820px) 維持原版面，只把頁首按鈕依螢幕寬度平均分配
    ====================================================================== */
 .menu-wrap { position: relative; }
@@ -813,6 +813,16 @@ html.embed .lg-wallpaper i { animation: none !important; }
   .go-btn:active { transform: scale(.98); }
   #resetTop { font-weight: 500; }
 }
+
+/* 產品類別切換 (天線 / 線材與接頭) */
+.page-tabs { display: inline-flex; gap: 4px; padding: 4px; margin: 0 0 14px; border-radius: 999px;
+  background: var(--glass); border: 1px solid var(--glass-edge); box-shadow: var(--glass-hi); }
+.page-tabs[hidden] { display: none; }
+.page-tabs button { border: 0; background: transparent; color: var(--muted); font: inherit; font-weight: 600;
+  padding: 8px 16px; border-radius: 999px; cursor: pointer; }
+.page-tabs button[aria-selected="true"] { background: var(--accent); color: #fff; }
+.badge.kind { background: var(--glass-strong); color: var(--muted); border: 1px solid var(--rule); }
+@media (max-width: 820px) { .page-tabs { display: flex; } .page-tabs button { flex: 1; } }
 </style>
 </head>
 <body>
@@ -871,6 +881,11 @@ html.embed .lg-wallpaper i { animation: none !important; }
 </header>
 
 <section class="spectrum" aria-labelledby="specTitle">
+  <!-- 產品類別切換 (有線材資料時才顯示) -->
+  <div class="page-tabs" id="pageTabs" role="tablist" hidden>
+    <button type="button" role="tab" data-page="main" data-i18n="tabAnt"></button>
+    <button type="button" role="tab" data-page="cable" data-i18n="tabCable"></button>
+  </div>
   <div class="spectrum-head">
     <h1 id="specTitle"></h1>
     <!-- 移遠天線 Agent (外部網站，需要網路) -->
@@ -1005,6 +1020,9 @@ const I18N = {
     verAria: '版本資訊',
     mTitle: '天線選型與 TELEC 認證', mSub: '用篩選條件找出合適的天線，或直接向移遠天線Agent說明您的需求',
    
+    tabAnt: '天線', tabCable: '線材與接頭', cTitle: '線材與接頭', cSub: '依接頭、線材與線長找出合適的 RF 線材與接頭',
+    countOfC: '/ {n} 項線材與接頭', emptyTC: '沒有符合所有條件的線材或接頭',
+    cf_kind: '類型', cf_c1: '接頭 A', cf_c2: '接頭 B', cf_conn: '接頭', cf_ctype: '線材', cf_len: '線長 (mm)', cf_lenL: '線長', cf_tech: '頻率範圍', cf_desc: '產品說明',
     filters: '篩選條件', go: '查看結果', clearShort: '清除', resetAll: '清除所有條件', search: '搜尋料號、名稱、頻率…', searchAria: '搜尋',
     countOf: '/ {n} 項天線', filterBtn: '篩選', sort: '排序',
     sortOc: '依料號排序', sortGain: '依峰值增益 (高→低)', sortSpan: '依頻寬覆蓋 (寬→窄)',
@@ -1073,6 +1091,9 @@ const I18N = {
     verAria: 'Version info',
     mTitle: 'Antenna selection & TELEC certification', mSub: 'Use the filters to find the right antenna, or describe what you need to Quectel Antenna Agent.',
    
+    tabAnt: 'Antennas', tabCable: 'Cables & connectors', cTitle: 'Cables & connectors', cSub: 'Find RF cable assemblies and connectors by connector, cable type and length',
+    countOfC: '/ {n} cables & connectors', emptyTC: 'No cable or connector matches all conditions',
+    cf_kind: 'Type', cf_c1: 'Connector A', cf_c2: 'Connector B', cf_conn: 'Connectors', cf_ctype: 'Cable', cf_len: 'Length (mm)', cf_lenL: 'Length', cf_tech: 'Frequency', cf_desc: 'Description',
     filters: 'Filters', go: 'Go', clearShort: 'Clear all', resetAll: 'Clear all filters', search: 'Search part no., name, frequency…', searchAria: 'Search',
     countOf: '/ {n} antennas', filterBtn: 'Filters', sort: 'Sort',
     sortOc: 'Sort by part no.', sortGain: 'Sort by peak gain (high→low)', sortSpan: 'Sort by bandwidth (wide→narrow)',
@@ -1140,6 +1161,9 @@ const I18N = {
     verAria: 'バージョン情報',
     mTitle: 'アンテナ選定と TELEC 認証', mSub: '絞り込み条件で最適なアンテナを探すか、Quectel アンテナ Agent にご要望をお伝えください。',
    
+    tabAnt: 'アンテナ', tabCable: 'ケーブル・コネクタ', cTitle: 'ケーブル・コネクタ', cSub: 'コネクタ・ケーブル種類・長さで RF ケーブルとコネクタを探す',
+    countOfC: '/ {n} 件のケーブル・コネクタ', emptyTC: 'すべての条件に一致するケーブル・コネクタはありません',
+    cf_kind: '種類', cf_c1: 'コネクタ A', cf_c2: 'コネクタ B', cf_conn: 'コネクタ', cf_ctype: 'ケーブル', cf_len: '長さ (mm)', cf_lenL: '長さ', cf_tech: '周波数', cf_desc: '製品説明',
     filters: '絞り込み条件', go: '結果を見る', clearShort: 'クリア', resetAll: 'すべての条件をクリア', search: '品番・名称・周波数で検索…', searchAria: '検索',
     countOf: '/ {n} 件のアンテナ', filterBtn: '絞り込み', sort: '並べ替え',
     sortOc: '品番順', sortGain: 'ピークゲイン順（高→低）', sortSpan: '帯域幅順（広→狭）',
@@ -1206,6 +1230,9 @@ const I18N = {
     verAria: '버전 정보',
     mTitle: '안테나 선정 및 TELEC 인증', mSub: '필터로 알맞은 안테나를 찾거나, Quectel 안테나 Agent에게 필요한 내용을 알려 주세요.',
    
+    tabAnt: '안테나', tabCable: '케이블·커넥터', cTitle: '케이블·커넥터', cSub: '커넥터, 케이블 종류, 길이로 RF 케이블과 커넥터를 찾습니다',
+    countOfC: '/ {n}개 케이블·커넥터', emptyTC: '모든 조건에 맞는 케이블 또는 커넥터가 없습니다',
+    cf_kind: '유형', cf_c1: '커넥터 A', cf_c2: '커넥터 B', cf_conn: '커넥터', cf_ctype: '케이블', cf_len: '길이 (mm)', cf_lenL: '길이', cf_tech: '주파수', cf_desc: '제품 설명',
     filters: '필터', go: '결과 보기', clearShort: '초기화', resetAll: '모든 조건 지우기', search: '품번, 이름, 주파수로 검색…', searchAria: '검색',
     countOf: '/ {n}개 안테나', filterBtn: '필터', sort: '정렬',
     sortOc: '품번순', sortGain: '피크 이득순 (높음→낮음)', sortSpan: '대역폭순 (넓음→좁음)',
@@ -1363,7 +1390,25 @@ const PAGES = {
       { key: 'certOnly', test: (p) => (p.certs || []).length > 0 },
     ],
   },
+  /* 線材與接頭：資料來自獨立的 Excel「Cable&Connector」工作表；與天線頁面完全分開 */
+  cable: {
+    title: 'cTitle', sub: 'cSub', countOf: 'countOfC', empty: 'emptyTC',
+    items: () => DATA.cables || [],
+    module: false, size: false, compare: false,
+    facets: [
+      { key: 'kind', title: 'cf_kind', ui: 'select', get: (p) => p.kind || NA },
+      { key: 'c1', title: 'cf_c1', ui: 'select', get: (p) => p.c1 || NONE },
+      { key: 'c2', title: 'cf_c2', ui: 'select', get: (p) => p.c2 || NONE },
+      { key: 'ctype', title: 'cf_ctype', ui: 'select', get: (p) => p.ctype || NONE },
+      { key: 'len', title: 'cf_len', ui: 'chips', get: (p) => (p.len ? String(p.len) : NA),
+        sort: (a, b) => (Number(a) || 1e9) - (Number(b) || 1e9) },
+      { key: 'tech', title: 'cf_tech', ui: 'chips', get: (p) => p.tech || NA },
+      { key: 'brochure', ui: 'chips', get: (p) => p.brochure || NA },
+    ],
+    toggles: [],
+  },
 };
+const isCable = () => page === 'cable';
 /** 「技術類別 Tech」這類雙語標題：英文部分以淡色小字顯示 */
 function labelHtml(title) {
   const m = String(title).match(/^(.*[^\x00-\x7F])\s+([A-Za-z][A-Za-z ]*)$/);
@@ -1421,7 +1466,8 @@ function filterItems(skipKey) {
     }
     if (state.maxL && !(p.dimL != null && p.dimL <= state.maxL)) return false;
     if (q) {
-      const hay = [p.oc, p.name, p.desc, p.freq, p.form, p.atype, p.dim, p.replace, (p.certs || []).join(' ')]
+      const hay = [p.oc, p.name, p.desc, p.freq, p.form, p.atype, p.dim, p.replace, (p.certs || []).join(' '),
+        p.kind, p.c1, p.c2, p.ctype, p.tech]
         .join(' ').toLowerCase();
       if (!q.split(/\s+/).every((w) => hay.includes(w))) return false;
     }
@@ -1513,7 +1559,7 @@ function moduleSelectHtml() {
 function renderFilters() {
   const cfg = PAGES[page];
   if (document.activeElement !== $('q')) $('q').value = state.q;
-  let html = `<div class="fgroup"><p class="ftitle"><label for="maxL">${esc(t('f_size'))}</label></p>
+  let html = cfg.size === false ? '' : `<div class="fgroup"><p class="ftitle"><label for="maxL">${esc(t('f_size'))}</label></p>
     <div class="size-filter"><span>${esc(t('sizeLbl'))}</span>
       <input id="maxL" type="number" inputmode="decimal" min="0" step="any" value="${state.maxL ?? ''}" class="${state.maxL ? 'active' : ''}" placeholder="—">
       <span>${esc(t('sizeUnit'))}</span></div>
@@ -1666,12 +1712,13 @@ const DESKTOP_MQ = matchMedia('(min-width: 821px)');
 const isDesktop = () => DESKTOP_MQ.matches;
 /** 下拉選單位置：電腦版在左欄 (搜尋下方)，手機版在清單上方 (原位置) */
 function placeQuick() {
-  // 手機也將下拉選單放在篩選面板內 (搜尋下方)，畫面打開先看到天線清單
+  // v3.18 起手機也將下拉選單放在篩選面板內 (搜尋下方)，畫面打開先看到天線清單
   $('q').after($('quick'));
 }
 /* ---------- 天線比較 (最多 CMP_MAX 款) ---------- */
 const CMP_MAX = 6;
 function cmpBtn(p) {
+  if (PAGES[page].compare === false) return '';
   const on = (state.cmp || []).includes(p.oc);
   return `<button type="button" class="cmp-btn" data-cmp="${esc(p.oc)}" aria-pressed="${on}" aria-label="${esc(t('cmpAria', { oc: p.oc }))}"><span class="cb" aria-hidden="true">${on ? '✓' : ''}</span>${esc(t('cmpAdd'))}</button>`;
 }
@@ -1765,6 +1812,32 @@ function dsIcon(p) {
   return `<button type="button" class="ds-icon" data-ds="${esc(p.oc)}" aria-label="${esc(t('dsAria', { oc: p.oc }))}" title="${esc(t('datasheet'))}">
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6M9 13h6M9 17h6"/></svg></button>`;
 }
+/** 線材與接頭的規格：接頭 A → 接頭 B、線材、線長、頻率 */
+function cableSpecs(p) {
+  return [
+    ['cf_conn', [p.c1, p.c2].filter(Boolean).join(' → ')],
+    ['cf_ctype', p.ctype], ['cf_lenL', p.len ? `${p.len} mm` : null], ['cf_tech', p.freq || p.tech],
+  ].filter(([, v]) => v);
+}
+function cableRow(p) {
+  const kind = p.kind ? `<span class="badge kind">${esc(p.kind)}</span>` : '';
+  if (isDesktop()) return `
+    <div class="row r2" role="listitem" tabindex="0" data-oc="${esc(p.oc)}">
+      ${thumb(p.oc)}
+      <div class="r-main">
+        <div class="r-top"><span class="oc">${esc(p.oc)}</span>${kind}</div>
+        <div class="pname">${esc(p.name || '')}</div>
+        <dl class="keys">${cableSpecs(p).map(([k, v]) => `<div><dt>${esc(t(k))}</dt><dd>${esc(v)}</dd></div>`).join('')}</dl>
+      </div>
+      ${dsIcon(p)}
+    </div>`;
+  return `
+    <div class="row" role="listitem" tabindex="0" data-oc="${esc(p.oc)}">
+      ${thumb(p.oc)}
+      <div><div class="oc">${esc(p.oc)} ${kind} ${dsButton(p)}</div><div class="pname">${esc(p.name || '')}</div></div>
+      <dl class="specs">${cableSpecs(p).map(([k, v], i) => `<div class="${i === 0 ? 'wide' : ''}"><dt>${esc(t(k))}</dt><dd title="${esc(v)}">${esc(v)}</dd></div>`).join('')}</dl>
+    </div>`;
+}
 function specCells(p) {
   const cx = connCableInfo(p);
   // Six core specifications fill two columns without reserved empty cells.
@@ -1784,13 +1857,19 @@ function renderList() {
   lastResults = res;
   $('count').textContent = res.length;
   $('closeFilters').textContent = `${t('go')} (${res.length})`;   // 手機篩選面板底部的 Go 按鈕
-  $('countOf').textContent = t('countOf', { n: PAGES[page].items().length });
+  $('countOf').textContent = t(PAGES[page].countOf || 'countOf', { n: PAGES[page].items().length });
   if (!res.length) {
     const mods = selMods();
     const modEmpty = mods.length && !DATA.items.some((p) => certAll(p, mods));
-    $('list').innerHTML = `<div class="empty"><strong>${esc(t(modEmpty ? (mods.length > 1 ? 'modNoneMulti' : 'modNone') : 'emptyT'))}</strong>${modEmpty ? '' : esc(t('emptyD'))}<br>
+    $('list').innerHTML = `<div class="empty"><strong>${esc(t(modEmpty ? (mods.length > 1 ? 'modNoneMulti' : 'modNone') : (PAGES[page].empty || 'emptyT')))}</strong>${modEmpty ? '' : esc(t('emptyD'))}<br>
       <button type="button" class="icon-btn" style="margin-top:12px" data-act="reset">${esc(t('resetAll'))}</button></div>`;
     $('moreBtn').hidden = true;
+    return;
+  }
+  if (isCable()) {
+    $('list').innerHTML = res.slice(0, shown).map(cableRow).join('');
+    $('moreBtn').hidden = res.length <= shown;
+    $('moreBtn').textContent = t('more', { n: res.length - shown });
     return;
   }
   $('list').innerHTML = res.slice(0, shown).map((p) => isDesktop() ? `
@@ -1858,6 +1937,28 @@ function ocLink(oc) {
 function openDetail(oc) {
   const p = PAGES[page].items().find((x) => x.oc === oc);
   if (!p) return;
+  if (isCable()) {
+    const general = kv([['cf_kind', p.kind], ['k_ptype', p.ptype], ['cf_c1', p.c1], ['cf_c2', p.c2], ['cf_ctype', p.ctype],
+      ['cf_lenL', p.len ? `${p.len} mm` : null], ['cf_tech', [...new Set([p.tech, p.freq].filter(Boolean))].join(' · ')], ['k_mount', p.mount],
+      ['k_env', p.env], ['k_temp', p.temp], ['k_brochure', p.brochure]]);
+    $('detail').innerHTML = `
+    <div class="d-head">
+      ${thumb(p.oc)}
+      <div>
+        <h2 id="dTitle">${esc(p.oc)}</h2>
+        <p>${esc(p.name || '')}</p>
+        <div class="d-actions"><button type="button" class="icon-btn" data-copy="${esc(p.oc)}">${esc(t('copyOc'))}</button>${dsButton(p, true)}</div>
+      </div>
+      <div class="close-wrap"><button type="button" class="icon-btn" data-close>${esc(t('close'))}</button></div>
+    </div>
+    <div class="d-body">
+      ${p.replace ? `<div class="notice">${esc(t('replaces'))}${esc(p.replace)}</div>` : ''}
+      ${p.desc ? `<section><h3>${esc(t('cf_desc'))}</h3><p>${esc(p.desc)}</p></section>` : ''}
+      <section><h3>${esc(t('specs'))}</h3>${general}</section>
+    </div>`;
+    if (!$('detail').open) $('detail').showModal();
+    return;
+  }
   const sheet = dsButton(p, true);
   const techRows = (p.techs || []).map((x) => `<tr><td>${esc(x.t)}</td><td>${esc(x.f || '')}</td><td>${esc(x.q || '')}</td><td>${esc(x.eff || '')}</td><td>${esc(x.gain || '')}</td><td>${esc(x.pat || '')}</td><td>${esc(x.pol || '')}</td></tr>`).join('');
   const cx = connCableInfo(p);
@@ -2210,7 +2311,8 @@ $('activeTags').addEventListener('click', (e) => {
 });
 function resetAll() { state = freshState(page); $('sortSel').value = state.sort; update(); }
 $('resetBtn').addEventListener('click', resetAll);
-$('resetTop').addEventListener('click', resetAll);   // 手機篩選面板右上角「清除」
+$('resetTop').addEventListener('click', resetAll);
+$('pageTabs').addEventListener('click', (e) => { const b = e.target.closest('[data-page]'); if (b) setPage(b.dataset.page); });   // 手機篩選面板右上角「清除」
 $('sortSel').addEventListener('change', (e) => { state.sort = e.target.value; update(); });
 $('moreBtn').addEventListener('click', () => { shown += PAGE_SIZE; renderList(); });
 $('copyBtn').addEventListener('click', () => {
@@ -2379,6 +2481,10 @@ const GUIDE = {
    [
     "Datasheet 打不開？",
     "Datasheet 放在 OneDrive，不需要登入即可閱讀與下載，但需要網路連線。少數料號沒有 datasheet，不會顯示按鈕。"
+   ],
+   [
+    "線材與接頭在哪裡？",
+    "點頁面上方的「線材與接頭」切換。可依接頭 A／B、線材與線長篩選；兩個頁面的篩選條件各自保存。"
    ]
   ],
   "notes_t": "注意事項",
@@ -2463,6 +2569,10 @@ const GUIDE = {
    [
     "The datasheet won't open?",
     "Datasheets are hosted on OneDrive and can be viewed or downloaded without signing in, but need a network connection. A few parts have no datasheet, so no button is shown."
+   ],
+   [
+    "Where are cables and connectors?",
+    "Tap Cables & connectors at the top of the page. Filter by Connector A/B, cable type and length; each page keeps its own filters."
    ]
   ],
   "notes_t": "Notes",
@@ -2547,6 +2657,10 @@ const GUIDE = {
    [
     "データシートが開かない",
     "データシートは OneDrive にあり、サインインなしで表示・ダウンロードできますが、ネットワーク接続が必要です。データシートがない一部の品番にはボタンが表示されません。"
+   ],
+   [
+    "ケーブル・コネクタはどこ？",
+    "ページ上部の「ケーブル・コネクタ」をタップします。コネクタ A／B、ケーブル種類、長さで絞り込めます。各ページの条件は別々に保存されます。"
    ]
   ],
   "notes_t": "注意事項",
@@ -2631,6 +2745,10 @@ const GUIDE = {
    [
     "데이터시트가 열리지 않습니다",
     "데이터시트는 OneDrive에 있어 로그인 없이 보거나 다운로드할 수 있지만 네트워크 연결이 필요합니다. 데이터시트가 없는 일부 품번에는 버튼이 표시되지 않습니다."
+   ],
+   [
+    "케이블·커넥터는 어디에 있나요?",
+    "페이지 위쪽의 \"케이블·커넥터\"를 누르세요. 커넥터 A/B, 케이블 종류, 길이로 필터링할 수 있으며 각 페이지의 조건은 따로 저장됩니다."
    ]
   ],
   "notes_t": "참고 사항",
@@ -2907,27 +3025,47 @@ if (MODE === 'app') {
 /* ==========================================================================
    路由與初始化
    ========================================================================== */
+/** 切換產品類別 (天線 / 線材與接頭)：兩個頁面的篩選條件分開保存 */
+function setPage(pg) {
+  if (!PAGES[pg] || pg === page) return;
+  store.save(page, state);
+  page = pg;
+  store.set('page', pg);
+  state = Object.assign(freshState(page), MODE === 'app' ? (store.load(page) || {}) : {});
+  if (isCable()) { state.modules = []; state.cmp = []; state.maxL = null; state.sort = 'oc'; }
+  syncPageUi();
+  update();
+}
+function syncPageUi() {
+  const has = (DATA.cables || []).length > 0;
+  $('pageTabs').hidden = !has;
+  $('pageTabs').querySelectorAll('[data-page]').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.page === page)));
+  // 排序：線材頁面只提供依料號
+  $('sortSel').querySelectorAll('option').forEach((o) => { o.hidden = isCable() && o.value !== 'oc'; });
+  $('sortSel').value = state.sort;
+  renderPageText();
+}
 function route() {
   // v3 起為單一頁面；舊連結 (#/global、#/japan) 一律導向主畫面
-  page = 'main';
+  page = store.get('page') === 'cable' && (DATA.cables || []).length ? 'cable' : 'main';
   if (location.hash) history.replaceState(null, '', location.pathname + location.search);
   state = Object.assign(freshState(page), MODE === 'app' ? (store.load(page) || {}) : {});
-  // 模組可多選：舊版單一模組 (module) 轉為 modules
+  // v3.18 起模組可多選：舊版單一模組 (module) 轉為 modules
   if (typeof state.module === 'string' && state.module && !(state.modules || []).length) state.modules = [state.module];
   delete state.module;
   state.modules = (state.modules || []).filter((n) => DATA.modules.some((m) => m.name === n));
   state.cmp = (state.cmp || []).filter((oc) => DATA.items.some((p) => p.oc === oc)).slice(0, CMP_MAX);
   if (state.toggles?.jpOnly) { state.sel.jp = ['Yes']; }
   if (state.toggles) delete state.toggles.jpOnly;
-  delete state.bands; delete state.custom;   // 已移除頻段尺：清除舊設定
-  if (!isGnss()) state.sel.atype = [];        // 天線類型只用於 GNSS
-  // TELEC 模組只在 Japan Market = Yes 時使用
+  delete state.bands; delete state.custom;   // v3.5 起移除頻段尺
+  if (!isGnss()) state.sel.atype = [];        // v3.6 起天線類型只用於 GNSS
+  // v3.7 起 TELEC 模組只在 Japan Market = Yes 時使用
   if (state.modules.length && !(state.sel.jp || []).length) state.sel.jp = ['Yes'];
   if (!isJpYes()) state.modules = [];
-  // Form 為下拉選單 (單選)：舊版多選只保留第一個
+  // v3.9 起 Form 改為下拉選單 (單選)：舊版多選只保留第一個
   if ((state.sel.form || []).length > 1) state.sel.form = state.sel.form.slice(0, 1);
-  $('sortSel').value = state.sort;
-  renderPageText();
+  if (isCable()) { state.modules = []; state.cmp = []; state.maxL = null; state.sort = 'oc'; }
+  syncPageUi();
   setFilters(false);
   update();
 }

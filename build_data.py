@@ -362,6 +362,48 @@ def read_revision(wb) -> dict:
     return max(found, key=lambda x: x[0])[1] if found else {}
 
 
+CABLE_SHEET = "Cable&Connector"   # 線材與接頭：獨立的 Excel (--cable-xlsx)，天線資料不受影響
+
+
+def read_cables(path: Path, images: dict, photos: dict) -> list[dict]:
+    """讀取「Cable&Connector」工作表 (線材與接頭)。欄位依表頭名稱對應；照片與天線使用同一套處理 (縮圖＋放大照片)。"""
+    wb = load_workbook(path, read_only=True, data_only=True)
+    if CABLE_SHEET not in wb.sheetnames:
+        sys.exit(f"線材 Excel 缺少工作表：{CABLE_SHEET}")
+    rows = list(wb[CABLE_SHEET].iter_rows(values_only=True))
+    hdr = [clean(h) for h in rows[0]]
+    ci = {h: i for i, h in enumerate(hdr) if h}
+    imgs = SheetImages(path).row_images(CABLE_SHEET)
+    out = []
+    for rnum, r in enumerate(rows[1:], start=1):
+        def g(col):
+            i = ci.get(col)
+            return clean(r[i]) if i is not None and i < len(r) else None
+        oc = g("OC")
+        if not oc:
+            continue
+        ln = g("Cable Length1")
+        item = {
+            "oc": oc, "kind": g("Type"), "name": g("Product Name"), "desc": g("Detailed Description"),
+            "ptype": g("Product Type"), "mount": g("Mounting Type"),
+            "len": int(float(ln)) if ln and re.fullmatch(r"\d+(\.\d+)?", ln) else None,
+            "ctype": g("Cable Type1"), "c1": g("Connector Type1"), "c2": g("Connector Type2"),
+            "tech": g("Technology1"), "freq": g("Frequency Range1") or g("Frequency Range"),
+            "env": g("Environmental"), "temp": g("Operation Temperature"),
+            "brochure": g("Brochure Type"), "replace": g("To Replace"),
+        }
+        # 只有符號、沒有實際內容的欄位 (例如頻率「* :」) 視為空白
+        out.append({k: v for k, v in item.items() if v not in (None, "") and (not isinstance(v, str) or re.search(r"[0-9A-Za-z]", v))})
+        raw = imgs.get(rnum)
+        if raw:
+            t, ph = to_thumb(raw), to_photo(raw)
+            if t:
+                images[oc] = t
+            if ph:
+                photos[oc] = ph
+    return out
+
+
 def read_products(wb, imgs: dict[int, bytes], images: dict, photos: dict, module_names: list[str]):
     rows = list(wb[MAIN_SHEET_USED].iter_rows(values_only=True))
     hdr = [clean(h) for h in rows[0]]
@@ -428,6 +470,8 @@ def main():
     ap.add_argument("--template", default=Path("template.html"), type=Path)
     ap.add_argument("--out", default=Path("index.html"), type=Path)
     ap.add_argument("--sw", default=Path("sw.js"), type=Path)
+    ap.add_argument("--cable-xlsx", type=Path,
+                    help="線材與接頭的 Excel (讀取「Cable&Connector」工作表)；天線資料不受影響")
     ap.add_argument("--datasheet-links", default=Path("data/datasheet_links.csv"), type=Path,
                     help="Datasheet 連結對照表 (PN → OneDrive_URL)；存在時取代 Excel 中的連結")
     ap.add_argument("--datasheet-photos", default=Path("photo_datasheet.json"), type=Path,
@@ -467,6 +511,30 @@ def main():
             modules.append({"name": name, "date": None, "cat": "Other",
                             "n": sum(1 for p in products if name in p.get("certs", []))})
 
+    # ---- 線材與接頭 (獨立頁面)：來源為 --cable-xlsx，與天線資料分開 ----
+    # 有 --cable-xlsx 時重新讀取並存成 data/cables.json；沒有時沿用上次存的線材資料 (更新天線時不會遺失線材)
+    cable_store = Path("data/cables.json")
+    if a.cable_xlsx:
+        cables = read_cables(a.cable_xlsx, images, photos)
+        cable_store.parent.mkdir(exist_ok=True)
+        cable_store.write_text(json.dumps({
+            "source": a.cable_xlsx.name, "items": cables,
+            "images": {c["oc"]: images[c["oc"]] for c in cables if c["oc"] in images},
+            "photos": {c["oc"]: base64.b64encode(photos[c["oc"]]).decode() for c in cables if c["oc"] in photos},
+        }, ensure_ascii=False, separators=(",", ":")), encoding="utf8")
+        cable_src = a.cable_xlsx.name
+    elif cable_store.exists():
+        cs = json.loads(cable_store.read_text(encoding="utf8"))
+        cables = [{k: v for k, v in c.items() if k != "ph"} for c in cs["items"]]
+        images.update(cs.get("images", {}))
+        photos.update({oc: base64.b64decode(b) for oc, b in cs.get("photos", {}).items()})
+        cable_src = cs.get("source", "data/cables.json") + "（沿用 data/cables.json）"
+    else:
+        cables, cable_src = [], None
+    dup = sorted({c["oc"] for c in cables} & {p["oc"] for p in products})
+    if dup:
+        sys.exit(f"線材料號與天線料號重複：{dup}")
+
     # ---- Datasheet 連結：依對照表改用 OneDrive 個別檔案分享連結 (取代 Excel 中的連結) ----
     ds_links = read_datasheet_links(a.datasheet_links) if a.datasheet_links.exists() else None
     ds_missing, ds_none = [], []
@@ -481,7 +549,10 @@ def main():
                 p.pop("ds", None)
             else:
                 p["ds"] = url
-        ds_extra = sorted(set(ds_links) - {p["oc"] for p in products})
+        for c in cables:                                  # 線材：只採用表中有網址者 (未驗證的不顯示)
+            if ds_links.get(c["oc"]):
+                c["ds"] = ds_links[c["oc"]]
+        ds_extra = sorted(set(ds_links) - {p["oc"] for p in products} - {c["oc"] for c in cables})
 
     # ---- 較清晰的照片來源 (選用)：清晰 PHOTO_GAIN 倍以上才替換，縮圖與放大照片一起換 ----
     swapped = []
@@ -561,7 +632,7 @@ def main():
             old.unlink()
         old_dir.rmdir()
     bundle = {}
-    for p in products:
+    for p in products + cables:                    # 天線與線材都可放大檢視
         raw = photos.get(p["oc"])
         if raw:
             bundle[p["oc"]] = "data:image/webp;base64," + base64.b64encode(raw).decode()
@@ -574,7 +645,7 @@ def main():
     data = {
         "version": a.version, "built": built, "source": a.xlsx.name,
         "revision": read_revision(wb),
-        "items": products, "modules": modules, "images": images,
+        "items": products, "cables": cables, "modules": modules, "images": images,
     }
     payload = json.dumps(data, ensure_ascii=False, separators=(",", ":"))
 
@@ -611,6 +682,9 @@ def main():
     certified = sum(1 for p in products if p.get("certs"))
     print(f"版本: v{a.version}  建置時間: {built}  Excel 版次: {data['revision'].get('rev')}")
     print(f"工具網址: {a.app_url or '(使用目前頁面網址)'}")
+    if cables:
+        print(f"線材來源: {cable_src}")
+        print(f"線材與接頭: {len(cables)} 款 (照片 {sum(1 for c in cables if c['oc'] in images)} 張，datasheet 連結 {sum(1 for c in cables if c.get('ds'))} 款)")
     print(f"天線: {len(products)}  (有 TELEC 認證: {certified})  模組: {len(modules)}  "
           f"認證組合 (☑): {sum(len(p.get('certs', [])) for p in products)}  圖片: {len(images)}")
     print(f"放大檢視照片: {len(photo_files)} 張，打包為 photos.json ({photo_mb:.1f} MB)")

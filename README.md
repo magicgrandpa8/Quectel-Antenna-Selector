@@ -1,7 +1,20 @@
 # Quectel 天線選型 · TELEC 認證 PWA
 
-目前版本：**v3.25.6**
+目前版本：**v3.26.0**
 資料來源：`Quectel_Antenna_Product_and_TELEC_Certification_*.xlsx`（單一 Excel）
+
+## 產品圖片檢查
+- 已檢查 319 款天線圖片與全部 318 份連結文件；更新 235 款圖片，保留 84 款較合適的現有圖。
+- 完整保留產品、線材、接頭及正反面視圖，加入白邊；縮圖上限 256px / q88、放大圖 1200px / q94，僅縮小不放大。
+- 放大檢視不強制放大照片；手機版規格維持兩欄排版。
+- 各 OC 檢查結果與來源記錄於 `data/photo_review.csv`。
+- YENA00L5AH 無 datasheet；YCGS010AA 封面是 EVB；YFGA010E3AM 連結文件實際為 YFGA225E3AM，這三款保留原圖。
+
+## 線材與接頭（Cable & Connector）
+- 工具上方可切換「天線｜線材與接頭」兩個頁面；兩頁的篩選條件分開保存，天線頁面的資料與規則不受影響。
+- 線材資料來源為獨立的 Excel（例如 `Quectel_Antenna_Product_Selector_V3_71_20261019.xlsx`）的「Cable&Connector」工作表，建置時以 `--cable-xlsx` 指定。
+- 建置後線材資料（含縮圖與放大照片）存於 `data/cables.json`；之後只更新天線時不需再提供線材 Excel，會自動沿用。
+- 線材的 Datasheet 按鈕只使用 `data/datasheet_links.csv` 中「任何人可檢視」且經未登入驗證的連結；沒有連結時不顯示按鈕。
 
 ## 功能
 - **TELEC 認證模組選單**：依類別分組（LPWA、LTE-Cat1 BIS、LTE-Cat1/4、5G/LTE-A、Auto、Smart、Short Range），顯示認證日期與已認證天線數；選定後只列出與該模組一起取得 TELEC 認證的天線
@@ -108,7 +121,7 @@ python3 build_data.py --version 3.2.1 \
 發佈後，使用者有網路時**第一次開啟**就會載入新版（等待網路上限 3.5 秒，逾時或離線則使用快取）；App 從背景切回時也會重新檢查新版本。
 
 接著 commit / push：`index.html`、`version.json`、`sw.js`（有修改時再加上 `template.html`）。
-App、README、使用說明與 GitHub 頁面都不放版本更新紀錄，只顯示目前版本。
+App 與 README 都不顯示版本更新紀錄。
 
 版本號：X 大改版 ／ Y 新功能 ／ Z 僅更新 Excel 資料或修正。
 
@@ -124,7 +137,6 @@ App、README、使用說明與 GitHub 頁面都不放版本更新紀錄，只顯
 | `tools/create_and_verify_all_links.ps1`、`tools/apply_datasheet_links.py` | 全部 datasheet 連結建立與未登入驗證、產生對照 Excel | ✅ |
 | `tools/release_prepare.py`、`tools/release_finalize.py` | 版本更新自動化（見 docs/RELEASE_PLAYBOOK.md） | ✅ |
 | `data/photo_datasheet_exclude.csv` | 不採用 datasheet 照片的料號與原因 | ✅ |
-| `data/photo_review.csv` | 各料號產品照片的檢查結果與來源 | 建議放在 repo |
 | `data/datasheet_links.csv` | Datasheet 連結對照表（PN → OneDrive 分享連結） | ✅ |
 | `photo_datasheet.json` | 從 datasheet 擷取的產品照片（`tools/extract_datasheet_photos.py` 產生） | ✅（有擷取時） |
 | `photo_overrides/` | 手動指定的產品照片（檔名為料號） | 建議放在 repo |

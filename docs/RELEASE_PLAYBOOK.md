@@ -110,6 +110,13 @@ python3 tools/export_guides.py          # 匯出四種語言的使用說明 PDF 
 Rev26.10（2026-10-31）的實際結果：328 份全部驗證 OK，而且網址和工具原本的連結完全相同，也就是原本的連結本來就是「任何人」連結。
 外部人士回報打不開時，先請對方用**無痕視窗**測試，排除瀏覽器登入了其他帳號的情況。
 
+## 線材與接頭（Cable & Connector）
+
+- 來源：獨立 Excel 的「Cable&Connector」工作表（目前為 `Quectel_Antenna_Product_Selector_V3_71_20261019.xlsx`）。天線仍只讀 TELEC 認證 Excel 的 PRO 頁面。
+- 更新線材時：`release_finalize.py`（或 `build_data.py`）加上 `--cable-xlsx <線材 Excel>`；資料會存成 `data/cables.json`。
+- 只更新天線時：不需要線材 Excel，build 會自動沿用 `data/cables.json`。
+- 線材 datasheet：用 `release_prepare.build_kit` 產生同樣的 Windows 一鍵程式（料號清單換成線材 OC），取得「任何人」連結並以未登入驗證後，再以 `release_finalize.py --links` 合併。
+
 ## 經驗與注意事項（Rev26.10 實際踩過的坑）
 
 | 問題 | 正確做法 |
