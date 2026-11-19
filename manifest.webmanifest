@@ -1,6 +1,6 @@
 {
   "id": "./",
-  "name": "Quectel 天線選型 · TELEC 認證",
+  "name": "Quectel 天線選型",
   "short_name": "天線選型",
   "description": "Quectel 天線產品選型與 TELEC 認證查詢，可離線使用",
   "lang": "zh-Hant-TW",
@@ -50,7 +50,7 @@
       "sizes": "1280x800",
       "type": "image/png",
       "form_factor": "wide",
-      "label": "天線選型與 TELEC 認證"
+      "label": "天線選型"
     },
     {
       "src": "screenshot-narrow.png",

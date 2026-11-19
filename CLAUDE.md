@@ -1,4 +1,4 @@
-# Quectel 天線選型 · TELEC 認證 PWA — Claude Code 專案說明
+# Quectel 天線選型 PWA — Claude Code 專案說明
 
 公開網站：https://magicgrandpa8.github.io/Quectel-Antenna-Selector/ （GitHub Pages，push 到 main 後約 1～2 分鐘自動部署）
 維護者：王柏寒 Andy Wang（andy.wang@pactw.com），以繁體中文溝通。

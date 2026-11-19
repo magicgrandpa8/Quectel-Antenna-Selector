@@ -983,7 +983,7 @@ html.embed .lg-wallpaper i { animation: none !important; }
 <script>
 "use strict";
 /* ==========================================================================
-   Quectel 天線選型 & TELEC 認證 PWA  v3
+   Quectel 天線選型 PWA
    - 單一資料來源：Antenna Product and TELEC Certification Excel
    - 資料、版本號、建置時間由 build_data.py 內嵌於 DATA
    ========================================================================== */
@@ -1034,7 +1034,7 @@ const NA = '__na__', NONE = '__none__', OTHER = '__other__';
    ========================================================================== */
 const I18N = {
   zh: {
-    brand: 'Quectel 天線選型 · TELEC',
+    brand: 'Quectel 天線選型',
     langAria: '語言',
     themeDark: '深色', themeLight: '淺色', themeAriaDark: '切換為深色模式', themeAriaLight: '切換為淺色模式',
     update: '檢查最新版本', updateAria: '清除快取並重新載入最新版本', updating: '正在清除快取並重新載入…',
@@ -1105,7 +1105,7 @@ const I18N = {
     datasheet: 'Datasheet', dsAria: '開啟 {oc} 的 Datasheet', dsOffline: 'Datasheet 需要網路連線',
   },
   en: {
-    brand: 'Quectel Antenna Selector · TELEC',
+    brand: 'Quectel Antenna Selector',
     langAria: 'Language',
     themeDark: 'Dark', themeLight: 'Light', themeAriaDark: 'Switch to dark mode', themeAriaLight: 'Switch to light mode',
     update: 'Check Latest Version', updateAria: 'Clear cache and reload the latest version', updating: 'Clearing cache and reloading…',
@@ -1176,7 +1176,7 @@ const I18N = {
     datasheet: 'Datasheet', dsAria: 'Open datasheet for {oc}', dsOffline: 'Datasheets need a network connection',
   },
   ja: {
-    brand: 'Quectel アンテナ選定 · TELEC', langAria: '言語',
+    brand: 'Quectel アンテナ選定', langAria: '言語',
     themeDark: 'ダーク', themeLight: 'ライト', themeAriaDark: 'ダークモードに切り替え', themeAriaLight: 'ライトモードに切り替え',
     update: '最新バージョンを確認', updateAria: 'キャッシュを削除して最新版を再読み込み', updating: 'キャッシュを削除して再読み込みしています…',
     newVersion: '新しいバージョン v{v} があります。「最新バージョンを確認」を押して適用してください。',
@@ -1245,7 +1245,7 @@ const I18N = {
     datasheet: 'Datasheet', dsAria: '{oc} のデータシートを開く', dsOffline: 'データシートの表示にはネットワーク接続が必要です',
   },
   ko: {
-    brand: 'Quectel 안테나 선정 · TELEC', langAria: '언어',
+    brand: 'Quectel 안테나 선정', langAria: '언어',
     themeDark: '다크', themeLight: '라이트', themeAriaDark: '다크 모드로 전환', themeAriaLight: '라이트 모드로 전환',
     update: '최신 버전 확인', updateAria: '캐시를 지우고 최신 버전을 다시 불러오기', updating: '캐시를 지우고 다시 불러오는 중…',
     newVersion: '새 버전 v{v}을(를) 사용할 수 있습니다. "최신 버전 확인"을 눌러 적용하세요.',
@@ -2436,7 +2436,7 @@ $('closeFilters').addEventListener('click', () => setFilters(false));
 const GUIDE = {
  "zh": {
   "agent": "<b>{agent}</b>：頁面標題「{title}」右側的按鈕，會開啟移遠天線 Agent 網站（需要網路）。",
-  "title": "Quectel 天線選型 · TELEC 認證",
+  "title": "Quectel 天線選型",
   "sub": "使用說明",
   "meta": [
    "App 版本 v{v}",
@@ -2520,11 +2520,11 @@ const GUIDE = {
    "資料來源為「Quectel Antenna Product and TELEC Certification」Excel，每季更新；正式資訊以 Excel 為準。",
    "LNA 增益、線材型號與線長取自 Excel；線長單位為 mm。IPEX 線徑依線材型號標示（例如 RF1.13 為 Φ1.13 mm），RG174 未標示線徑。"
   ],
-  "footer": "Quectel 天線選型 · TELEC 認證 — 使用說明"
+  "footer": "Quectel 天線選型 — 使用說明"
  },
  "en": {
   "agent": "<b>{agent}</b>: the button to the right of the page title \"{title}\" opens the Quectel Antenna Agent website (network required).",
-  "title": "Quectel Antenna Selector · TELEC Certification",
+  "title": "Quectel Antenna Selector",
   "sub": "User Guide",
   "meta": [
    "App version v{v}",
@@ -2608,11 +2608,11 @@ const GUIDE = {
    "Data comes from the \"Quectel Antenna Product and TELEC Certification\" Excel, updated quarterly. The Excel file is the authoritative source.",
    "LNA gain, cable type and cable length come from the Excel. Cable length is in mm. IPEX cable diameter follows the cable type (e.g. RF1.13 = Φ1.13 mm); RG174 diameter isn't listed."
   ],
-  "footer": "Quectel Antenna Selector · TELEC Certification — User Guide"
+  "footer": "Quectel Antenna Selector — User Guide"
  },
  "ja": {
   "agent": "<b>{agent}</b>：ページタイトル「{title}」の右側にあるボタンから、Quectel アンテナ Agent のサイトを開けます（ネットワーク接続が必要）。",
-  "title": "Quectel アンテナ選定 · TELEC 認証",
+  "title": "Quectel アンテナ選定",
   "sub": "ユーザーガイド",
   "meta": [
    "アプリのバージョン v{v}",
@@ -2696,11 +2696,11 @@ const GUIDE = {
    "データは「Quectel Antenna Product and TELEC Certification」Excel に基づき、四半期ごとに更新されます。正式な情報は Excel を参照してください。",
    "LNA ゲイン、ケーブルの型番と長さは Excel の値です。ケーブル長の単位は mm です。IPEX の線径はケーブルの型番に基づき（例：RF1.13 = Φ1.13 mm）、RG174 の線径は記載されていません。"
   ],
-  "footer": "Quectel アンテナ選定 · TELEC 認証 — ユーザーガイド"
+  "footer": "Quectel アンテナ選定 — ユーザーガイド"
  },
  "ko": {
   "agent": "<b>{agent}</b>: 페이지 제목 \"{title}\" 오른쪽의 버튼을 누르면 Quectel 안테나 Agent 사이트가 열립니다 (네트워크 연결 필요).",
-  "title": "Quectel 안테나 선정 · TELEC 인증",
+  "title": "Quectel 안테나 선정",
   "sub": "사용자 가이드",
   "meta": [
    "앱 버전 v{v}",
@@ -2784,7 +2784,7 @@ const GUIDE = {
    "데이터는 \"Quectel Antenna Product and TELEC Certification\" Excel을 기준으로 하며 분기마다 업데이트됩니다. 공식 정보는 Excel을 기준으로 합니다.",
    "LNA 이득, 케이블 모델과 길이는 Excel 값입니다. 케이블 길이 단위는 mm입니다. IPEX 지름은 케이블 모델을 따르며 (예: RF1.13 = Φ1.13 mm), RG174는 지름이 표시되지 않습니다."
   ],
-  "footer": "Quectel 안테나 선정 · TELEC 인증 — 사용자 가이드"
+  "footer": "Quectel 안테나 선정 — 사용자 가이드"
  }
 };
 
