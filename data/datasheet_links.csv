@@ -330,32 +330,113 @@ YFBX001WWAM,WIFI,Quectel_Wi-Fi_Antenna_YFBX001WWAM_Datasheet_V1.0.pdf,https://86
 YFTN201E3AM,NTN,Quectel_NTN_Antenna_YFTN201E3AM_Datasheet_V1.0.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQAthwVxiYgLRKCZNbL4VUmwAS0LS2jAGDNGm4vFioR2PaM
 YFTN202E3AM,NTN,Quectel_NTN_Antenna_YFTN202E3AM_Datasheet_V1.0.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQBlm_UQ6KESRKf-G1Kw_B6MAT5S_hpZycOfXJRPSXJmipI
 YSAN025AA,Cable Assembly,Quectel_Antenna_Cable_YSAN025AA_Datasheet_V1.0.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQDAnXgP5-wXS64J_vg3Gz5VAQmNx6AvqGAp6u_SEhhSdiY
-YSAN025BA,Cable Assembly,Quectel_Antenna_Cable_YSAN025xx_Datasheet_V1.1.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQCR395O7QEvR68aoHv6fKZ7AWkbHB9Rz3Aoj6daxpcOvUk
-YSAN025CA,Cable Assembly,Quectel_Antenna_Cable_YSAN025xx_Datasheet_V1.1.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQCR395O7QEvR68aoHv6fKZ7AWkbHB9Rz3Aoj6daxpcOvUk
-YSAN025DA,Cable Assembly,Quectel_Antenna_Cable_YSAN025xx_Datasheet_V1.1.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQCR395O7QEvR68aoHv6fKZ7AWkbHB9Rz3Aoj6daxpcOvUk
-YSAN025EA,Cable Assembly,Quectel_Antenna_Cable_YSAN025xx_Datasheet_V1.1.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQCR395O7QEvR68aoHv6fKZ7AWkbHB9Rz3Aoj6daxpcOvUk
+YSAN025BA,Cable Assembly,Quectel_Antenna_Cable_YSAN025BA_Datasheet_V1.0.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQBs4adN72mPQ62XkpesW-mBAYnFFa6YI3cA9_7R7f5-1ys
+YSAN025CA,Cable Assembly,Quectel_Antenna_Cable_YSAN025CA_Datasheet_V1.0.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQCwo_17aA6RQ59rDvfW5EtnAWsq5UgJj-DXAB0rjRET44g
+YSAN025DA,Cable Assembly,Quectel_Antenna_Cable_YSAN025DA_Datasheet_V1.0.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQBd8yfIPu9cRp3DL8nykZovAeKky-ilveLuF652f5sRdE4
+YSAN025EA,Cable Assembly,Quectel_Antenna_Cable_YSAN025EA_Datasheet_V1.0.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQCmlnBBBhmPTLz5NEk47oHwAU36EU_PtPadMR63h5mfbkA
 YLUN025EQAM,Cable Assembly,Quectel_Antenna_Cable_YLUN025EQAM_Datasheet_V1.0.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQDdpaNjdrvmRZXTyU5OodnlAZixG9bkKVZCChVQ4M44vEU
-YSAN026AA,Cable Assembly,Quectel_Antenna_Cable_YSAN026xx_Datasheet_V1.0.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQAmH6OPQY88RIevF7NeV8EtAVJJriedsLEUGrBx4ds2m5w
-YSAN026BA,Cable Assembly,Quectel_Antenna_Cable_YSAN026xx_Datasheet_V1.0.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQAmH6OPQY88RIevF7NeV8EtAVJJriedsLEUGrBx4ds2m5w
-YSAN026CA,Cable Assembly,Quectel_Antenna_Cable_YSAN026xx_Datasheet_V1.0.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQAmH6OPQY88RIevF7NeV8EtAVJJriedsLEUGrBx4ds2m5w
-YSAN026DA,Cable Assembly,Quectel_Antenna_Cable_YSAN026xx_Datasheet_V1.0.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQAmH6OPQY88RIevF7NeV8EtAVJJriedsLEUGrBx4ds2m5w
-YSAN026EA,Cable Assembly,Quectel_Antenna_Cable_YSAN026xx_Datasheet_V1.0.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQAmH6OPQY88RIevF7NeV8EtAVJJriedsLEUGrBx4ds2m5w
-YSAN027AA,Cable Assembly,Quectel_Antenna_Cable_YSAN027xx-Datasheet_V1.1.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQCdMKxNaZWkTbRcy-nBEwTuAUKrKxeButKtth5hVvZQzUs
-YSAN027BA,Cable Assembly,Quectel_Antenna_Cable_YSAN027xx-Datasheet_V1.1.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQCdMKxNaZWkTbRcy-nBEwTuAUKrKxeButKtth5hVvZQzUs
-YSAN027CA,Cable Assembly,Quectel_Antenna_Cable_YSAN027xx-Datasheet_V1.1.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQCdMKxNaZWkTbRcy-nBEwTuAUKrKxeButKtth5hVvZQzUs
-YSAN027DA,Cable Assembly,Quectel_Antenna_Cable_YSAN027xx-Datasheet_V1.1.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQCdMKxNaZWkTbRcy-nBEwTuAUKrKxeButKtth5hVvZQzUs
-YSAN027EA,Cable Assembly,Quectel_Antenna_Cable_YSAN027xx-Datasheet_V1.1.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQCdMKxNaZWkTbRcy-nBEwTuAUKrKxeButKtth5hVvZQzUs
+YSAN026AA,Cable Assembly,Quectel_Antenna_Cable_YSAN026AA_Datasheet_V1.0.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQBCgMxu7ziwQ50U6jFuIaCfAdcBMejdfeWPe9uiVdJxL9g
+YSAN026BA,Cable Assembly,Quectel_Antenna_Cable_YSAN026XX_Datasheet_V2.2.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQBSKXLtQtdMTIYkwaeHog3FAQQsi-ceNpgRcL6UR_rZ-Zk
+YSAN026CA,Cable Assembly,Quectel_Antenna_Cable_YSAN026XX_Datasheet_V2.2.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQBSKXLtQtdMTIYkwaeHog3FAQQsi-ceNpgRcL6UR_rZ-Zk
+YSAN026DA,Cable Assembly,Quectel_Antenna_Cable_YSAN026XX_Datasheet_V2.2.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQBSKXLtQtdMTIYkwaeHog3FAQQsi-ceNpgRcL6UR_rZ-Zk
+YSAN026EA,Cable Assembly,Quectel_Antenna_Cable_YSAN026XX_Datasheet_V2.2.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQBSKXLtQtdMTIYkwaeHog3FAQQsi-ceNpgRcL6UR_rZ-Zk
+YSAN027AA,Cable Assembly,Quectel_Antenna_Cable_YSAN027XX_Datasheet_V2.3.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQBMYx1lIgWoSaZU18hkSLlJAS6nVk013eQMLg53R44nJEE
+YSAN027BA,Cable Assembly,Quectel_Antenna_Cable_YSAN027XX_Datasheet_V2.3.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQBMYx1lIgWoSaZU18hkSLlJAS6nVk013eQMLg53R44nJEE
+YSAN027CA,Cable Assembly,Quectel_Antenna_Cable_YSAN027XX_Datasheet_V2.3.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQBMYx1lIgWoSaZU18hkSLlJAS6nVk013eQMLg53R44nJEE
+YSAN027DA,Cable Assembly,Quectel_Antenna_Cable_YSAN027XX_Datasheet_V2.3.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQBMYx1lIgWoSaZU18hkSLlJAS6nVk013eQMLg53R44nJEE
+YSAN027EA,Cable Assembly,Quectel_Antenna_Cable_YSAN027XX_Datasheet_V2.3.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQBMYx1lIgWoSaZU18hkSLlJAS6nVk013eQMLg53R44nJEE
 YLUN026EQAM,Cable Assembly,Quectel_Antenna_Cable_YLUN026EQAM_Datasheet_V1.0.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQCHT4evDv5vRbOWzeK0d5XZAUKm-MrusBAJmQiEhvnGG5c
-YSAN028AA,Cable Assembly,Quectel_Antenna_Cable_YSAN028xx-Datasheet_V1.0.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQDjfqFeZmHbRZqIr0Y6kPT4AZdPxoTpZDHrgJtgSNqC3eA
-YSAN028BA,Cable Assembly,Quectel_Antenna_Cable_YSAN028xx-Datasheet_V1.0.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQDjfqFeZmHbRZqIr0Y6kPT4AZdPxoTpZDHrgJtgSNqC3eA
-YSAN028CA,Cable Assembly,Quectel_Antenna_Cable_YSAN028xx-Datasheet_V1.0.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQDjfqFeZmHbRZqIr0Y6kPT4AZdPxoTpZDHrgJtgSNqC3eA
-YSAN028DA,Cable Assembly,Quectel_Antenna_Cable_YSAN028xx-Datasheet_V1.0.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQDjfqFeZmHbRZqIr0Y6kPT4AZdPxoTpZDHrgJtgSNqC3eA
-YSAN028EA,Cable Assembly,Quectel_Antenna_Cable_YSAN028xx-Datasheet_V1.0.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQDjfqFeZmHbRZqIr0Y6kPT4AZdPxoTpZDHrgJtgSNqC3eA
-YLUX013XQD,Cable Assembly,Quectel_Antenna_Cable_YLUX013XQD&E&F_Datasheet_V1.0.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQARRXGdK4yXTbeWrVUraZQMAXUWnNTMF7ZBN-5YIYrvPmU
-YLUX013XQR,Cable Assembly,Quectel_Antenna_Cable_YLUX013XQR_Datasheet_V1.0.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQAGX_Tpp5KkToCW27orFqxMAZJxCklrSlLjoHWG4nJrebY
-YLUX017XQK,Cable Assembly,Quectel_Antenna_Cable_YLUX017XQK&L&M_Datasheet_V1.0.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQC6CT3XKnZfS4jpcOxKlJ-bAbOLbHBKC3Cz5j6Ma_ZKy2w
-YSLT004W4AM,Connector,Quectel_Antenna_Connector_YSLT004W4AM_Datasheet_V1.0.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQDkcWaGEwX5T4ZDodD0TduDASyS2e6lUfBzmOIfq-VLdBI
-YLUX013XQE,Cable Assembly,Quectel_Antenna_Cable_YLUX013XQD&E&F_Datasheet_V1.0.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQARRXGdK4yXTbeWrVUraZQMAXUWnNTMF7ZBN-5YIYrvPmU
-YLUX013XQF,Cable Assembly,Quectel_Antenna_Cable_YLUX013XQD&E&F_Datasheet_V1.0.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQARRXGdK4yXTbeWrVUraZQMAXUWnNTMF7ZBN-5YIYrvPmU
-YLUX017XQL,Cable Assembly,Quectel_Antenna_Cable_YLUX017XQK&L&M_Datasheet_V1.0.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQC6CT3XKnZfS4jpcOxKlJ-bAbOLbHBKC3Cz5j6Ma_ZKy2w
-YLUX017XQM,Cable Assembly,Quectel_Antenna_Cable_YLUX017XQK&L&M_Datasheet_V1.0.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQC6CT3XKnZfS4jpcOxKlJ-bAbOLbHBKC3Cz5j6Ma_ZKy2w
+YSAN028AA,Cable Assembly,Quectel_Antenna_Cable_YSAN028XX_Datasheet_V2.2.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQCMeZmxyMXhSb8yDYfP8GJyAe9ZkWggY63xEVZBiGowZ_o
+YSAN028BA,Cable Assembly,Quectel_Antenna_Cable_YSAN028XX_Datasheet_V2.2.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQCMeZmxyMXhSb8yDYfP8GJyAe9ZkWggY63xEVZBiGowZ_o
+YSAN028CA,Cable Assembly,Quectel_Antenna_Cable_YSAN028XX_Datasheet_V2.2.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQCMeZmxyMXhSb8yDYfP8GJyAe9ZkWggY63xEVZBiGowZ_o
+YSAN028DA,Cable Assembly,Quectel_Antenna_Cable_YSAN028XX_Datasheet_V2.2.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQCMeZmxyMXhSb8yDYfP8GJyAe9ZkWggY63xEVZBiGowZ_o
+YSAN028EA,Cable Assembly,Quectel_Antenna_Cable_YSAN028XX_Datasheet_V2.2.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQCMeZmxyMXhSb8yDYfP8GJyAe9ZkWggY63xEVZBiGowZ_o
+YLUX013XQD,Cable Assembly,Quectel_Antenna_Cable_YLUX013XQD&E&F_Datasheet_V1.1.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQCbmNXIW6E2S6G5AnJnRvltAR5rqKPRDg8396-FN7B9Yt8
+YLUX013XQR,Cable Assembly,Quectel_Antenna_Cable_YLUX013XQR_Datasheet_V1.1.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQAxwhrf2q0xQL9SKptBFPw7AVcFz2CCFH9dkuRa-UnMRHw
+YLUX017XQK,Cable Assembly,Quectel_Antenna_Cable_YLUX017XQK&L&M_Datasheet_V1.1.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQBvsuSsIi1cSqSMx2vOq0-cAVD4bDndYwJQLKuIV3E5rQw
+YSLT004W4AM,Connector,Quectel_Antenna_Connector_YSLT004W4AM_Datasheet_V1.1.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQDHRc4JQe8ZRasthHpoZGbBAUqxSwPim0kLxwYEue-nZtI
+YLUX013XQE,Cable Assembly,Quectel_Antenna_Cable_YLUX013XQD&E&F_Datasheet_V1.1.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQCbmNXIW6E2S6G5AnJnRvltAR5rqKPRDg8396-FN7B9Yt8
+YLUX013XQF,Cable Assembly,Quectel_Antenna_Cable_YLUX013XQD&E&F_Datasheet_V1.1.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQCbmNXIW6E2S6G5AnJnRvltAR5rqKPRDg8396-FN7B9Yt8
+YLUX017XQL,Cable Assembly,Quectel_Antenna_Cable_YLUX017XQK&L&M_Datasheet_V1.1.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQBvsuSsIi1cSqSMx2vOq0-cAVD4bDndYwJQLKuIV3E5rQw
+YLUX017XQM,Cable Assembly,Quectel_Antenna_Cable_YLUX017XQK&L&M_Datasheet_V1.1.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQBvsuSsIi1cSqSMx2vOq0-cAVD4bDndYwJQLKuIV3E5rQw
+YLUN025FQAM,Cable Assembly,Quectel_Antenna_Cable_YLUN025FQAM_Datasheet_V1.0.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQBN5c7yrfD_QJ9Cdtu8nPVJARGkaFWMdZgc_5H63hb9NJY
+YLUN025GQAM,Cable Assembly,Quectel_Antenna_Cable_YLUN025GQAM_Datasheet_V1.0.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQCql_tphhwGQozC2Y90Q_fnAf6QAUUtlLdxX5HnqdT5M_0
+YLUN025JQAM,Cable Assembly,Quectel_Antenna_Cable_YLUN025JQAM_Datasheet_V1.0.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQCAUJZYKVZbQqnf_1tDj3SFAZa5UvO7QsOYOCOPzAwPS6g
+YLUN025EQRM,Cable Assembly,Quectel_Antenna_Cable_YLUN025EQRM_Datasheet_V1.0.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQBsSVQy-OfyRq105mcdL8rfAWf1JQOHxWS78hZBCf2wcBA
+YLUN025FQRM,Cable Assembly,Quectel_Antenna_Cable_YLUN025FQRM_Datasheet_V1.0.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQAv1YLdC2-XQ6YOutwhF0lMAYtQZrbz3vHbGNqQpeSvJ3U
+YLUN025GQRM,Cable Assembly,Quectel_Antenna_Cable_YLUN025GQRM_Datasheet_V1.0.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQDAnkziVpAvSanOfUXP20HOASBCgpB3NbIAyR37LFm6tgU
+YLUN025JQRM,Cable Assembly,Quectel_Antenna_Cable_YLUN025JQRM_Datasheet_V1.0.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQCMTp0mPjnXT63Ze2WJ0s1ZAYmzhQSclyuJIlDHLFnUd_s
+YLUN025KQRM,Cable Assembly,Quectel_Antenna_Cable_YLUN025KQRM_Datasheet_V1.0.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQCUm5W6gl0lRpeU376VgByuAbNjK53eXzp-u8ucrc43aR0
+YLUP025E2AC-CN,Cable Assembly,Quectel_Antenna_Cable_YLUP025E2AC-CN_Datasheet_V1.1.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQB3yKaD68WTTL7kyd1LA7gZAekcw6zMA2vEUvja3TopZMI
+YLUP025F2AC-CN,Cable Assembly,Quectel_Antenna_Cable_YLUP025F2AC-CN_Datasheet_V1.1.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQDqfbFpLDtnSK7COzH_nDTnARJ-5UiMgk_5M7DIaxBeBxo
+YLUP025G2AC-CN,Cable Assembly,Quectel_Antenna_Cable_YLUP025G2AC-CN_Datasheet_V1.0.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQAu6VNAG7hPRqyZ0AlpOZVtAZBMgjobynHOdeTDS8XLaBw
+YLUP025J2AC-CN,Cable Assembly,Quectel_Antenna_Cable_YLUP025J2AC-CN_Datasheet_V1.1.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQAHtACoL--STIxrvoE2twDYATNJagzYO1fuoyYEJVlXnA8
+YLUN026FQAM,Cable Assembly,Quectel_Antenna_Cable_YLUN026FQAM_Datasheet_V1.0.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQA-xpcElcTnTYWDijOb1JNRAVC8WVjjatZ8HZVipQy4q-M
+YLUN026GQAM,Cable Assembly,Quectel_Antenna_Cable_YLUN026GQAM_Datasheet_V1.0.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQDov3YbBHquSpuaOwFSalQQAYjUKiXisrNDpFHMbeDkuSI
+YLUN026HQAM,Cable Assembly,Quectel_Antenna_Cable_YLUN026HQAM_Datasheet_V1.0.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQDl9RnvUZdASqqUcRz5-4HZAUwCd8rEd8E_QPrpwfEuMN4
+YLUN026JQAM,Cable Assembly,Quectel_Antenna_Cable_YLUN026JQAM_Datasheet_V1.0.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQD-4261lgDxQqrLUaOMWH1IAagyw5JBO-_UPqgl7kw0_Rw
+YLUN026KQAM,Cable Assembly,Quectel_Antenna_Cable_YLUN026KQAM_Datasheet_V1.0.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQAjAlqYD1ABS4GbLZ80pfAlAVJc_xkA4BhbVXb9eVk5owM
+YLUP027E2AC-CN,Cable Assembly,Quectel_Antenna_Cable_YLUP027E2AC-CN_Datasheet_V1.1.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQAxTkvOfgWZRYNOR0e1KdBgATLus3O3lrPXreuZusWmHek
+YLUP027F2AC-CN,Cable Assembly,Quectel_Antenna_Cable_YLUP027F2AC-CN_Datasheet_V1.1.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQCSeXo5_o7gRYQHsFPqGrAgAROcxBfnBfNx3otjT_CZpZM
+YLUP027G2AC-CN,Cable Assembly,Quectel_Antenna_Cable_YLUP027G2AC-CN_Datasheet_V1.1.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQCcu02naxa4RIRiZ88BoU6MASW5V1x6D8yScgNutUcohqI
+YLUP027J2AC-CN,Cable Assembly,Quectel_Antenna_Cable_YLUP027J2AC-CN_Datasheet_V1.1.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQBnH91nq57DSJdAR_I1p6ZgAdEvGX1F_pfk6DfZvdTKpoA
+YLUN026EQRM,Cable Assembly,Quectel_Antenna_Cable_YLUN026EQRM _Datasheet_V1.0.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQCryZ10aK4yRae8miq3yW8OAZ4bPaJ5spsi7B9Xo7awQuA
+YLUN026FQRM,Cable Assembly,Quectel_Antenna_Cable_YLUN026FQRM _Datasheet_V1.0.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQCOdvnUj7vJRaujQZK8y9FDAVJw51MNaM5rCo6ktrLlYzA
+YLUN026GQRM,Cable Assembly,Quectel_Antenna_Cable_YLUN026GQRM _Datasheet_V1.0.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQBvAOIOW0IURo2Z6gXqTfaKAcomsvJa91ZM6Je0Nw5uGIU
+YLUN026JQRM,Cable Assembly,Quectel_Antenna_Cable_YLUN026JQRM _Datasheet_V1.0.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQBIhpvzUqGZTrwOh1FjRIrvAbsu-UNO9w-eBG6MB6p-I2M
+YLUN026KQRM,Cable Assembly,Quectel_Antenna_Cable_YLUN026KQRM_Datasheet_V1.0.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQC3cOjuPam9RYJODYd1bUvXASplbPQ23K5D1N6bYSuhtjI
+YLUX013XQA,Cable Assembly,Quectel_Antenna_Cable_YLUX013XQA&B&C_Datasheet_V1.1.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQDqpedS5O7qQZuyohaoaXhSAdOlddCYdWuM_DFnmao93oQ
+YLUX013XQG,Cable Assembly,Quectel_Antenna_Cable_YLUX013XQG&H&J_Datasheet_V1.1.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQDNe2f4dsthSbApRbBPhDXpAZr-qiKTu_Liq3rGB1_sNkY
+YLUX013XQK,Cable Assembly,Quectel_Antenna_Cable_YLUX013XQK&L&M_Datasheet_V1.1.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQBMBSxuRypKTq79GBSHHlsDAXjb5UpzIexTlQT4GZW92Qg
+YLUX013XQB,Cable Assembly,Quectel_Antenna_Cable_YLUX013XQA&B&C_Datasheet_V1.1.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQDqpedS5O7qQZuyohaoaXhSAdOlddCYdWuM_DFnmao93oQ
+YLUX013XQH,Cable Assembly,Quectel_Antenna_Cable_YLUX013XQG&H&J_Datasheet_V1.1.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQDNe2f4dsthSbApRbBPhDXpAZr-qiKTu_Liq3rGB1_sNkY
+YLUX013XQL,Cable Assembly,Quectel_Antenna_Cable_YLUX013XQK&L&M_Datasheet_V1.1.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQBMBSxuRypKTq79GBSHHlsDAXjb5UpzIexTlQT4GZW92Qg
+YLUX013XQC,Cable Assembly,Quectel_Antenna_Cable_YLUX013XQA&B&C_Datasheet_V1.1.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQDqpedS5O7qQZuyohaoaXhSAdOlddCYdWuM_DFnmao93oQ
+YLUX013XQJ,Cable Assembly,Quectel_Antenna_Cable_YLUX013XQG&H&J_Datasheet_V1.1.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQDNe2f4dsthSbApRbBPhDXpAZr-qiKTu_Liq3rGB1_sNkY
+YLUX013XQM,Cable Assembly,Quectel_Antenna_Cable_YLUX013XQK&L&M_Datasheet_V1.1.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQBMBSxuRypKTq79GBSHHlsDAXjb5UpzIexTlQT4GZW92Qg
+YLUX013XQN,Cable Assembly,Quectel_Antenna_Cable_YLUX013XQN_Datasheet_V1.1.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQA0OZ0CTcL3Sp9eyTt69QPfAf2ZNno6EUFyX2Xdjsqnn4E
+YLUX013XQP,Cable Assembly,Quectel_Antenna_Cable_YLUX013XQP_Datasheet_V1.1.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQBl5ikbsG3yR7Pk49p0WmidAYHSn3Gzbp2NMLgJ0KOe5UU
+YLUX013XQQ,Cable Assembly,Quectel_Antenna_Cable_YLUX013XQQ_Datasheet_V1.1.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQAkpum2NXLKTpgOx6pAW27PASkctQEsqC_bN7nUotxSiG4
+YLUX016XQA,Cable Assembly,Quectel_Antenna_Cable_YLUX016XQA&B&C_Datasheet_V1.1.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQCxexDyxuMNRJbN2xbAFHARAT6Trl-KvoDpsyHk3ovDToI
+YLUX016XQD,Cable Assembly,Quectel_Antenna_Cable_YLUX016XQD&E&F_Datasheet_V1.1.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQCfXwTvZR9rT47csJdX0JhWAersAF58VCuW_jwV6MjhDIs
+YLUX016XQG,Cable Assembly,Quectel_Antenna_Cable_YLUX016XQG&H&J_Datasheet_V1.1.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQBvEKHWBua2S4P8IPdO48xRATjJRNJ3O50JiTWaqP_1xIs
+YLUX016XQK,Cable Assembly,Quectel_Antenna_Cable_YLUX016XQK&L&M_Datasheet_V1.1.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQC-Bn3s5EvcRKIiUtAHBdPUAVLFBH3bFmet7hpBumDNgXo
+YLUX016XQB,Cable Assembly,Quectel_Antenna_Cable_YLUX016XQA&B&C_Datasheet_V1.1.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQCxexDyxuMNRJbN2xbAFHARAT6Trl-KvoDpsyHk3ovDToI
+YLUX016XQE,Cable Assembly,Quectel_Antenna_Cable_YLUX016XQD&E&F_Datasheet_V1.1.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQCfXwTvZR9rT47csJdX0JhWAersAF58VCuW_jwV6MjhDIs
+YLUX016XQH,Cable Assembly,Quectel_Antenna_Cable_YLUX016XQG&H&J_Datasheet_V1.1.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQBvEKHWBua2S4P8IPdO48xRATjJRNJ3O50JiTWaqP_1xIs
+YLUX016XQL,Cable Assembly,Quectel_Antenna_Cable_YLUX016XQK&L&M_Datasheet_V1.1.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQC-Bn3s5EvcRKIiUtAHBdPUAVLFBH3bFmet7hpBumDNgXo
+YLUX016XQC,Cable Assembly,Quectel_Antenna_Cable_YLUX016XQA&B&C_Datasheet_V1.1.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQCxexDyxuMNRJbN2xbAFHARAT6Trl-KvoDpsyHk3ovDToI
+YLUX016XQF,Cable Assembly,Quectel_Antenna_Cable_YLUX016XQD&E&F_Datasheet_V1.1.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQCfXwTvZR9rT47csJdX0JhWAersAF58VCuW_jwV6MjhDIs
+YLUX016XQJ,Cable Assembly,Quectel_Antenna_Cable_YLUX016XQG&H&J_Datasheet_V1.1.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQBvEKHWBua2S4P8IPdO48xRATjJRNJ3O50JiTWaqP_1xIs
+YLUX016XQM,Cable Assembly,Quectel_Antenna_Cable_YLUX016XQK&L&M_Datasheet_V1.1.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQC-Bn3s5EvcRKIiUtAHBdPUAVLFBH3bFmet7hpBumDNgXo
+YLUX017XQA,Cable Assembly,Quectel_Antenna_Cable_YLUX017XQA&B&C_Datasheet_V1.1.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQDWPsuQbJm7QZ_v-gXLFyNnATTxgbawapNUgV2qfuaQSE8
+YLUX017XQD,Cable Assembly,Quectel_Antenna_Cable_YLUX017XQD&E&F_Datasheet_V1.1.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQCdQyTeke5MTJDZFrsF__5dAT66x3HEmZCu1vDHjJn_xWY
+YLUX017XQG,Cable Assembly,Quectel_Antenna_Cable_YLUX017XQG&H&J_Datasheet_V1.1.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQArHnP4p05QSJ9Vh_OJoU-9AWx4Au-fCxc6_qJ2mho3oF8
+YLUX017XQB,Cable Assembly,Quectel_Antenna_Cable_YLUX017XQA&B&C_Datasheet_V1.1.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQDWPsuQbJm7QZ_v-gXLFyNnATTxgbawapNUgV2qfuaQSE8
+YLUX017XQE,Cable Assembly,Quectel_Antenna_Cable_YLUX017XQD&E&F_Datasheet_V1.1.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQCdQyTeke5MTJDZFrsF__5dAT66x3HEmZCu1vDHjJn_xWY
+YLUX017XQH,Cable Assembly,Quectel_Antenna_Cable_YLUX017XQG&H&J_Datasheet_V1.1.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQArHnP4p05QSJ9Vh_OJoU-9AWx4Au-fCxc6_qJ2mho3oF8
+YLUX017XQC,Cable Assembly,Quectel_Antenna_Cable_YLUX017XQA&B&C_Datasheet_V1.1.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQDWPsuQbJm7QZ_v-gXLFyNnATTxgbawapNUgV2qfuaQSE8
+YLUX017XQF,Cable Assembly,Quectel_Antenna_Cable_YLUX017XQD&E&F_Datasheet_V1.1.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQCdQyTeke5MTJDZFrsF__5dAT66x3HEmZCu1vDHjJn_xWY
+YLUX017XQJ,Cable Assembly,Quectel_Antenna_Cable_YLUX017XQG&H&J_Datasheet_V1.1.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQArHnP4p05QSJ9Vh_OJoU-9AWx4Au-fCxc6_qJ2mho3oF8
+YLUX030LLAM,Cable Assembly,Quectel_Antenna_Cable_YLUX030LLAM_Datasheet_V1.1.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQCd6hs4ZFfVRr-EwCGGI7XdAYKijL2gUyHFg75Od62X6z4
+YLUX031NLAM,Cable Assembly,Quectel_Antenna_Cable_YLUX031NLAM_Datasheet_V1.2.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQB20W9N8PwUQI_VRrqKpBReAaxpKzkx3NXQm4ao3L7JXCc
+YLUX032QLAM,Cable Assembly,Quectel_Antenna_Cable_YLUX032QLAM_Datasheet_V1.2.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQCVoElcnuC3RLsRhXMNAEsmAUOGwqOvwKfJACW8bEXFEbs
+YLUX033ULAM,Cable Assembly,Quectel_Antenna_Cable_YLUX033ULAM_Datasheet_V1.2.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQDa-8VuGmwIR75Aip7juWKQAV9fYT8bMSfiW9paUzwVxNA
+YLUX034LLAM,Cable Assembly,Quectel_Antenna_Cable_YLUX034LLAM_Datasheet_V1.1.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQAlfh8Cgh5_T5zWf7uguX8LAe0AOJ4PsCEfVqyMuaW3Q2Y
+YLUX035NLAM,Cable Assembly,Quectel_Antenna_Cable_YLUX035NLAM_Datasheet_V1.2.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQDNJ5LFjoG4SoeMceEL62V6AeknkKzyHJCHcTSqbzqM1Rs
+YLUX036QLAM,Cable Assembly,Quectel_Antenna_Cable_YLUX036QLAM_Datasheet_V1.2.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQCsRGt3pdr1RY9ZLqKqZo2rAfZKG7rwph2SheT-Ox3lxVQ
+YLUX037ULAM,Cable Assembly,Quectel_Antenna_Cable_YLUX037ULAM_Datasheet_V1.2.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQDAtFt4Jpe9RL4AqbPb83_1AVqb-OnXra_KRjosL6jySUo
+YLUX038LLAM,Cable Assembly,Quectel_Antenna_Cable_YLUX038LLAM_Datasheet_V1.2.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQAoR7IndXOyRYMs_7sNitOuASABOj-wLW0QqQw067y9R9k
+YLUX039NLAM,Cable Assembly,Quectel_Antenna_Cable_YLUX039NLAM_Datasheet_V1.2.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQBSdRi71_8DRLLMxpiGVUIqAanep42pcCZ4DQl1HWmAJKE
+YLUX040QLAM,Cable Assembly,Quectel_Antenna_Cable_YLUX040QLAM_Datasheet_V1.2.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQC2kOOtcU-XRau71pyFf5bzAf8Sm-jQcJQGPyjM3P8OtH0
+YLUX041ULAM,Cable Assembly,Quectel_Antenna_Cable_YLUX041ULAM_Datasheet_V1.2.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQDvoNQrT-TbTJbivX3EDaOxAbo1lkZgsblfWxYqqXXsH3M
+YEGX000Q1AM,Cable Assembly,Quectel_Antenna_Cable_YEGX000Q1AM_Datasheet_V1.2.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQAnMp8ShKARQY_NaiZcARXaAb33nk4hl_9Ygu1HTor7oiU
+YLUT025UBAM,Cable Assembly,Quectel_Antenna_Cable_YLUT025UBAM_Datasheet_V1.0.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQBhTIh2jcsyRpPZEdTnyeEYAalupFke1Obmp2Il_VC5gDY
+YLUN001GQAH,Cable Assembly,Quectel_Antenna_Cable_YLUN001GQAH_Datasheet_V1.0.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQDEpOLFSv0EQJHXiIlHilcKATeT4y9BhRdE6RKRHnnmmpk
+YLUN002GQAH,Cable Assembly,Quectel_Antenna_Cable_YLUN002GQAH_Datasheet_V1.0.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQDi28sV4wwzTY7KdNT6EgXYAU8pIx4EQWi0jzKiQrzyYfw
+YSLT001W3AM,Connector,Quectel_Antenna_Connector_YSLT001W3AM_Datasheet_V1.1.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQDSdpZT5x91Q5VRbd3Nzgo0Ac053LmE9lawyJaJ4t9hvow
+YSLT001W3BM,Connector,Quectel_Antenna_Connector_YSLT001W3BM_Datasheet_V1.0.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQBNtOdBWn8ASJ1BkoqImV-SARCWYksNRIBus2gN_dWtjZg
+YSLT004W3BM,Connector,Quectel_Antenna_Connector_YSLT004W3BM_Datasheet_V1.1.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQDPaQD_mHIsSpW59Xocxxv2Aacn9d8QzYgSmH-VLeRhNz0
+YSLT006W2AM,Connector,Quectel_Antenna_Connector_YSLT006W2AM_Datasheet_V1.1.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQDoaBX6fsG2Q7D1h3sZ6c_IAUTOrOVECnvgZXpZ1TKkFR0
+YSLT006W2BM,Connector,Quectel_Antenna_Connector_YSLT006W2BM_Datasheet_V1.1.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQCyb8PS8oaoSoiTM-56A7e1ATEF0KruxAVLOhTORwYAivA
+YHXSL106W2AC,Connector,Quectel_Antenna_Connector_YHXSL106W2AC_Datasheet_V1.0.pdf,https://86131733-my.sharepoint.com/:b:/g/personal/andy_wang_pactw_com/IQCkeoVsSCzVQrUujlGOA5zmAaFXBlGCPTnT6eGfDEG1fic
