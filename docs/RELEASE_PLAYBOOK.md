@@ -115,7 +115,8 @@ Rev26.10（2026-10-31）的實際結果：328 份全部驗證 OK，而且網址�
 - 來源：獨立 Excel 的「Cable&Connector」工作表（目前為 `Quectel_Antenna_Product_Selector_V3_71_20261019.xlsx`）。天線仍只讀 TELEC 認證 Excel 的 PRO 頁面。
 - 更新線材時：`release_finalize.py`（或 `build_data.py`）加上 `--cable-xlsx <線材 Excel>`；資料會存成 `data/cables.json`。
 - 只更新天線時：不需要線材 Excel，build 會自動沿用 `data/cables.json`。
-- 線材 datasheet：用 `release_prepare.build_kit` 產生同樣的 Windows 一鍵程式（料號清單換成線材 OC），取得「任何人」連結並以未登入驗證後，再以 `release_finalize.py --links` 合併。
+- 線材 datasheet：位於 `Antenna service\02 Antenna Cable Datasheet`，部分新品散落在 OneDrive 其他資料夾。用 `release_prepare.build_kit(..., 'Cable', sources=[CABLE_SOURCE_REL, SOURCE_REL])` 產生一鍵程式（依序搜尋 02 → 01 → 整個 OneDrive；料號完全相符優先，否則接受系列檔 `YSAN025xx`）。取得「任何人」連結並以未登入驗證後，以 `release_finalize.py --links <CSV> --pdf-dir <PDF>` 合併連結並擷取照片（系列檔會依 CSV 對應到每個料號）。
+- 線材照片：Excel 內嵌照片只有約 110 px，清晰照片來自 datasheet 封面。
 
 ## 經驗與注意事項（Rev26.10 實際踩過的坑）
 

@@ -40,6 +40,7 @@ SKIP_SHEETS = {"Histories", "ModuleList"}
 # 本機 OneDrive 路徑 (Windows 程式使用)
 ONEDRIVE_ROOT = r"C:\Users\gogol\OneDrive - 金碗國際股份有限公司"
 SOURCE_REL = r"Antenna service\01 Antenna Datasheet"
+CABLE_SOURCE_REL = r"Antenna service\02 Antenna Cable Datasheet"   # 線材 datasheet
 SHARE_REL = r"Customer\Antenna FAE\0.For Customer\Quectel_Antenna_Selector\V3.7_20260916_Rev26.Q3"
 
 
@@ -309,7 +310,7 @@ PS_TEMPLATE = r'''# ============================================================
 # ============================================================================
 $ErrorActionPreference = 'Stop'
 $Root        = '{ROOT}'
-$Source      = Join-Path $Root '{SOURCE}'
+$Sources     = @({SOURCES})   # 依序搜尋；都找不到時搜尋整個 OneDrive
 $Destination = Join-Path $Root '{SHARE}'
 $GraphFolder = '{GRAPH_FOLDER}'
 $UploadDir   = Join-Path ([Environment]::GetFolderPath('Desktop')) '{REV}_for_Claude'
@@ -317,14 +318,36 @@ $Items = @(
 {ITEMS}
 )
 
-function Find-Datasheet([string]$oc) {{
-    $pat = '(?:^|[_&])' + [regex]::Escape($oc) + '(?:[_&])'
-    $c = Get-ChildItem -LiteralPath $Source -Recurse -File -Filter '*.pdf' -ErrorAction SilentlyContinue | Where-Object {{ $_.Name -match $pat }}
+# 每個搜尋位置的 PDF 清單只讀取一次 (加快速度)
+$script:pdfCache = @{{}}
+function Get-Pdfs([string]$dir) {{
+    if (-not $script:pdfCache.ContainsKey($dir)) {{
+        $script:pdfCache[$dir] = @(Get-ChildItem -LiteralPath $dir -Recurse -File -Filter '*.pdf' -ErrorAction SilentlyContinue)
+    }}
+    $script:pdfCache[$dir]
+}}
+# 料號完全相符優先；沒有時接受系列 datasheet (料號最後 2 碼寫成 xx，例如 YSAN025xx)
+function Pick([object[]]$c) {{
     if (-not $c) {{ return $null }}
     $c | Sort-Object @{{ Expression = {{ if ($_.Name -match '^Preliminary') {{ 1 }} else {{ 0 }} }} }},
                      @{{ Expression = {{ if ($_.Name -match 'Datasheet') {{ 0 }} else {{ 1 }} }} }},
-                     @{{ Expression = {{ if ($_.Name -match '_V(\d+)[._](\d+)') {{ - ([int]$Matches[1] * 1000 + [int]$Matches[2]) }} else {{ 0 }} }} }} |
+                     @{{ Expression = {{ if ($_.Name -match '_V(\d+)[._](\d+)') {{ - ([int]$Matches[1] * 1000 + [int]$Matches[2]) }} else {{ 0 }} }} }},
+                     @{{ Expression = {{ if ($_.BaseName -match '(\s\d+|\s?\(\d+\))$') {{ 1 }} else {{ 0 }} }} }},
+                     @{{ Expression = {{ $_.Name.Length }} }} |
          Select-Object -First 1
+}}
+function Find-Datasheet([string]$oc) {{
+    $exact = '(?:^|[_&])' + [regex]::Escape($oc) + '(?:[_&-])'
+    $series = if ($oc.Length -gt 4) {{ '(?:^|[_&])' + [regex]::Escape($oc.Substring(0, $oc.Length - 2)) + '[xX]{{2}}(?:[_&-])' }} else {{ $null }}
+    $dirs = @($Sources | ForEach-Object {{ Join-Path $Root $_ }} | Where-Object {{ Test-Path -LiteralPath $_ }}) + @($Root)
+    foreach ($pat in @($exact, $series)) {{
+        if (-not $pat) {{ continue }}
+        foreach ($d in $dirs) {{
+            $hit = Pick (Get-Pdfs $d | Where-Object {{ $_.Name -match $pat -and $_.FullName -notlike "$Destination*" }})
+            if ($hit) {{ return $hit }}
+        }}
+    }}
+    return $null
 }}
 function Encode-Path([string]$p) {{ ($p -split '/' | ForEach-Object {{ [uri]::EscapeDataString($_) }}) -join '/' }}
 # 未登入驗證：全新工作階段 (沒有 cookie、沒有帳號) 開啟連結；最後停在登入頁 = 不是公開連結
@@ -340,7 +363,7 @@ function Test-Anonymous([string]$url) {{
 
 Write-Host ''
 Write-Host '=== {REV} datasheet：複製 + 建立連結 ===' -ForegroundColor Cyan
-foreach ($d in @($Source, $Destination)) {{
+foreach ($d in @((Join-Path $Root $Sources[0]), $Destination)) {{
     if (-not (Test-Path -LiteralPath $d)) {{ Write-Host "找不到資料夾 (請確認 OneDrive 已同步)：$d" -ForegroundColor Red; Read-Host '按 Enter 結束'; exit 1 }}
 }}
 New-Item -ItemType Directory -Force -Path $UploadDir | Out-Null
@@ -403,9 +426,10 @@ Read-Host '按 Enter 結束'
 '''
 
 
-def build_kit(diff: dict, kit: Path, rev: str) -> None:
+def build_kit(diff: dict, kit: Path, rev: str, sources: list[str] | None = None) -> None:
     items = ",\n".join(f"    @{{ PN='{oc}'; Type='{diff['added_types'].get(oc) or ''}'; File='' }}" for oc in diff["added"])
-    ps = PS_TEMPLATE.format(REV=rev, ROOT=ONEDRIVE_ROOT, SOURCE=SOURCE_REL, SHARE=SHARE_REL,
+    srcs = sources or [SOURCE_REL]
+    ps = PS_TEMPLATE.format(REV=rev, ROOT=ONEDRIVE_ROOT, SOURCES=", ".join("'" + x + "'" for x in srcs), SHARE=SHARE_REL,
                             GRAPH_FOLDER=SHARE_REL.replace("\\", "/"), ITEMS=items or "")
     bat = ("@echo off\r\nREM Double-click: copy new datasheets, create sharing links, collect files for Claude\r\n"
            f'powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0datasheet_{rev}.ps1"\r\n')

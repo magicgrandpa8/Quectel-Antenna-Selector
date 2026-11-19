@@ -72,7 +72,22 @@ def main():
         ch = merge_links(a.links)
         print(f"datasheet 連結：合併 {len(ch)} 筆 {ch}")
     if a.pdf_dir:
-        r = subprocess.run([sys.executable, str(ROOT / "tools" / "extract_datasheet_photos.py"), str(a.pdf_dir)],
+        pdf_dir = a.pdf_dir
+        # 系列 datasheet (例如 YSAN025xx) 的檔名沒有個別料號：依連結 CSV 為每個料號準備一份以料號開頭的檔案
+        if a.links:
+            import shutil, tempfile
+            stage = Path(tempfile.mkdtemp(prefix="ds_stage_"))
+            n = 0
+            for r in csv.DictReader(open(a.links, encoding="utf-8-sig", newline="")):
+                pn, fn = (r.get("PN") or "").strip(), (r.get("Datasheet_File") or "").strip()
+                src = a.pdf_dir / fn
+                if pn and fn and src.exists():
+                    shutil.copy(src, stage / f"{pn}_{fn}")
+                    n += 1
+            if n:
+                pdf_dir = stage
+                print(f"照片擷取：依連結 CSV 對應 {n} 個料號的 datasheet")
+        r = subprocess.run([sys.executable, str(ROOT / "tools" / "extract_datasheet_photos.py"), str(pdf_dir)],
                            cwd=ROOT, capture_output=True, text=True)
         print("照片擷取：" + "\n".join(l for l in r.stdout.splitlines() if l.startswith("PDF")))
         if r.returncode:

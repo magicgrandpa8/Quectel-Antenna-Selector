@@ -595,7 +595,7 @@ def main():
         import csv as _csv
         ds_excl = {r["PN"].strip() for r in _csv.DictReader(open(excl_path, encoding="utf-8-sig")) if r.get("PN")}
     if a.datasheet_photos.exists():
-        known = {p["oc"] for p in products} - ds_excl
+        known = ({p["oc"] for p in products} | {c["oc"] for c in cables}) - ds_excl   # 天線與線材都可使用 datasheet 照片
         for oc, uri in json.loads(a.datasheet_photos.read_text(encoding="utf8")).items():
             if oc not in known:
                 continue
@@ -626,7 +626,7 @@ def main():
 
     # ---- 放大檢視用照片：全部打包成單一檔案 photos.json ({料號: WebP data URI}) ----
     # 單一檔案方便以 GitHub 網頁上傳 (一次上限 100 個檔案)，也不會留下過期的舊照片檔
-    old_dir = a.out.parent / "photos"            # v3.14.0 曾使用的資料夾，若存在則清除
+    old_dir = a.out.parent / "photos"            # 舊版曾使用的照片資料夾，若存在則清除
     if old_dir.exists():
         for old in old_dir.glob("*"):
             old.unlink()

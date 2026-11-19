@@ -53,7 +53,7 @@ def load_app_data():
     if photos_path.exists():
         for oc, uri in json.loads(photos_path.read_text(encoding="utf8")).items():
             sizes[oc] = max(Image.open(io.BytesIO(base64.b64decode(uri.split(",", 1)[1]))).size)
-    return [p["oc"] for p in data["items"]], sizes
+    return [p["oc"] for p in data["items"]] + [c["oc"] for c in data.get("cables", [])], sizes   # 天線與線材
 
 
 def find_oc(pdf_path: Path, doc, ocs_sorted: list[str]) -> str | None:
