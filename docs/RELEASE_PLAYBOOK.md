@@ -133,3 +133,8 @@ Rev26.10（2026-10-31）的實際結果：328 份全部驗證 OK，而且網址�
 | OneDrive 搜尋索引常常查不到新檔案 | 以讀取資料夾清單為準（每頁 200 筆，依檔名排序） |
 | 資料夾的「任何人」連結，不保證能直接打開資料夾裡的個別檔案 | 每份檔案使用自己的「任何人」連結，並在使用者電腦上以未登入的方式驗證（Claude 的沙箱連不到 SharePoint，連接器也查不到分享權限） |
 | 沙箱環境可能被重置 | 一切以 GitHub 為準；Excel 由使用者重新提供；套件需要重新安裝 |
+| 合併檔名的 datasheet（例如 `YLUX013XQD&E&F`）只對應到第一個料號；檔名中料號後有空白（`… _Datasheet`）也對不到 | 一鍵程式的比對規則：完全相符 → 合併檔名 → 系列檔（`xx`），料號後允許空白（`release_prepare.py` 已處理） |
+| 連結 CSV 中找不到 datasheet 的料號，會以空白連結加進 `data/datasheet_links.csv` | 傳給 `release_finalize.py --links` 前，只保留 `Anonymous_Check = OK` 且有網址的列 |
+| 在 Windows 執行時，子程序輸出以系統編碼 (cp950) 解碼失敗；`/tmp` 不存在 | 設定 `PYTHONUTF8=1`；`release_finalize.py` 已改用 UTF-8 與系統暫存資料夾 |
+| 建置環境的圖片套件版本不同，未變動的天線縮圖與照片也會產生壓縮差異 | 建置後與上一版比對，把未變動料號的 `DATA.images` 與 `photos.json` 換回上一版，只 commit 真正的變動 |
+| 舊版系列 datasheet 封面擷取到的是色塊圖形而非產品照片 | 逐張比對新舊照片；不合格的加入 `data/photo_datasheet_exclude.csv`，換新版 datasheet 後再重新檢查 |
