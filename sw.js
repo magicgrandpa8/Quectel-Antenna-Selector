@@ -10,6 +10,7 @@
  *  - 產品照片 (photos.json)：安裝時預先快取，離線也能放大檢視。
  *  - Datasheet：連到外部 OneDrive 分享連結，Service Worker 不攔截也不快取 (外部網域一律不處理)。
  *  - version.json：一律走網路，供 App 偵測新版本；離線時回 503。
+ *  - Web App Manifest：優先從網路取得，供瀏覽器更新已安裝 App 的圖示。
  *  - 不使用任何外部網域資源。
  *
  * CACHE_VERSION 由 build_data.py --version 自動改寫，請勿手動修改。
@@ -18,15 +19,15 @@
 /** 開啟 App 時等待網路的上限 (毫秒)；超過即改用快取，確保開啟速度 */
 const NAV_TIMEOUT_MS = 3500;
 
-const CACHE_VERSION = 'antenna-selector-v3.27.2';
+const CACHE_VERSION = 'antenna-selector-v3.27.3';
 
 const APP_SHELL = [
   './',
   './index.html',
   './manifest.webmanifest',
-  './quectel-icon-192.png',
-  './quectel-icon-512.png',
-  './quectel-icon-maskable-512.png',
+  './quectel-desktop-icon-192.png',
+  './quectel-desktop-icon-512.png',
+  './quectel-desktop-icon-maskable-512.png',
   './apple-touch-icon.png',
   './screenshot-wide.png',
   './screenshot-narrow.png',
@@ -98,6 +99,18 @@ self.addEventListener('fetch', (event) => {
       if (res && res.ok) return res;
       event.waitUntil(network);           // 逾時：先給快取，背景繼續更新
       return cached;
+    })());
+    return;
+  }
+
+  // 讓瀏覽器的安裝資訊檢查在有網路時取得最新版；離線時沿用快取。
+  if (url.pathname === new URL('./manifest.webmanifest', self.registration.scope).pathname) {
+    event.respondWith((async () => {
+      const cache = await caches.open(CACHE_VERSION);
+      const manifest = new Request(req, { signal: AbortSignal.timeout(NAV_TIMEOUT_MS) });
+      const response = await refresh(cache, manifest, './manifest.webmanifest');
+      if (response?.ok) return response;
+      return (await cache.match('./manifest.webmanifest')) || response || new Response('', { status: 503 });
     })());
     return;
   }
