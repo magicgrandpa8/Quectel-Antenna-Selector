@@ -1,6 +1,6 @@
 # Quectel 天線選型 PWA
 
-目前版本：**v3.27.3**
+目前版本：**v3.27.4**
 資料來源：`Quectel_Antenna_Product_and_TELEC_Certification_*.xlsx`（單一 Excel）
 
 ## 線材與接頭（Cable & Connector）

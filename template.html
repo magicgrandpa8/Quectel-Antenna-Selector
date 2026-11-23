@@ -1037,8 +1037,10 @@ const I18N = {
     brand: 'Quectel 天線選型',
     langAria: '語言',
     themeDark: '深色', themeLight: '淺色', themeAriaDark: '切換為深色模式', themeAriaLight: '切換為淺色模式',
-    update: '檢查最新版本', updateAria: '清除快取並重新載入最新版本', updating: '正在清除快取並重新載入…',
-    newVersion: '伺服器有新版本 v{v}，按「檢查最新版本」套用',
+    desktopIconTitle: "桌面圖示顯示空白？",
+    desktopIconHelp: "在原本安裝工具的瀏覽器中重建捷徑：Chrome 開啟 chrome://apps，右鍵點天線選型並選「建立捷徑」；Edge 開啟 edge://apps，點天線選型的「詳細資訊」並選「建立桌面捷徑」。",
+    update: '更新至最新版本', updateAria: '清除快取並重新載入最新版本', updating: '正在清除快取並重新載入…',
+    newVersion: '伺服器有新版本 v{v}，按「更新至最新版本」套用',
     verAria: '版本資訊',
     mTitle: '天線選型', mSub: '用篩選條件找出合適的天線，或直接向移遠天線Agent說明您的需求',
    
@@ -1108,8 +1110,10 @@ const I18N = {
     brand: 'Quectel Antenna Selector',
     langAria: 'Language',
     themeDark: 'Dark', themeLight: 'Light', themeAriaDark: 'Switch to dark mode', themeAriaLight: 'Switch to light mode',
-    update: 'Check Latest Version', updateAria: 'Clear cache and reload the latest version', updating: 'Clearing cache and reloading…',
-    newVersion: 'Version v{v} is available. Press "Check Latest Version" to apply.',
+    desktopIconTitle: "Blank desktop icon?",
+    desktopIconHelp: "Use the browser where you installed the app. In Chrome, open chrome://apps, right-click the app and select Create shortcuts. In Edge, open edge://apps, select Details for the app and choose Create desktop shortcut.",
+    update: 'Update latest version', updateAria: 'Clear cache and reload the latest version', updating: 'Clearing cache and reloading…',
+    newVersion: 'Version v{v} is available. Press "Update latest version" to apply.',
     verAria: 'Version info',
     mTitle: 'Antenna Selection', mSub: 'Use the filters to find the right antenna, or describe what you need to Quectel Antenna Agent.',
    
@@ -1178,8 +1182,10 @@ const I18N = {
   ja: {
     brand: 'Quectel アンテナ選定', langAria: '言語',
     themeDark: 'ダーク', themeLight: 'ライト', themeAriaDark: 'ダークモードに切り替え', themeAriaLight: 'ライトモードに切り替え',
-    update: '最新バージョンを確認', updateAria: 'キャッシュを削除して最新版を再読み込み', updating: 'キャッシュを削除して再読み込みしています…',
-    newVersion: '新しいバージョン v{v} があります。「最新バージョンを確認」を押して適用してください。',
+    desktopIconTitle: "デスクトップのアイコンが空白の場合",
+    desktopIconHelp: "インストールしたブラウザーで操作してください。Chrome は chrome://apps を開き、アプリを右クリックしてショートカットを作成します。Edge は edge://apps を開き、アプリの詳細からデスクトップ ショートカットを作成します。",
+    update: '最新版に更新', updateAria: 'キャッシュを削除して最新版を再読み込み', updating: 'キャッシュを削除して再読み込みしています…',
+    newVersion: '新しいバージョン v{v} があります。「最新版に更新」を押して適用してください。',
     verAria: 'バージョン情報',
     mTitle: 'アンテナ選定', mSub: '絞り込み条件で最適なアンテナを探すか、Quectel アンテナ Agent にご要望をお伝えください。',
    
@@ -1247,8 +1253,10 @@ const I18N = {
   ko: {
     brand: 'Quectel 안테나 선정', langAria: '언어',
     themeDark: '다크', themeLight: '라이트', themeAriaDark: '다크 모드로 전환', themeAriaLight: '라이트 모드로 전환',
-    update: '최신 버전 확인', updateAria: '캐시를 지우고 최신 버전을 다시 불러오기', updating: '캐시를 지우고 다시 불러오는 중…',
-    newVersion: '새 버전 v{v}을(를) 사용할 수 있습니다. "최신 버전 확인"을 눌러 적용하세요.',
+    desktopIconTitle: "바탕 화면 아이콘이 비어 있나요?",
+    desktopIconHelp: "앱을 설치한 브라우저에서 진행하세요. Chrome은 chrome://apps에서 앱을 오른쪽 클릭하여 바로가기를 만드세요. Edge는 edge://apps에서 앱의 세부 정보를 열고 바탕 화면 바로가기를 만드세요.",
+    update: '최신 버전으로 업데이트', updateAria: '캐시를 지우고 최신 버전을 다시 불러오기', updating: '캐시를 지우고 다시 불러오는 중…',
+    newVersion: '새 버전 v{v}을(를) 사용할 수 있습니다. "최신 버전으로 업데이트"을 눌러 적용하세요.',
     verAria: '버전 정보',
     mTitle: '안테나 선정', mSub: '필터로 알맞은 안테나를 찾거나, Quectel 안테나 Agent에게 필요한 내용을 알려 주세요.',
    
@@ -2077,6 +2085,11 @@ async function openVersion() {
           <dt>${esc(t('v_count'))}</dt><dd>${esc(t('v_countVal', { a: DATA.items.length, m: DATA.modules.length, c: DATA.items.reduce((n, p) => n + (p.certs || []).length, 0) }))}</dd>
         </dl>
         <button type="button" class="icon-btn" data-force>${esc(t('update'))}</button>
+        ${isStandalone() && /^Win/i.test(navigator.userAgentData?.platform || navigator.platform) ? `
+          <details>
+            <summary>${esc(t('desktopIconTitle'))}</summary>
+            <p>${esc(t('desktopIconHelp'))}</p>
+          </details>` : ''}
       </div>`;
   };
   render(esc(t('checking')));
@@ -2504,7 +2517,7 @@ const GUIDE = {
    ],
    [
     "資料好像不是最新的？",
-    "連上網路後，點右上角的版本號，在版本資訊中按「檢查最新版本」。"
+    "連上網路後，點右上角的版本號，在版本資訊中按「更新至最新版本」。"
    ],
    [
     "Datasheet 打不開？",
@@ -2592,7 +2605,7 @@ const GUIDE = {
    ],
    [
     "The data looks out of date?",
-    "Go online, tap the version number at the top right, then tap Check Latest Version in Version info."
+    "Go online, tap the version number at the top right, then tap Update latest version in Version info."
    ],
    [
     "The datasheet won't open?",
@@ -2680,7 +2693,7 @@ const GUIDE = {
    ],
    [
     "データが古いようだ",
-    "オンラインで右上のバージョン番号をタップし、バージョン情報の「最新バージョンを確認」を押してください。"
+    "オンラインで右上のバージョン番号をタップし、バージョン情報の「最新版に更新」を押してください。"
    ],
    [
     "データシートが開かない",
@@ -2768,7 +2781,7 @@ const GUIDE = {
    ],
    [
     "데이터가 최신이 아닌 것 같습니다",
-    "온라인 상태에서 오른쪽 위의 버전 번호를 누르고, 버전 정보에서 \"최신 버전 확인\"을 누르세요."
+    "온라인 상태에서 오른쪽 위의 버전 번호를 누르고, 버전 정보에서 \"최신 버전으로 업데이트\"을 누르세요."
    ],
    [
     "데이터시트가 열리지 않습니다",
