@@ -386,6 +386,8 @@ dialog.guide-dlg::backdrop { background: rgba(10, 18, 24, .5); }
 .ver-grid dt { color: var(--muted); }
 .ver-grid dd { margin: 0; font-weight: 500; overflow-wrap: anywhere; }
 .ver-grid a { color: var(--accent); text-decoration: none; }
+.ver-site .icon-btn { margin-top: 6px; }
+.ver-site [role="status"] { margin-inline-start: 8px; color: var(--muted); }
 .ver-grid a:hover, .ver-grid a:focus-visible { text-decoration: underline; }
 .ok { color: var(--accent); }
 dialog.detail.small { width: min(560px, calc(100vw - 24px)); }
@@ -1120,6 +1122,7 @@ const I18N = {
     photoAria: '放大檢視 {oc} 的照片',
     modMulti: '可選多個', modAdd: '＋ 新增模組', modBoth: '同時通過 {k} 個模組 TELEC 認證的天線：<b>{n}</b> 款', modNoneMulti: '沒有同時通過這些模組認證的天線', cmpAdd: '比較', cmpAria: '將 {oc} 加入比較', cmpBar: '已選 {n} 款', cmpGo: '比較', cmpClear: '清除', cmpMax: '最多比較 6 款天線', cmpNeed2: '至少選 2 款才能比較', cmpTitle: '比較 {n} 款天線', cmpTitleC: '比較 {n} 款線材與接頭', cmpMaxC: '最多比較 6 款線材與接頭', cmpAll: '全部欄位', cmpDiff: '只看差異', cmpCommon: '共同 TELEC 認證模組（{n}）', cmpNone: '沒有共同的 TELEC 認證模組', cmpRm: '從比較中移除 {oc}', cmpCerts: 'TELEC 認證模組數', cmpCertsN: '{n} 個', cmpSame: '所有欄位都相同',
     v_author: '製作者',
+    v_website: '工具網址',
     menu: '更多功能',
     moreFilters: '更多條件', kl_size: '尺寸',
     s_ip: 'IP 等級',
@@ -1193,6 +1196,7 @@ const I18N = {
     photoAria: 'View a larger photo of {oc}',
     modMulti: 'select several', modAdd: '+ Add module', modBoth: 'Antennas certified with all {k} modules: <b>{n}</b>', modNoneMulti: 'No antenna is certified with all of these modules', cmpAdd: 'Compare', cmpAria: 'Add {oc} to compare', cmpBar: '{n} selected', cmpGo: 'Compare', cmpClear: 'Clear', cmpMax: 'You can compare up to 6 antennas', cmpNeed2: 'Select at least 2 antennas to compare', cmpTitle: 'Compare {n} antennas', cmpTitleC: 'Compare {n} cables & connectors', cmpMaxC: 'You can compare up to 6 cables & connectors', cmpAll: 'All rows', cmpDiff: 'Differences only', cmpCommon: 'Common TELEC-certified modules ({n})', cmpNone: 'No TELEC-certified module in common', cmpRm: 'Remove {oc} from compare', cmpCerts: 'TELEC-certified modules', cmpCertsN: '{n}', cmpSame: 'All rows are identical',
     v_author: 'Created by',
+    v_website: 'App website',
     menu: 'More',
     moreFilters: 'More filters', kl_size: 'Size',
     s_ip: 'IP rating',
@@ -1264,6 +1268,7 @@ const I18N = {
     photoAria: '{oc} の写真を拡大表示',
     modMulti: '複数選択可', modAdd: '＋ モジュールを追加', modBoth: '{k} つのモジュールすべてで TELEC 認証済みのアンテナ：<b>{n}</b> 件', modNoneMulti: 'これらすべてのモジュールで認証済みのアンテナはありません', cmpAdd: '比較', cmpAria: '{oc} を比較に追加', cmpBar: '{n} 件選択中', cmpGo: '比較', cmpClear: 'クリア', cmpMax: '比較できるのは 6 件までです', cmpNeed2: '比較するには 2 件以上選んでください', cmpTitle: '{n} 件のアンテナを比較', cmpTitleC: '{n} 件のケーブル・コネクタを比較', cmpMaxC: '比較できるのは 6 件までです', cmpAll: 'すべての項目', cmpDiff: '違いのみ', cmpCommon: '共通の TELEC 認証モジュール（{n}）', cmpNone: '共通の TELEC 認証モジュールはありません', cmpRm: '{oc} を比較から外す', cmpCerts: 'TELEC 認証モジュール数', cmpCertsN: '{n} 件', cmpSame: 'すべての項目が同じです',
     v_author: '制作者',
+    v_website: 'ツールのウェブサイト',
     menu: 'その他',
     moreFilters: 'その他の条件', kl_size: '寸法',
     s_ip: 'IP 等級',
@@ -1335,6 +1340,7 @@ const I18N = {
     photoAria: '{oc} 사진 크게 보기',
     modMulti: '여러 개 선택 가능', modAdd: '+ 모듈 추가', modBoth: '모듈 {k}개 모두 TELEC 인증을 받은 안테나: <b>{n}</b>개', modNoneMulti: '이 모듈 모두와 인증된 안테나가 없습니다', cmpAdd: '비교', cmpAria: '{oc} 비교에 추가', cmpBar: '{n}개 선택됨', cmpGo: '비교', cmpClear: '지우기', cmpMax: '최대 6개까지 비교할 수 있습니다', cmpNeed2: '비교하려면 2개 이상 선택하세요', cmpTitle: '안테나 {n}개 비교', cmpTitleC: '케이블·커넥터 {n}개 비교', cmpMaxC: '최대 6개까지 비교할 수 있습니다', cmpAll: '모든 항목', cmpDiff: '차이만 보기', cmpCommon: '공통 TELEC 인증 모듈 ({n})', cmpNone: '공통 TELEC 인증 모듈이 없습니다', cmpRm: '{oc} 비교에서 제거', cmpCerts: 'TELEC 인증 모듈 수', cmpCertsN: '{n}개', cmpSame: '모든 항목이 같습니다',
     v_author: '제작자',
+    v_website: '도구 웹사이트',
     menu: '더보기',
     moreFilters: '추가 조건', kl_size: '크기',
     s_ip: 'IP 등급',
@@ -2086,6 +2092,7 @@ async function checkForUpdate() {
   return latest;
 }
 async function openVersion() {
+  const website = appUrl();
   const swActive = !!navigator.serviceWorker?.controller;
   const render = (latestTxt) => {
     $('verDialog').innerHTML = `
@@ -2095,6 +2102,11 @@ async function openVersion() {
         <dl class="ver-grid">
           <dt>${esc(t('v_app'))}</dt><dd>v${esc(APP_VERSION)}</dd>
           <dt>${esc(t('v_author'))}</dt><dd>${esc(APP_AUTHOR)} <a href="mailto:${esc(APP_AUTHOR_EMAIL)}">${esc(APP_AUTHOR_EMAIL)}</a></dd>
+          ${website ? `<dt>${esc(t('v_website'))}</dt><dd class="ver-site">
+            <a href="${esc(website)}" target="_blank" rel="noopener">${esc(website)}</a><br>
+            <button type="button" class="icon-btn" data-copy-website>${esc(t('copyLink'))}</button>
+            <span role="status" data-website-status></span>
+          </dd>` : ''}
           <dt>${esc(t('v_latest'))}</dt><dd id="verLatest">${latestTxt}</dd>
           <dt>${esc(t('v_built'))}</dt><dd>${esc(DATA.built || '—')}</dd>
           <dt>${esc(t('v_sw'))}</dt><dd>${esc(t(swActive ? 'swOn' : 'swOff'))}</dd>
@@ -2306,12 +2318,21 @@ function toast(msg, ms = 1800) {
   clearTimeout(toast._t); toast._t = setTimeout(() => el.classList.remove('show'), ms);
 }
 async function copyText(txt, msg) {
-  try { await navigator.clipboard.writeText(txt); toast(msg); }
+  let copied = false;
+  try { await navigator.clipboard.writeText(txt); copied = true; }
   catch {
-    const ta = document.createElement('textarea'); ta.value = txt; document.body.appendChild(ta); ta.select();
-    try { document.execCommand('copy'); toast(msg); } catch { toast(t('clipFail')); }
+    const focused = document.activeElement;
+    const ta = document.createElement('textarea');
+    ta.value = txt;
+    ta.className = 'sr-only';
+    (focused?.closest('dialog[open]') || document.body).appendChild(ta);
+    ta.select();
+    try { copied = document.execCommand('copy'); } catch { /* 剪貼簿不可用 */ }
     ta.remove();
+    focused?.focus({ preventScroll: true });
   }
+  if (msg) toast(copied ? msg : t('clipFail'));
+  return copied;
 }
 function update() { shown = PAGE_SIZE; renderAll(); }
 
@@ -2408,9 +2429,14 @@ $('detail').addEventListener('click', (e) => {
     else { $('detail').close(); state.q = oc; update(); toast(t('notOnPage')); }
   }
 });
-$('verDialog').addEventListener('click', (e) => {
+$('verDialog').addEventListener('click', async (e) => {
   if (e.target === $('verDialog') || e.target.closest('[data-close]')) { $('verDialog').close(); return; }
   if (e.target.closest('[data-force]')) forceUpdate();
+  if (e.target.closest('[data-copy-website]')) {
+    const status = $('verDialog').querySelector('[data-website-status]');
+    const copied = await copyText(appUrl());
+    status.textContent = t(copied ? 'linkCopied' : 'clipFail');
+  }
 });
 
 $('cmpGo').addEventListener('click', openCompare);
