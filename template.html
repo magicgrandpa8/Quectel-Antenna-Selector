@@ -339,6 +339,26 @@ dialog.guide-dlg::backdrop { background: rgba(10, 18, 24, .5); }
   font: inherit; font-weight: 500; padding: 6px 24px 6px 0; cursor: pointer;
 }
 .tool-btn.lang::after { content: "▾"; position: absolute; right: 9px; pointer-events: none; font-size: 11px; color: var(--muted); }
+/* 語言選擇：焦點沿外層圓角顯示，選項底色跟隨 App 主題。 */
+.tool-btn.lang select:focus-visible { outline: none; }
+.tool-btn.lang:has(select:focus-visible) { outline: 2px solid var(--accent); outline-offset: 2px; }
+.tool-btn.lang option { background-color: var(--surface); color: var(--ink); }
+
+@media (pointer: fine) {
+  @supports (appearance: base-select) and selector(select::picker(select)) {
+    .tool-btn.lang select, .tool-btn.lang select::picker(select) { appearance: base-select; }
+    .tool-btn.lang select::picker-icon { display: none; }
+    .tool-btn.lang select::picker(select) {
+      margin-top: 6px; min-inline-size: 9rem; padding: 4px;
+      border: 1px solid var(--rule); border-radius: 12px;
+      background-color: var(--surface); color: var(--ink);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, .24);
+    }
+    .tool-btn.lang option { padding: 6px 10px; border-radius: 6px; }
+    .tool-btn.lang option:checked, .tool-btn.lang option:hover,
+    .tool-btn.lang option:focus-visible { background-color: var(--accent-soft); color: var(--ink); }
+  }
+}
 /* 日文 / 韓文：使用對應語系字型，避免漢字字形混用 */
 :root:lang(ja) { --font: "IBM Plex Sans", "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic UI", "Meiryo", "Noto Sans CJK JP", "Noto Sans JP", system-ui, sans-serif; }
 :root:lang(ko) { --font: "IBM Plex Sans", "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans CJK KR", "Noto Sans KR", system-ui, sans-serif; }
