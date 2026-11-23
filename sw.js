@@ -18,15 +18,15 @@
 /** 開啟 App 時等待網路的上限 (毫秒)；超過即改用快取，確保開啟速度 */
 const NAV_TIMEOUT_MS = 3500;
 
-const CACHE_VERSION = 'antenna-selector-v3.27.1';
+const CACHE_VERSION = 'antenna-selector-v3.27.2';
 
 const APP_SHELL = [
   './',
   './index.html',
   './manifest.webmanifest',
-  './icon-192.png',
-  './icon-512.png',
-  './icon-maskable-512.png',
+  './quectel-icon-192.png',
+  './quectel-icon-512.png',
+  './quectel-icon-maskable-512.png',
   './apple-touch-icon.png',
   './screenshot-wide.png',
   './screenshot-narrow.png',
